@@ -1,0 +1,101 @@
+<div class="jqPlot" id="chart1" style="height:500px; width:1200px;"></div>
+<div class="jqPlot" id="chart2" style="height:200px; width:1200px;"></div>
+<script type="text/javascript">
+    <%
+    mov_avg_200_data = []
+    mov_avg_50_data = []
+    mov_avg_10_data = []
+    volume_data = []
+    ohlc_data = []
+    @quotes.each do |quote|
+        date_in_seconds = quote.date.strftime('%s').to_i * 1000
+        ohlc_data << [date_in_seconds, quote.open.to_f, quote.high.to_f, quote.low.to_f, quote.close.to_f]
+        volume_data << [date_in_seconds, quote.traded_quantity.to_f]
+        mov_avg_10_data << [date_in_seconds, quote.mov_avg_10d.to_f]
+        mov_avg_50_data << [date_in_seconds, quote.mov_avg_50d.to_f]
+        mov_avg_200_data << [date_in_seconds, quote.mov_avg_200d.to_f]
+    end
+    %>
+    var plot1, volume_plot;
+    $(function () {
+        var ohlc_data = <%= ohlc_data.to_json %>;
+        var volume_data = <%= volume_data.to_json %>;
+        var mov_avg_10_data = <%= mov_avg_10_data.to_json %>;
+        var mov_avg_50_data = <%= mov_avg_50_data.to_json %>;
+        var mov_avg_200_data = <%= mov_avg_200_data.to_json %>;
+
+        volume_plot = $.jqplot('chart2', [volume_data], {
+            axesDefaults: {pad:1.02},
+            series: [
+                {
+                    label: 'Volume',
+                    renderer:$.jqplot.BarRenderer,
+                    rendererOptions:{
+                        barWidth: 2,
+                        color: 'lightblue'},
+                    shadow: false
+                }],
+            axes: {
+                xaxis: {
+                    renderer:$.jqplot.DateAxisRenderer,
+                    tickOptions:{formatString:'%d/%m/%Y'}
+                }
+            },
+            legend: {
+                show: true,
+                placement:'outside',
+                location: 'e',
+                xoffset: 55
+            }
+        });
+        plot1 = $.jqplot('chart1', [ohlc_data,mov_avg_10_data, mov_avg_50_data, mov_avg_200_data], {
+            title: '<%=@stock.symbol%>',
+            axesDefaults: {pad:1.02},
+            series: [
+                {
+                    label: 'OHLC', renderer:$.jqplot.OHLCRenderer, color:'red'
+                },
+                { label: '10 Days Average', renderer:$.jqplot.LineRenderer, markerOptions: {show: false}, shadow: false},
+                { label: '50 Days Average', renderer:$.jqplot.LineRenderer, markerOptions: {show: false}, shadow: false},
+                { label: '200 Days Average', renderer:$.jqplot.LineRenderer, markerOptions: {show: false}, shadow: false}
+            ],
+            axes: {
+                xaxis: {
+                    renderer:$.jqplot.DateAxisRenderer,
+                    tickOptions:{formatString:'%d-%m-%Y'},
+                    autoscale: true,
+                    show: false,
+                    showLabel: false
+                },
+                yaxis: {
+                    tickOptions:{formatString:'%.2f'},
+                    autoscale: true
+                }
+            },
+            legend: {
+                show: true,
+                placement:'outside',
+                location: 'e',
+                xoffset: 55
+            },
+            cursor: {
+                show: true,
+                style: 'arrow',
+                followMouse: false,
+                showVerticalLine: true,
+                showHorizontalLine: true,
+                showTooltip: true,
+                tooltipLocation: 'se',
+                zoom: true,
+                dblClickReset: false,
+                showTooltipUnitPosition: true,
+                useAxesFormatters: true,
+                tooltipAxesGroups: ['yaxis'],
+                intersectionThreshold: 6
+            },
+            grid: {
+                drawGridlines: true
+            }
+        });
+    });
+</script>
