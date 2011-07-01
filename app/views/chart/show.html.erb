@@ -15,6 +15,8 @@
         mov_avg_50_data << [date_in_seconds, quote.mov_avg_50d.to_f]
         mov_avg_200_data << [date_in_seconds, quote.mov_avg_200d.to_f]
     end
+    min_date = @quotes.first.date.strftime('%s').to_i * 1000 - 72000000
+    max_date = @quotes.last.date.strftime('%s').to_i * 1000 + 108000000
     %>
     var plot1, volume_plot;
     $(function () {
@@ -34,18 +36,20 @@
                         barWidth: 2,
                         color: 'lightblue'},
                     shadow: false
-                }],
+                }
+            ],
             axes: {
                 xaxis: {
                     renderer:$.jqplot.DateAxisRenderer,
-                    tickOptions:{formatString:'%d/%m/%Y'}
+                    tickOptions:{formatString:'%d/%m/%Y'},
+                    min: <%= min_date %>,
+                    max: <%= max_date %>
                 }
             },
             legend: {
-                show: true,
+                show: false,
                 placement:'outside',
-                location: 'e',
-                xoffset: 55
+                location: 'ne'
             }
         });
         plot1 = $.jqplot('chart1', [ohlc_data,mov_avg_10_data, mov_avg_50_data, mov_avg_200_data], {
@@ -63,20 +67,25 @@
                 xaxis: {
                     renderer:$.jqplot.DateAxisRenderer,
                     tickOptions:{formatString:'%d-%m-%Y'},
-                    autoscale: true,
                     show: false,
-                    showLabel: false
+//                    rendererOptions: {show: false},
+                    showLabel: false,
+                    min: <%= min_date %>,
+                    max: <%= max_date %>
                 },
                 yaxis: {
                     tickOptions:{formatString:'%.2f'},
+                    pad:1.02,
                     autoscale: true
                 }
             },
             legend: {
+                renderer: $.jqplot.EnhancedLegendRenderer,
                 show: true,
                 placement:'outside',
-                location: 'e',
-                xoffset: 55
+                location: 'n',
+                rendererOptions: { numberRows: 1},
+                marginLeft: '700px'
             },
             cursor: {
                 show: true,
