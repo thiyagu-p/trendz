@@ -1,8 +1,7 @@
-namespace :import do
-  namespace :quote do
-    desc "Import Equity Quotes"
-    task :equity => :environment do
-      Importer::EquityBhav.new.import
-    end
+namespace :data do
+  desc "Import Equity Quotes"
+  task :sync => :environment do
+    Importer::SymbolChange.new.import
+    Importer::EquityBhav.new.import
   end
 end

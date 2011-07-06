@@ -1,7 +1,7 @@
 class ChartController < ApplicationController
 
   def index
-    @stocks = Stock.all
+    @stocks = Stock.order(:symbol)
   end
 
   def show

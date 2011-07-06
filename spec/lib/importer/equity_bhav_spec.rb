@@ -13,17 +13,17 @@ describe Importer::EquityBhav do
     it "should import start from next day of last available date upto current date" do
       EqQuote.expects(:maximum).returns(Date.parse('2/1/2010'))
       Date.stubs(:today).returns(Date.parse('2/4/2010'))
-      @http.expects(:request_get).with('/content/historical/EQUITIES/2010/FEB/cm02FEB2010bhav.csv.zip', {'User-Agent' => 'Firefox'}).returns(stub(:class => Net::HTTPNotFound))
-      @http.expects(:request_get).with('/content/historical/EQUITIES/2010/FEB/cm03FEB2010bhav.csv.zip', {'User-Agent' => 'Firefox'}).returns(stub(:class => Net::HTTPNotFound))
-      @http.expects(:request_get).with('/content/historical/EQUITIES/2010/FEB/cm04FEB2010bhav.csv.zip', {'User-Agent' => 'Firefox'}).returns(stub(:class => Net::HTTPNotFound))
+      @http.expects(:request_get).with('/content/historical/EQUITIES/2010/FEB/cm02FEB2010bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
+      @http.expects(:request_get).with('/content/historical/EQUITIES/2010/FEB/cm03FEB2010bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
+      @http.expects(:request_get).with('/content/historical/EQUITIES/2010/FEB/cm04FEB2010bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
       @importer.import
     end
 
     it "should import start from Jan 1, 2005 if no prior equity quote" do
       EqQuote.expects(:maximum).returns(nil)
       Date.stubs(:today).returns(Date.parse('1/2/2005'))
-      @http.expects(:request_get).with('/content/historical/EQUITIES/2005/JAN/cm01JAN2005bhav.csv.zip', {'User-Agent' => 'Firefox'}).returns(stub(:class => Net::HTTPNotFound))
-      @http.expects(:request_get).with('/content/historical/EQUITIES/2005/JAN/cm02JAN2005bhav.csv.zip', {'User-Agent' => 'Firefox'}).returns(stub(:class => Net::HTTPNotFound))
+      @http.expects(:request_get).with('/content/historical/EQUITIES/2005/JAN/cm01JAN2005bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
+      @http.expects(:request_get).with('/content/historical/EQUITIES/2005/JAN/cm02JAN2005bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
       @importer.import
     end
   end
@@ -37,7 +37,7 @@ describe Importer::EquityBhav do
       EqQuote.expects(:maximum).returns(Date.parse('6/23/2011'))
       Date.stubs(:today).returns(Date.parse('6/24/2011'))
       response = stub(:body => File.open('spec/data/cm24JUN2011bhav.csv.zip').read )
-      @http.expects(:request_get).with('/content/historical/EQUITIES/2011/JUN/cm24JUN2011bhav.csv.zip', {'User-Agent' => 'Firefox'}).returns(response)
+      @http.expects(:request_get).with('/content/historical/EQUITIES/2011/JUN/cm24JUN2011bhav.csv.zip', Importer::NseConnection.user_agent).returns(response)
       @importer.import
     end
 

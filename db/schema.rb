@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110626070937) do
+ActiveRecord::Schema.define(:version => 20110706150350) do
 
   create_table "eq_quotes", :force => true do |t|
     t.integer "stock_id"
@@ -27,6 +27,7 @@ ActiveRecord::Schema.define(:version => 20110626070937) do
   end
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
+  add_index "eq_quotes", ["stock_id", "date"], :name => "eq_quotes_stock_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
 
   create_table "stocks", :force => true do |t|
@@ -36,5 +37,7 @@ ActiveRecord::Schema.define(:version => 20110626070937) do
   end
 
   add_index "stocks", ["symbol"], :name => "index_stocks_on_symbol"
+
+  add_foreign_key "eq_quotes", "stocks", :name => "eq_quotes_stock_id_fk"
 
 end

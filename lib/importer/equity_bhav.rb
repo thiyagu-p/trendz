@@ -1,9 +1,9 @@
-require 'net/http'
 require 'zip/zipfilesystem'
 require 'csv'
 
 module Importer
   class EquityBhav
+    include NseConnection
 
     def parse_bhav_file(file_name, zip_file_name)
       begin
@@ -25,14 +25,13 @@ module Importer
 
     def import
       start_date = (EqQuote.maximum('date') or Date.parse('12/31/2004')) + 1
-      http = Net::HTTP.new(NSE_URL)
       (start_date .. Date.today).each do |date|
         Rails.logger.info "processing equity bhav for #{date}"
         month = date.strftime("%b").upcase
         file_name = "cm#{date.strftime("%d")}#{month}#{date.year}bhav.csv"
         zip_file_name = "#{file_name}.zip"
         file_path = "/content/historical/EQUITIES/#{date.year}/#{month}/#{zip_file_name}"
-        response = http.request_get(file_path, 'User-Agent'=>'Firefox')
+        response = get(file_path)
         next if response.class == Net::HTTPNotFound
         open("data/#{zip_file_name}", 'w') { |file| file << response.body }
         parse_bhav_file(file_name, zip_file_name)
