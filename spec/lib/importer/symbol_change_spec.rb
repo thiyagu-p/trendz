@@ -30,6 +30,9 @@ describe Importer::SymbolChange do
     before(:each) do
       @old_stock = Stock.create!(:symbol => 'BIRLA3M')
       @new_stock = Stock.create!(:symbol => '3MINDIA')
+      @today = Date.parse('15-JUN-2004')
+      @yesterday = Date.parse('14-JUN-2004')
+      Date.stubs(:today).returns(@today)
     end
 
     it "should have only new stock symbol" do
@@ -45,15 +48,28 @@ describe Importer::SymbolChange do
     end
 
     it "should merge new stocks equity quotes to old stock" do
-      EqQuote.create!(:stock => @old_stock, :date => Date.yesterday)
-      EqQuote.create!(:stock => @new_stock, :date => Date.today)
+      EqQuote.create!(:stock => @old_stock, :date => @yesterday)
+      EqQuote.create!(:stock => @new_stock, :date => @today)
 
       @importer.import
 
       EqQuote.find_all_by_stock_id(@new_stock.id).size.should == 0
       EqQuote.find_all_by_stock_id(@old_stock.id).size.should == 2
-      EqQuote.find_by_stock_id_and_date(@old_stock.id, Date.yesterday).should_not be_nil
-      EqQuote.find_by_stock_id_and_date(@old_stock.id, Date.today).should_not be_nil
+      EqQuote.find_by_stock_id_and_date(@old_stock.id, @yesterday).should_not be_nil
+      EqQuote.find_by_stock_id_and_date(@old_stock.id, @today).should_not be_nil
+    end
+
+    it "should recalculate moving averages for quotes merged from new stock" do
+      EqQuote.create!(:stock => @old_stock, :date => @yesterday, :close => 10)
+      original_moving_avg = 1000
+      EqQuote.create!(:stock => @new_stock, :date => @today, :close => 20, :mov_avg_10d => original_moving_avg, :mov_avg_50d => original_moving_avg, :mov_avg_200d => original_moving_avg)
+
+      @importer.import
+
+      quote = EqQuote.find_by_stock_id_and_date(@old_stock.id, @today)
+      quote.mov_avg_10d.should_not == original_moving_avg
+      quote.mov_avg_50d.should_not == original_moving_avg
+      quote.mov_avg_200d.should_not == original_moving_avg
     end
   end
 

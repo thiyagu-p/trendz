@@ -17,17 +17,18 @@ module Importer
         symbol_changes.each do |hash|
           stock = Stock.find_by_symbol(hash[:symbol])
           next unless stock
-          migrate_new_stock_references_and_delete(stock, hash[:new_symbol])
+          migrate_new_stock_references_and_delete(stock, hash[:new_symbol], hash[:date])
           stock.update_attribute(:symbol, hash[:new_symbol])
         end
       end
     end
 
-    def migrate_new_stock_references_and_delete(stock, new_symbol)
+    def migrate_new_stock_references_and_delete(stock, new_symbol, from_date)
       new_stock = Stock.find_by_symbol(new_symbol)
       return unless new_stock
       EqQuote.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
       new_stock.delete
+      (from_date .. Date.today).each {|date| MovingAverageCalculator.update(date, stock)}
     end
 
 
