@@ -18,7 +18,6 @@
     end
     min_date = @quotes.first.date.strftime('%s').to_i * 1000 - 72000000
     max_date = @quotes.last.date.strftime('%s').to_i * 1000 + 108000000
-    trend_data =[[ohlc_data.first.first,ohlc_data.first.last],[ohlc_data.last.first,ohlc_data.last.last]]
     %>
     var plot1, volume_plot;
     $(function () {
@@ -27,7 +26,6 @@
         var mov_avg_10_data = <%= mov_avg_10_data.to_json %>;
         var mov_avg_50_data = <%= mov_avg_50_data.to_json %>;
         var mov_avg_200_data = <%= mov_avg_200_data.to_json %>;
-        var trend_data = <%= trend_data.to_json %>;
 
         volume_plot = $.jqplot('chart2', [volume_data], {
             axesDefaults: {pad:1.02},
@@ -62,14 +60,7 @@
                 { label: 'OHLC', renderer:$.jqplot.OHLCRenderer, color:'red' },
                 { label: '10 Days Average', renderer:$.jqplot.LineRenderer, markerOptions: {show: false}, shadow: false},
                 { label: '50 Days Average', renderer:$.jqplot.LineRenderer, markerOptions: {show: false}, shadow: false},
-                { label: '200 Days Average', renderer:$.jqplot.LineRenderer, markerOptions: {show: false}, shadow: false},
-                { label: 'Trend line', renderer:$.jqplot.LineRenderer,              markerOptions:{style:'diamond'},
-                    dragable: {
-                        color: '#ff3366'
-//                        constrainTo: 'x'
-                    },
-                    isDragable: true
-                }
+                { label: '200 Days Average', renderer:$.jqplot.LineRenderer, markerOptions: {show: false}, shadow: false}
             ],
             axes: {
                 xaxis: {
