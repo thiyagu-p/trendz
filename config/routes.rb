@@ -4,7 +4,7 @@ Trendz::Application.routes.draw do
 
   root :to => 'chart#index'
 
-  match 'chart/:id' => 'chart#show'
+  match 'chart/:symbol' => 'chart#show'
 
   # Sample of regular route:
   #   match 'products/:id' => 'catalog#view'

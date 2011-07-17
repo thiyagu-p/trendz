@@ -1,14 +1,21 @@
 <div>
-  <span> StockCode :</span> <%= select_tag(:stockcode, options_for_select(@stocks.inject([]) { |arr, stock| arr << [stock.symbol, stock.id] })) %>
-  <%= submit_tag('Chart', :id => 'chart_button') %>
+  <label>StockCode >
+    <input id="stockcode"/>
+  </label>
 </div>
 <div id="data_area"></div>
 <script type="text/javascript">
-    $('#chart_button').bind('click', function(event) {
-        var stock_id = $('#stockcode option:selected')[0].value;
-        $.get('/chart/'+stock_id, function(data) {
-            $('#data_area').html(data);
+    $(document).ready(function() {
+        $("input#stockcode").autocomplete({
+            source: [<%= @stocks.collect!{ |s| "'#{s.symbol}'" }.join(',') %>],
+            select: function(event) {
+                var stock_id = $('#stockcode').val();
+                $.get('/chart/' + stock_id, function(data) {
+                    $('#data_area').html(data);
+                });
+                event.preventDefault();
+            }
         });
-        event.preventDefault();
     });
+
 </script>

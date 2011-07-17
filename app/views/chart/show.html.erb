@@ -1,3 +1,4 @@
+<button id="toggle_cursor">Toggle Cursor</button>
 <div class="jqPlot" id="chart1" style="height:500px; width:1200px;"></div>
 <div class="jqPlot" id="chart2" style="height:200px; width:1200px;"></div>
 <script type="text/javascript">
@@ -64,10 +65,10 @@
                 { label: '200 Days Average', renderer:$.jqplot.LineRenderer, markerOptions: {show: false}, shadow: false},
                 { label: 'Trend line', renderer:$.jqplot.LineRenderer,              markerOptions:{style:'diamond'},
                     dragable: {
-                        color: '#ff3366',
-                        constrainTo: 'x'
+                        color: '#ff3366'
+//                        constrainTo: 'x'
                     },
-                    isDragable: true,
+                    isDragable: true
                 }
             ],
             axes: {
@@ -113,4 +114,8 @@
             }
         });
     });
+     $('#toggle_cursor').button();
+     $('#toggle_cursor').bind('click',function() {
+        plot1.plugins.cursor.show= !plot1.plugins.cursor.show;
+     })
 </script>
