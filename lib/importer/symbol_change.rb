@@ -7,7 +7,7 @@ module Importer
     def parse_csv(data)
       symbol_changes = []
       header = true
-      CSV::Reader.parse(data) do |line|
+      CSV.parse(data) do |line|
         (header = false; next) if header
         break if line.size < 4
         symbol_changes << {:date => line[3].to_date, :symbol => line[1], :new_symbol => line[2]}

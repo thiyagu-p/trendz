@@ -1,4 +1,4 @@
-require 'spec/spec_helper.rb'
+require 'spec_helper'
 require 'zip/zipfilesystem'
 
 describe Importer::EquityBhav do
@@ -11,8 +11,8 @@ describe Importer::EquityBhav do
     end
 
     it "should import start from next day of last available date upto current date" do
-      EqQuote.expects(:maximum).returns(Date.parse('2/1/2010'))
-      Date.stubs(:today).returns(Date.parse('2/4/2010'))
+      EqQuote.expects(:maximum).returns(Date.parse('1/2/2010'))
+      Date.stubs(:today).returns(Date.parse('4/2/2010'))
       @http.expects(:request_get).with('/content/historical/EQUITIES/2010/FEB/cm02FEB2010bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
       @http.expects(:request_get).with('/content/historical/EQUITIES/2010/FEB/cm03FEB2010bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
       @http.expects(:request_get).with('/content/historical/EQUITIES/2010/FEB/cm04FEB2010bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
@@ -21,7 +21,7 @@ describe Importer::EquityBhav do
 
     it "should import start from Jan 1, 2005 if no prior equity quote" do
       EqQuote.expects(:maximum).returns(nil)
-      Date.stubs(:today).returns(Date.parse('1/2/2005'))
+      Date.stubs(:today).returns(Date.parse('2/1/2005'))
       @http.expects(:request_get).with('/content/historical/EQUITIES/2005/JAN/cm01JAN2005bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
       @http.expects(:request_get).with('/content/historical/EQUITIES/2005/JAN/cm02JAN2005bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
       @importer.import
@@ -34,9 +34,9 @@ describe Importer::EquityBhav do
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @importer = Importer::EquityBhav.new
-      EqQuote.expects(:maximum).returns(Date.parse('6/23/2011'))
-      Date.stubs(:today).returns(Date.parse('6/24/2011'))
-      response = stub(:body => File.open('spec/data/cm24JUN2011bhav.csv.zip').read )
+      EqQuote.expects(:maximum).returns(Date.parse('23/6/2011'))
+      Date.stubs(:today).returns(Date.parse('24/6/2011'))
+      response = stub(:body => File.open('spec/sample/cm24JUN2011bhav.csv.zip').read )
       @http.expects(:request_get).with('/content/historical/EQUITIES/2011/JUN/cm24JUN2011bhav.csv.zip', Importer::NseConnection.user_agent).returns(response)
       @importer.import
     end

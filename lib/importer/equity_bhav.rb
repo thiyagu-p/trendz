@@ -9,7 +9,7 @@ module Importer
       begin
         Stock.transaction do
           Zip::ZipFile.open("data/#{zip_file_name}") do |zipfile|
-            CSV::Reader.parse(zipfile.file.read(file_name)) do |line|
+            CSV.parse(zipfile.file.read(file_name)) do |line|
               next unless line[1] =~ /EQ|BE|DR/
               stock = Stock.find_or_create_by_symbol(line[0])
               date = line[10].to_date
@@ -24,7 +24,7 @@ module Importer
     end
 
     def import
-      start_date = (EqQuote.maximum('date') or Date.parse('12/31/2004')) + 1
+      start_date = (EqQuote.maximum('date') or Date.parse('31/12/2004')) + 1
       (start_date .. Date.today).each do |date|
         Rails.logger.info "processing equity bhav for #{date}"
         month = date.strftime("%b").upcase
@@ -33,7 +33,7 @@ module Importer
         file_path = "/content/historical/EQUITIES/#{date.year}/#{month}/#{zip_file_name}"
         response = get(file_path)
         next if response.class == Net::HTTPNotFound
-        open("data/#{zip_file_name}", 'w') { |file| file << response.body }
+        open("data/#{zip_file_name}", 'wb') { |file| file << response.body }
         parse_bhav_file(file_name, zip_file_name)
       end
     end

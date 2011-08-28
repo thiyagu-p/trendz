@@ -53,7 +53,7 @@
                 location: 'ne'
             }
         });
-        plot1 = $.jqplot('chart1', [ohlc_data,mov_avg_10_data, mov_avg_50_data, mov_avg_200_data, trend_data], {
+        plot1 = $.jqplot('chart1', [ohlc_data,mov_avg_10_data, mov_avg_50_data, mov_avg_200_data], {
             title: '<%=@stock.symbol%>',
             axesDefaults: {pad:1.02},
             series: [
