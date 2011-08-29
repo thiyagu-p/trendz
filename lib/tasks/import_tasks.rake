@@ -3,5 +3,6 @@ namespace :data do
   task :sync => :environment do
     Importer::SymbolChange.new.import
     Importer::EquityBhav.new.import
+    Importer::FoBhav.new.import
   end
 end

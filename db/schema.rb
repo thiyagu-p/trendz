@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110706150350) do
+ActiveRecord::Schema.define(:version => 20110828135611) do
 
   create_table "eq_quotes", :force => true do |t|
     t.integer "stock_id"
@@ -28,6 +28,24 @@ ActiveRecord::Schema.define(:version => 20110706150350) do
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
+
+  create_table "fo_quotes", :force => true do |t|
+    t.integer "stock_id"
+    t.decimal "open",                                 :precision => 8,  :scale => 2
+    t.decimal "high",                                 :precision => 8,  :scale => 2
+    t.decimal "low",                                  :precision => 8,  :scale => 2
+    t.decimal "close",                                :precision => 8,  :scale => 2
+    t.decimal "strike_price",                         :precision => 8,  :scale => 2
+    t.decimal "traded_quantity",                      :precision => 10, :scale => 2
+    t.decimal "open_interest",                        :precision => 10, :scale => 2
+    t.decimal "change_in_open_interest",              :precision => 10, :scale => 2
+    t.date    "date"
+    t.date    "expiry_date"
+    t.string  "fo_type",                 :limit => 2
+    t.string  "expiry_series",           :limit => 7
+  end
+
+  add_index "fo_quotes", ["stock_id"], :name => "index_fo_quotes_on_stock_id"
 
   create_table "stocks", :force => true do |t|
     t.string "symbol"
