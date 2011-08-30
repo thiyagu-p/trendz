@@ -66,6 +66,7 @@ describe Importer::EquityBhav do
 
     it "should handle new stock codes" do
       Stock.count.should == 3
+      Stock.find_by_symbol('20MICRONS').series.should == Stock::Series::EQUITY
     end
 
   end

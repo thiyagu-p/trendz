@@ -27,6 +27,7 @@ module Importer
       new_stock = Stock.find_by_symbol(new_symbol)
       return unless new_stock
       EqQuote.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
+      FoQuote.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
       new_stock.delete
       (from_date .. Date.today).each {|date| MovingAverageCalculator.update(date, stock)}
     end
