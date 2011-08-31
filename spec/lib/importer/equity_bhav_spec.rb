@@ -19,11 +19,11 @@ describe Importer::EquityBhav do
       @importer.import
     end
 
-    it "should import start from Jan 1, 2005 if no prior equity quote" do
+    it "should import start from specified date if no prior equity quote" do
       EqQuote.expects(:maximum).returns(nil)
-      Date.stubs(:today).returns(Date.parse('2/1/2005'))
-      @http.expects(:request_get).with('/content/historical/EQUITIES/2005/JAN/cm01JAN2005bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-      @http.expects(:request_get).with('/content/historical/EQUITIES/2005/JAN/cm02JAN2005bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
+      Date.stubs(:today).returns(Date.parse('2/1/2007'))
+      @http.expects(:request_get).with('/content/historical/EQUITIES/2007/JAN/cm01JAN2007bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
+      @http.expects(:request_get).with('/content/historical/EQUITIES/2007/JAN/cm02JAN2007bhav.csv.zip', Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
       @importer.import
     end
   end

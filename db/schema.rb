@@ -27,6 +27,7 @@ ActiveRecord::Schema.define(:version => 20110828135611) do
   end
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
+  add_index "eq_quotes", ["stock_id", "date"], :name => "index_eq_quotes_on_stock_id_and_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
 
   create_table "fo_quotes", :force => true do |t|
@@ -36,8 +37,8 @@ ActiveRecord::Schema.define(:version => 20110828135611) do
     t.decimal "low",                                  :precision => 8,  :scale => 2
     t.decimal "close",                                :precision => 8,  :scale => 2
     t.decimal "strike_price",                         :precision => 8,  :scale => 2
-    t.decimal "traded_quantity",                      :precision => 10, :scale => 2
-    t.decimal "open_interest",                        :precision => 10, :scale => 2
+    t.decimal "traded_quantity",                      :precision => 14, :scale => 2
+    t.decimal "open_interest",                        :precision => 14, :scale => 2
     t.decimal "change_in_open_interest",              :precision => 10, :scale => 2
     t.date    "date"
     t.date    "expiry_date"

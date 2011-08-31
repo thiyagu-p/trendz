@@ -9,6 +9,14 @@ module Importer
         end
       end
 
+      def startdate(date)
+        class_eval do
+          define_method :startdate do
+            date
+          end
+        end
+      end
+
       def sub_path(folder_name)
         class_eval do
           define_method :sub_path do
@@ -41,7 +49,7 @@ module Importer
     end
 
     def import
-      start_date = (model.maximum('date') or Date.parse('31/12/2004')) + 1
+      start_date = (model.maximum('date') or Date.parse(startdate)) + 1
       (start_date .. Date.today).each do |date|
         Rails.logger.info "processing #{sub_path} bhav for #{date}"
         month = date.strftime("%b").upcase

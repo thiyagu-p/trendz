@@ -8,6 +8,8 @@ module Importer
     model FoQuote
     sub_path 'DERIVATIVES'
     file_name_prefix 'fo'
+    startdate '31/12/2009'
+
     @@stock_cache = {}
 
     def process_row(columns)
