@@ -4,6 +4,6 @@ namespace :data do
     Importer::SymbolChange.new.import
     Importer::EquityBhav.new.import
     Importer::FoBhav.new.import
-    Importer::YahooDate.new.import
+    Importer::YahooData.new.import
   end
 end
