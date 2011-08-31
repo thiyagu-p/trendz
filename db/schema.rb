@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110828135611) do
+ActiveRecord::Schema.define(:version => 20110831061840) do
 
   create_table "eq_quotes", :force => true do |t|
     t.integer "stock_id"
@@ -52,6 +52,7 @@ ActiveRecord::Schema.define(:version => 20110828135611) do
     t.string "symbol"
     t.string "series"
     t.date   "date"
+    t.string "yahoo_code", :limit => 15
   end
 
   add_index "stocks", ["symbol"], :name => "index_stocks_on_symbol"
