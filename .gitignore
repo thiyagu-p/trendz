@@ -5,3 +5,5 @@ tmp/
 .idea/
 data/
 db-backup/
+.DS_Store
+

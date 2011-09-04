@@ -1,0 +1,14 @@
+<%= content_tag(:table) do %>
+    <%= content_tag(:tr) do %>
+        <%= content_tag(:td, "Equity : ") %>
+        <%= content_tag(:td, "#{@eq_date}") %>
+    <% end %>
+    <%= content_tag(:tr) do %>
+        <%= content_tag(:td, "F&0 : ") %>
+        <%= content_tag(:td, "#{@fo_date}") %>
+    <% end %>
+    <%= content_tag(:tr) do %>
+        <%= content_tag(:td, "Index : ") %>
+        <%= content_tag(:td, "#{@index_date}") %>
+    <% end %>
+<% end %>

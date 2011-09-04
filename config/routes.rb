@@ -5,6 +5,12 @@ Trendz::Application.routes.draw do
   root :to => 'chart#index'
 
   match 'chart/:symbol' => 'chart#show'
+  match 'status' => 'status#show'
+
+  resources :stocks, :only => [:index] do
+    resource :eqQuote, :only => [:show]
+    resource :foQuote, :only => [:show]
+  end
 
   # Sample of regular route:
   #   match 'products/:id' => 'catalog#view'
