@@ -152,6 +152,7 @@
                     foTable.fnAddData(foData);
                     $("tfoot th").each(function (i) {
                         if (i < 5) {
+                            foTable.fnFilter('', i);
                             this.innerHTML = fnCreateSelect(foTable.fnGetColumnData(i));
                             $('select', this).change(function () {
                                 foTable.fnFilter($(this).val(), i);
