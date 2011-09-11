@@ -1,0 +1,87 @@
+<div>
+  <h3>Put/Call Ratio</h3>
+
+  <div id="chart_put_call_ratio" style="margin-top:20px; margin-left:20px; width:1000px; height:300px;"></div>
+  <div id="chart_total_oi" style="margin-top:20px; margin-left:20px; width:1000px; height:300px;"></div>
+  <div id="chart_total_volume" style="margin-top:20px; margin-left:20px; width:1000px; height:300px;"></div>
+  <div id="chart_price_movement" style="margin-top:20px; margin-left:20px; width:1000px; height:300px;"></div>
+</div>
+<%
+   min_date = (Date.parse(@ratio_data.first["date"]) - 5).to_s
+   max_date = (Date.parse(@ratio_data.last["date"]) + 5).to_s
+   put_call_ratio_data = []
+   volume_data = []
+   put_call_oi_ratio_data = []
+   oi_data = []
+   @ratio_data.collect do |row|
+       date = Date.parse(row["date"]).to_s
+       put_call_ratio_data << [date, (row["total_put"].to_f / row["total_call"].to_f).round(2)]
+       volume_data << [date, (row["total_put"].to_f + row["total_call"].to_f).round(2)]
+       put_call_oi_ratio_data << [date, (row["total_put_oi"].to_f / row["total_call_oi"].to_f).round(2)]
+       oi_data << [date, (row["total_put_oi"].to_f + row["total_call_oi"].to_f).round(2)]
+   end
+%>
+<script type="text/javascript">
+
+    put_call_ratio_data = <%=raw put_call_ratio_data  %>;
+    volume_data = <%=raw volume_data  %>;
+    put_call_oi_ratio_data = <%=raw put_call_oi_ratio_data  %>;
+    oi_data = <%=raw oi_data %>;
+
+
+    horizontal_line_data = <%=raw [[min_date, 1], [max_date, 1]]%>;
+    price_movement_data = <%=raw @price_movement%>;
+    var default_line_chart = function(id, data, series_params, start_date, end_date) {
+        $.jqplot(id, data, {
+            seriesDefaults:{
+                renderer: $.jqplot.LineRenderer,
+                markerOptions: {
+                    show: false
+                },
+                shadow: false
+            },
+
+            series: series_params,
+            axes: {
+                xaxis: {
+                    renderer:$.jqplot.DateAxisRenderer,
+                    tickOptions:{formatString:'%d/%m/%Y'},
+                    min: start_date,
+                    max: end_date
+                }
+            },
+            legend: {
+                show: true,
+                placement:'outside',
+                location: 'ne'
+            }
+        });
+
+    };
+    $(document).ready(function() {
+        $.jqplot.config.enablePlugins = true;
+        default_line_chart('chart_put_call_ratio',
+                [horizontal_line_data, put_call_ratio_data, put_call_oi_ratio_data],
+                [
+                    {label: 'Break even', color:'orange'},
+                    {label: 'Put/Call ratio', color:'#00749F'},
+                    {label: 'Put/Call OI ratio', color:'#85802b'}
+                ], "<%= min_date %>", "<%= max_date %>");
+        default_line_chart('chart_price_movement',
+                [price_movement_data],
+                [
+                    {label: 'Price Movement', color:'red'}
+                ], "<%= min_date %>", "<%= max_date %>");
+        default_line_chart('chart_total_oi',
+                [oi_data],
+                [
+                    {label: 'Total Open Interest', color:'red'}
+                ], "<%= min_date %>", "<%= max_date %>");
+        default_line_chart('chart_total_volume',
+                [volume_data],
+                [
+                    {label: 'Total Volume', color:'red'}
+                ], "<%= min_date %>", "<%= max_date %>");
+
+    });
+</script>

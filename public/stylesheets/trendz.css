@@ -1,4 +1,57 @@
 body {
     font-size: small;
     font-family: Monaco, Consolas, monospace ;
+    margin-top: 1px;
+}
+
+.fo_CE, .fo_CA {
+    background-color: #d1ffd1;
+    float: left;
+}
+
+.fo_PE, .fo_PA {
+    background-color: #ffc4c4;
+    float: left;
+}
+
+#navigation {
+    height: 31px;
+    padding-bottom: 10px;
+}
+
+#navigation ul,
+#navigation ul li {
+    float: left;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 28px;
+}
+
+#navigation ul {
+    height: 31px;
+    background: url('/images/navigation.png') repeat-x 0 -41px;
+}
+
+#navigation ul li a {
+    float: left;
+    display: block;
+    height: 31px;
+    padding: 0 8px;
+    color: #ccc;
+    text-decoration: none;
+    background: url('/images/navigation_s.png') no-repeat right top;
+}
+
+#navigation ul li.selected a {
+    color: #fff;
+}
+
+#navigation ul li.last a{
+    background-image: none;
+}
+
+#navigation ul li a:hover {
+    color: #fff;
 }

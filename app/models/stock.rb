@@ -5,4 +5,6 @@ class Stock < ActiveRecord::Base
     INDEX = 'i'
   end
 
+  has_many :fo_quotes
+  has_many :eq_quotes
 end
