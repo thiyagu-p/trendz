@@ -5,5 +5,6 @@ namespace :data do
     Importer::EquityBhav.new.import
     Importer::FoBhav.new.import
     Importer::YahooData.new.import
+    Importer::MarketActivityImporter.new.import
   end
 end

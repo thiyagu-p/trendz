@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110831061840) do
+ActiveRecord::Schema.define(:version => 20110912020322) do
 
   create_table "eq_quotes", :force => true do |t|
     t.integer "stock_id"
@@ -22,7 +22,7 @@ ActiveRecord::Schema.define(:version => 20110831061840) do
     t.decimal "mov_avg_10d",     :precision => 8,  :scale => 2
     t.decimal "mov_avg_50d",     :precision => 8,  :scale => 2
     t.decimal "mov_avg_200d",    :precision => 8,  :scale => 2
-    t.decimal "traded_quantity", :precision => 12, :scale => 2
+    t.decimal "traded_quantity", :precision => 16, :scale => 2
     t.date    "date"
   end
 
@@ -47,6 +47,32 @@ ActiveRecord::Schema.define(:version => 20110831061840) do
   end
 
   add_index "fo_quotes", ["stock_id"], :name => "index_fo_quotes_on_stock_id"
+
+  create_table "market_activities", :force => true do |t|
+    t.date    "date",                                                      :null => false
+    t.decimal "fii_buy_equity",             :precision => 14, :scale => 2
+    t.decimal "dii_buy_equity",             :precision => 14, :scale => 2
+    t.decimal "fii_sell_equity",            :precision => 14, :scale => 2
+    t.decimal "dii_sell_equity",            :precision => 14, :scale => 2
+    t.decimal "fii_index_futures_buy",      :precision => 14, :scale => 2
+    t.decimal "fii_index_futures_sell",     :precision => 14, :scale => 2
+    t.decimal "fii_index_options_buy",      :precision => 14, :scale => 2
+    t.decimal "fii_index_options_sell",     :precision => 14, :scale => 2
+    t.decimal "fii_index_futures_oi",       :precision => 14, :scale => 2
+    t.decimal "fii_index_futures_oi_value", :precision => 14, :scale => 2
+    t.decimal "fii_index_options_oi",       :precision => 14, :scale => 2
+    t.decimal "fii_index_options_oi_value", :precision => 14, :scale => 2
+    t.decimal "fii_stock_futures_buy",      :precision => 14, :scale => 2
+    t.decimal "fii_stock_futures_sell",     :precision => 14, :scale => 2
+    t.decimal "fii_stock_options_buy",      :precision => 14, :scale => 2
+    t.decimal "fii_stock_options_sell",     :precision => 14, :scale => 2
+    t.decimal "fii_stock_futures_oi",       :precision => 14, :scale => 2
+    t.decimal "fii_stock_futures_oi_value", :precision => 14, :scale => 2
+    t.decimal "fii_stock_options_oi",       :precision => 14, :scale => 2
+    t.decimal "fii_stock_options_oi_value", :precision => 14, :scale => 2
+  end
+
+  add_index "market_activities", ["date"], :name => "index_market_activities_on_date"
 
   create_table "stocks", :force => true do |t|
     t.string "symbol"
