@@ -17,21 +17,7 @@ module Importer
       start_date = MarketActivity.maximum('date', :conditions => 'fii_index_futures_buy is not null')
       start_date = Date.parse('2/1/2010') if start_date == nil
       (start_date .. Date.today).each do |date|
-        xls_url = "http://www.nseindia.com/content/fo/fii_stats_#{date.strftime('%d-%b-%Y')}.xls"
-        Rails.logger.info "Processing F&O market data - #{date} : #{xls_url}"
-        market_activity = MarketActivity.find_by_date(date)
-        next unless market_activity
-        excel = Excel.new(xls_url) rescue next
-        excel.default_sheet = excel.sheets.first
-        4.upto(7) do |row|
-          next unless excel.cell(row, 'A') =~ /INDEX|STOCK/
-          row_downcase_gsub = excel.cell(row, 'A').downcase!.gsub!(' ', '_')
-          market_activity.update_attribute("fii_#{row_downcase_gsub}_buy", excel.cell(row, 'C'))
-          market_activity.update_attribute("fii_#{row_downcase_gsub}_sell", excel.cell(row, 'E'))
-          market_activity.update_attribute("fii_#{row_downcase_gsub}_oi", excel.cell(row, 'F'))
-          market_activity.update_attribute("fii_#{row_downcase_gsub}_oi_value", excel.cell(row, 'G'))
-        end
-        market_activity.save!
+        import_and_save_data_for(date)
       end
     end
 
@@ -49,6 +35,26 @@ module Importer
         market_activity = MarketActivity.find_or_create_by_date(Date.parse(row[1]))
         market_activity.update_attribute("#{row[0].downcase}_buy_equity", row[2])
         market_activity.update_attribute("#{row[0].downcase}_sell_equity", row[3])
+        market_activity.save!
+      end
+    end
+
+    private
+    def import_and_save_data_for(date)
+      xls_url = "http://www.nseindia.com/content/fo/fii_stats_#{date.strftime('%d-%b-%Y')}.xls"
+      Rails.logger.info "Processing F&O market data - #{date} : #{xls_url}"
+      market_activity = MarketActivity.find_by_date(date)
+      if market_activity
+        excel = Excel.new(xls_url) rescue return
+        excel.default_sheet = excel.sheets.first
+        4.upto(7) do |row|
+          next unless excel.cell(row, 'A') =~ /INDEX|STOCK/
+          row_downcase_gsub = excel.cell(row, 'A').downcase!.gsub!(' ', '_')
+          market_activity.update_attribute("fii_#{row_downcase_gsub}_buy", excel.cell(row, 'C'))
+          market_activity.update_attribute("fii_#{row_downcase_gsub}_sell", excel.cell(row, 'E'))
+          market_activity.update_attribute("fii_#{row_downcase_gsub}_oi", excel.cell(row, 'F'))
+          market_activity.update_attribute("fii_#{row_downcase_gsub}_oi_value", excel.cell(row, 'G'))
+        end
         market_activity.save!
       end
     end
