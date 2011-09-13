@@ -5,15 +5,26 @@
   <%= stylesheet_link_tag 'demo_table_jui', 'jquery.jqplot.min', 'smoothness/jquery-ui-1.8.16.custom', 'trendz' %>
   <%= javascript_include_tag 'jquery', 'jquery.jqplot', 'jqplot.barRenderer.min', 'jqplot.cursor.min',
                              'jqplot.dateAxisRenderer.min', 'application', 'jqplot.highlighter.min', 'jqplot.bubbleRenderer.min',
-                             'jqplot.ohlcRenderer.min', 'jqplot.enhancedLegendRenderer.min', 'jqplot.dragable.min', 'jquery-ui-1.8.16.custom.min', 'jquery.dataTables.min' %>
+                             'jqplot.ohlcRenderer.min', 'jqplot.enhancedLegendRenderer.min', 'jqplot.dragable.min', 'jquery-ui-1.8.16.custom.min', 'jquery.dataTables.min', 'jqplot.categoryAxisRenderer.min', 'jqplot.pointLabels.min' %>
   <%= csrf_meta_tag %>
 </head>
 <body>
 <div id="navigation">
-<ul><li><a href="/">Equity Chart</a></li></ul>
-<ul><li><a href="<%= stocks_path%>">Data</a></li></ul>
-<ul><li><a href="<%= fo_charts_path%>">F&O Charts</a></li></ul>
-<ul><li><a href="<%= status_path%>">Status</a></li></ul>
+  <ul>
+    <li><a href="/">Equity Chart</a></li>
+  </ul>
+  <ul>
+    <li><a href="<%= stocks_path %>">Data</a></li>
+  </ul>
+  <ul>
+    <li><a href="<%= fo_charts_path %>">F&O Charts</a></li>
+  </ul>
+  <ul>
+    <li><a href="<%= market_activity_path %>">Market Activity</a></li>
+  </ul>
+  <ul>
+    <li><a href="<%= status_path %>">Import Status</a></li>
+  </ul>
 </div>
 <div class="clear"></div>
 <%= yield %>

@@ -9,6 +9,7 @@ Trendz::Application.routes.draw do
   match 'fo_charts' => 'fo_charts#index'
   match 'fo_charts/data/:symbol' => 'fo_charts#show_data'
   match 'fo_charts/ratio/:symbol' => 'fo_charts#show_ratio'
+  match 'market_activity' => 'market_activity#chart'
 
   resources :stocks, :only => [:index] do
     resource :eqQuote, :only => [:show]

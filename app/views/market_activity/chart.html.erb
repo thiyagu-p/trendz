@@ -1,0 +1,107 @@
+<div class="jqPlot" id="chart1" style="height:500px; width:1200px;"></div>
+<div class="jqPlot" id="chart2" style="height:500px; width:1200px;"></div>
+<script type="text/javascript" language="javascript">
+
+    var plot1, plot2;
+    $(document).ready(function() {
+        $.jqplot.config.enablePlugins = true;
+        <%
+          start_date = (@market_activities.first.date - 1).to_s
+          end_date = (@market_activities.last.date + 5).to_s
+
+          quotes = @nifty_quotes.inject([]) {|arr, quote| arr << [quote.date, quote.close.to_f]}
+          fii_fo_index_activities = []
+          fii_fo_stock_activities = []
+          equity_fii = []
+          equity_dii = []
+            @market_activities.each do |market_activity|
+               date_in_seconds = market_activity.date
+               equity_fii << [date_in_seconds, market_activity.equity_fii.to_f]
+               equity_dii << [date_in_seconds, market_activity.equity_dii.to_f]
+               fii_fo_index_activities << [date_in_seconds, market_activity.fo_index_fii.to_f]
+               fii_fo_stock_activities << [date_in_seconds, market_activity.fo_stock_fii.to_f]
+            end
+        %>
+
+        var equity_dii = <%=raw equity_dii.to_json %>;
+        var equity_fii = <%=raw equity_fii.to_json %>;
+        var fii_fo_index = <%=raw fii_fo_index_activities.to_json %>;
+        var fii_fo_stock = <%=raw fii_fo_stock_activities.to_json %>;
+        var quotes = <%=raw quotes.to_json %>;
+
+        plot1 = $.jqplot('chart1', [equity_fii, equity_dii, quotes], {
+            stackSeries: false,
+            title:'Market Activities by both FII & DII on Equity',
+            axes:{
+                xaxis:{renderer:$.jqplot.DateAxisRenderer, min: '<%=start_date%>', max: '<%=end_date%>'},
+                y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
+            },
+            legend: {
+                renderer: $.jqplot.EnhancedLegendRenderer,
+                show:true,
+                location: 'se',
+                placement:'outside',
+                yoffset: 30,
+                rendererOptions:{
+                    numberRows: 2
+                }
+            },
+            grid: {
+                drawGridLines: true,
+                gridLineColor: '#cccccc',
+                background: '#ffffff'
+            },
+            series:[
+                {label: 'FII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5}},
+                {label: 'DII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5}},
+                {label: 'NIFTY', yaxis: 'y2axis'}
+            ],
+            highlighter: {
+                show: true,
+                sizeAdjust: 7.5,
+                yvalues: 1
+            },
+            cursor: {
+                show:false
+            }
+        });
+
+        plot2 = $.jqplot('chart2', [equity_fii, fii_fo_index, fii_fo_stock, quotes], {
+            stackSeries: false,
+            title:'Market Activities by FII',
+            axes:{
+                xaxis:{renderer:$.jqplot.DateAxisRenderer, min: '<%=start_date%>', max: '<%=end_date%>'},
+                y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
+            },
+            legend: {
+                renderer: $.jqplot.EnhancedLegendRenderer,
+                show:true,
+                location: 'se',
+                placement:'outside',
+                yoffset: 30,
+                rendererOptions:{
+                    numberRows: 2
+                }
+            },
+            grid: {
+                drawGridLines: true,
+                gridLineColor: '#cccccc',
+                background: '#ffffff'
+            },
+            series:[
+                {label: 'Equity', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5}},
+                {label: 'Index F&O', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5}},
+                {label: 'Stock F&O', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5}},
+                {label: 'NIFTY', yaxis: 'y2axis'}
+            ],
+            highlighter: {
+                show: true,
+                sizeAdjust: 7.5,
+                yvalues: 1
+            },
+            cursor: {
+                show:false
+            }
+        });
+    });
+</script>
