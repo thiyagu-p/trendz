@@ -7,7 +7,7 @@
         $.jqplot.config.enablePlugins = true;
         <%
           start_date = (@market_activities.first.date - 1).to_s
-          end_date = (@market_activities.last.date + 5).to_s
+          end_date = (@market_activities.last.date + 1).to_s
 
           quotes = @nifty_quotes.inject([]) {|arr, quote| arr << [quote.date, quote.close.to_f]}
           fii_fo_index_activities = []
@@ -52,8 +52,8 @@
                 background: '#ffffff'
             },
             series:[
-                {label: 'FII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5}},
-                {label: 'DII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5}},
+                {label: 'FII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
+                {label: 'DII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
                 {label: 'NIFTY', yaxis: 'y2axis'}
             ],
             highlighter: {
@@ -89,9 +89,9 @@
                 background: '#ffffff'
             },
             series:[
-                {label: 'Equity', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5}},
-                {label: 'Index F&O', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5}},
-                {label: 'Stock F&O', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5}},
+                {label: 'Equity', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
+                {label: 'Index F&O', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
+                {label: 'Stock F&O', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
                 {label: 'NIFTY', yaxis: 'y2axis'}
             ],
             highlighter: {

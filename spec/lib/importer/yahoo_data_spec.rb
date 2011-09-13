@@ -20,14 +20,31 @@ describe Importer::YahooData do
     @importer.import
   end
 
-  it "should import quote from next day of last available date of specific stock" do
+  it "should import quote from next day of last available date of specific stock which has open price" do
     Date.stubs(:today).returns(Date.parse('5/10/2009'))
 
     stock = Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
-    EqQuote.expects(:maximum).with(:date, :conditions => "stock_id = #{stock.id}").returns(Date.parse('1/1/2009'))
+    EqQuote.expects(:maximum).with(:date, :conditions => "stock_id = #{stock.id} and open is not null").returns(Date.parse('1/1/2009'))
     Net::HTTP.expects(:get_response).with(Importer::YahooData::BASEURL, '/table.csv?&s=%5EY1&a=0&b=2&c=2009&d=9&e=5&f=2009&g=d&ignore=.csv').returns(stub(:class => Net::HTTPNotFound))
 
     @importer.import
+  end
+
+  it "should update data for specific date if already present" do
+    Date.stubs(:today).returns(Date.parse('2011-08-30'))
+    stock = Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
+    date = Date.parse('2011-08-30')
+    EqQuote.create(stock_id: stock.id, date: date)
+    EqQuote.expects(:maximum).with(:date, :conditions => "stock_id = #{stock.id} and open is not null").returns(date - 1)
+    Net::HTTP.expects(:get_response).with(Importer::YahooData::BASEURL, '/table.csv?&s=%5EY1&a=7&b=30&c=2011&d=7&e=30&f=2011&g=d&ignore=.csv').returns(stub(:class => Net::HTTPOK, :body => data))
+
+    @importer.import
+    quotes = EqQuote.find_all_by_stock_id_and_date(stock.id, date)
+    quotes.size.should == 1
+    quotes.first.open.should == 1209.76
+    quotes.first.high.should == 1220.10
+    quotes.first.low.should == 1195.77
+    quotes.first.close.should == 1212.92
   end
 
   it "should import skipping header and calculate moving average" do

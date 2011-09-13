@@ -6,5 +6,6 @@ namespace :data do
     Importer::FoBhav.new.import
     Importer::YahooData.new.import
     Importer::MarketActivityImporter.new.import
+    Importer::NiftyLiveImporter.new.import
   end
 end
