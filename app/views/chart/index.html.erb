@@ -8,12 +8,11 @@
     $(document).ready(function() {
         $("input#stockcode").autocomplete({
             source: [<%= @stocks.collect!{ |s| "'#{s.symbol}'" }.join(',') %>],
-            select: function(event) {
-                var stock_id = $('#stockcode').val();
+            select: function(event, ui) {
+                var stock_id = ui.item.value;
                 $.get('/chart/' + stock_id, function(data) {
                     $('#data_area').html(data);
                 });
-                event.preventDefault();
             }
         });
     });
