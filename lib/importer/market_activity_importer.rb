@@ -15,7 +15,7 @@ module Importer
 
     def import_fo_data
       start_date = MarketActivity.maximum('date', :conditions => 'fii_index_futures_buy is not null')
-      start_date = Date.parse('2/1/2010') if start_date == nil
+      start_date = Date.parse('1/1/2011') if start_date == nil
       (start_date .. Date.today).each do |date|
         import_and_save_data_for(date)
       end

@@ -7,7 +7,7 @@ module Importer
     model EqQuote
     sub_path 'EQUITIES'
     file_name_prefix 'cm'
-    startdate '31/12/2006'
+    startdate '31/12/2010'
 
     def process_row(columns)
       return unless columns[1] =~ /EQ|BE|DR/

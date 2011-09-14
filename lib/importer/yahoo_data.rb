@@ -1,7 +1,7 @@
 module Importer
   class YahooData
     BASEURL = 'ichart.finance.yahoo.com'
-    STARTDATE = '31/12/2006'
+    STARTDATE = '31/12/2010'
 
     def import
       stocks = Stock.all(:conditions => 'yahoo_code is not null')

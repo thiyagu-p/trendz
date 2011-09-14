@@ -8,7 +8,7 @@ module Importer
     model FoQuote
     sub_path 'DERIVATIVES'
     file_name_prefix 'fo'
-    startdate '31/12/2009'
+    startdate '31/12/2010'
 
     @@stock_cache = {}
 
