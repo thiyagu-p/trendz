@@ -51,6 +51,10 @@
                 gridLineColor: '#cccccc',
                 background: '#ffffff'
             },
+            seriesColors:['#4BB2C5', '#EAA228', '#C5B47F'],
+            seriesDefaults: {
+              useNegativeColors: false
+            },
             series:[
                 {label: 'FII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
                 {label: 'DII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
@@ -87,6 +91,10 @@
                 drawGridLines: true,
                 gridLineColor: '#cccccc',
                 background: '#ffffff'
+            },
+            seriesColors:['#4BB2C5', '#EAA228', '#85802b', '#C5B47F'],
+            seriesDefaults: {
+              useNegativeColors: false
             },
             series:[
                 {label: 'Equity', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},

@@ -7,8 +7,8 @@
   <div id="chart_price_movement" style="margin-top:20px; margin-left:20px; width:1000px; height:300px;"></div>
 </div>
 <%
-   min_date = (Date.parse(@ratio_data.first["date"]) - 5).to_s
-   max_date = (Date.parse(@ratio_data.last["date"]) + 5).to_s
+   min_date = (Date.parse(@ratio_data.first["date"]) - 1).to_s
+   max_date = (Date.parse(@ratio_data.last["date"]) + 1).to_s
    put_call_ratio_data = []
    volume_data = []
    put_call_oi_ratio_data = []
@@ -36,7 +36,7 @@
             seriesDefaults:{
                 renderer: $.jqplot.LineRenderer,
                 markerOptions: {
-                    show: false
+                    show: true
                 },
                 pointLabels: {show: false},
                 shadow: false
@@ -71,17 +71,17 @@
         default_line_chart('chart_price_movement',
                 [price_movement_data],
                 [
-                    {label: 'Price Movement', color:'red'}
+                    {label: 'Price Movement', color:'#00749F'}
                 ], "<%= min_date %>", "<%= max_date %>");
         default_line_chart('chart_total_oi',
                 [oi_data],
                 [
-                    {label: 'Total Open Interest', color:'red'}
+                    {label: 'Total Open Interest', color:'#00749F'}
                 ], "<%= min_date %>", "<%= max_date %>");
         default_line_chart('chart_total_volume',
                 [volume_data],
                 [
-                    {label: 'Total Volume', color:'red'}
+                    {label: 'Total Volume', color:'#00749F'}
                 ], "<%= min_date %>", "<%= max_date %>");
 
     });

@@ -139,8 +139,8 @@
     $(document).ready(function() {
         $("input#stockcode").autocomplete({
             source: [<%= @stocks.collect!{ |s| "'#{s.symbol}'" }.join(',') %>],
-            select: function(event) {
-                var stock_id = $('#stockcode').val();
+            select: function(event, ui) {
+                var stock_id = ui.item.value;
                 $.get('/stocks/' + stock_id + '/eqQuote', function(json) {
                     eqData = json;
                     eqTable.fnClearTable();
@@ -161,7 +161,6 @@
                     });
 
                 });
-                event.preventDefault();
             }
         });
         eqTable = $('#eq_data_area').dataTable({
