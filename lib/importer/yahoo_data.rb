@@ -1,5 +1,6 @@
 module Importer
   class YahooData
+    include Connectable
     BASEURL = 'ichart.finance.yahoo.com'
     STARTDATE = '31/12/2010'
 
@@ -7,7 +8,7 @@ module Importer
       stocks = Stock.all(:conditions => 'yahoo_code is not null')
       stocks.each do |stock|
         path = construct_sub_path(stock)
-        response = Net::HTTP.get_response(BASEURL, path)
+        response = connection(BASEURL).request_get(path)
         next if response.class == Net::HTTPNotFound
         process_data(response, stock)
       end

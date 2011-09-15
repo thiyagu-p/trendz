@@ -12,13 +12,13 @@ module Importer
     def parse(json)
       hash = eval(json)
       nifty_data = hash[:data].second
-      stocks = Stock.find_all_by_symbol('NIFTY')
-      nifty = stocks.first
+      nifty = Stock.find_by_symbol('NIFTY')
       return unless nifty_data[:name] =~ /S&P CNX NIFTY/ or !nifty.nil?
       date = Date.parse(hash[:time])
       close = nifty_data[:lastPrice].gsub(',','').to_f
       quote = EqQuote.find_or_create_by_stock_id_and_date(nifty.id, date)
       quote.update_attributes!(close: close)
+      MovingAverageCalculator.update(date, nifty)
     end
   end
 end

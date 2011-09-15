@@ -7,16 +7,18 @@ describe Importer::NiftyLiveImporter do
       http.expects(:request_get).with('/homepage/Indices1.json', Importer::NseConnection.user_agent).returns(stub(:body => json_data))
       Net::HTTP.expects(:new).with(NSE_URL).returns(http)
       @date = Date.parse('13/09/2011')
-    end
-    it "should import" do
       @stock = Stock.create!(symbol: 'NIFTY')
+     end
+    it "should import" do
       Importer::NiftyLiveImporter.new.import
       quote = EqQuote.find_by_stock_id_and_date(@stock.id, @date)
       quote.close.to_f.should == 4940.95
+      quote.mov_avg_10d.should_not eq(0)
+      quote.mov_avg_50d.should_not eq(0)
+      quote.mov_avg_200d.should_not eq(0)
     end
 
     it "should update if quote already present" do
-      @stock = Stock.create!(symbol: 'NIFTY')
       EqQuote.create(stock: @stock, date: @date)
 
       Importer::NiftyLiveImporter.new.import
@@ -24,7 +26,7 @@ describe Importer::NiftyLiveImporter do
       quotes.size.should == 1
       quotes.first.close.to_f.should == 4940.95
     end
-  end
+ end
 
   describe 'FT' do
     it "should import" do
