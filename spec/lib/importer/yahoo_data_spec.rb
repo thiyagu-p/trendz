@@ -26,7 +26,7 @@ describe Importer::YahooData do
     Date.stubs(:today).returns(Date.parse('5/10/2009'))
 
     stock = Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
-    EqQuote.expects(:maximum).with(:date, :conditions => "stock_id = #{stock.id} and open is not null").returns(Date.parse('1/1/2009'))
+    EqQuote.expects(:maximum).with(:date, :conditions => "stock_id = #{stock.id} and traded_quantity is not null").returns(Date.parse('1/1/2009'))
     @http.expects(:request_get).with('/table.csv?&s=%5EY1&a=0&b=2&c=2009&d=9&e=5&f=2009&g=d&ignore=.csv').returns(stub(:class => Net::HTTPNotFound))
 
     @importer.import
@@ -37,7 +37,7 @@ describe Importer::YahooData do
     stock = Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
     date = Date.parse('2011-08-30')
     EqQuote.create(stock_id: stock.id, date: date)
-    EqQuote.expects(:maximum).with(:date, :conditions => "stock_id = #{stock.id} and open is not null").returns(date - 1)
+    EqQuote.expects(:maximum).with(:date, :conditions => "stock_id = #{stock.id} and traded_quantity is not null").returns(date - 1)
     @http.expects(:request_get).with('/table.csv?&s=%5EY1&a=7&b=30&c=2011&d=7&e=30&f=2011&g=d&ignore=.csv').returns(stub(:class => Net::HTTPOK, :body => data))
 
     @importer.import
