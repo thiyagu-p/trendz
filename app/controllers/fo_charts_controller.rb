@@ -6,9 +6,13 @@ class FoChartsController < ApplicationController
 
   def show_data
     @stock = Stock.find_by_symbol(params[:symbol])
-    quotes = FoQuote.find_all_by_stock_id(@stock.id, :order => 'date desc', :conditions => "date >= '#{Date.today - 30}' and expiry_series = 'current'")
-    @headers = (quotes.inject(Set.new) {|set, quote| set << quote.strike_price}).sort
-    @quotes_by_date = quotes.group_by(&:date)
+    from_date = Date.today - 40
+    fo_quotes = FoQuote.find_all_by_stock_id(@stock.id, :order => 'date desc', :conditions => "date >= '#{from_date}' and expiry_series = 'current'")
+    @headers = (fo_quotes.inject(Set.new) {|set, quote| set << quote.strike_price}).sort
+    @fo_quotes_by_date = fo_quotes.group_by(&:date)
+    @quotes = EqQuote.find_all_by_stock_id(@stock.id, :conditions => "date >= '#{from_date}'", :order => 'date asc')
+    future_quotes = fo_quotes.inject({}) {|hash, quote| hash[quote.date] = quote.close if quote.future?; hash}
+    @price_future_diff = @quotes.collect {|quote| [quote.date, (future_quotes[quote.date] - quote.close).to_f]}
     render :layout => false
   end
 

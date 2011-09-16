@@ -49,7 +49,8 @@
                     tickOptions:{formatString:'%d/%m/%Y'},
                     min: start_date,
                     max: end_date
-                }
+                },
+                y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
             },
             legend: {
                 show: true,
@@ -62,26 +63,24 @@
     $(document).ready(function() {
         $.jqplot.config.enablePlugins = true;
         default_line_chart('chart_put_call_ratio',
-                [horizontal_line_data, put_call_ratio_data, put_call_oi_ratio_data],
+                [horizontal_line_data, put_call_ratio_data, put_call_oi_ratio_data, price_movement_data],
                 [
                     {label: 'Break even', color:'orange'},
                     {label: 'Put/Call ratio', color:'#00749F'},
-                    {label: 'Put/Call OI ratio', color:'#85802b'}
-                ], "<%= min_date %>", "<%= max_date %>");
-        default_line_chart('chart_price_movement',
-                [price_movement_data],
-                [
-                    {label: 'Price Movement', color:'#00749F'}
+                    {label: 'Put/Call OI ratio', color:'#85802b'},
+                    {label: 'NIFTY', yaxis: 'y2axis'}
                 ], "<%= min_date %>", "<%= max_date %>");
         default_line_chart('chart_total_oi',
-                [oi_data],
+                [oi_data, price_movement_data],
                 [
-                    {label: 'Total Open Interest', color:'#00749F'}
+                    {label: 'Total Open Interest', color:'#00749F'},
+                        {label: 'NIFTY', yaxis: 'y2axis'}
                 ], "<%= min_date %>", "<%= max_date %>");
         default_line_chart('chart_total_volume',
-                [volume_data],
+                [volume_data, price_movement_data],
                 [
-                    {label: 'Total Volume', color:'#00749F'}
+                    {label: 'Total Volume', color:'#00749F'},
+                        {label: 'NIFTY', yaxis: 'y2axis'}
                 ], "<%= min_date %>", "<%= max_date %>");
 
     });

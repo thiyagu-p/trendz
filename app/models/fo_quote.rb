@@ -8,4 +8,7 @@ class FoQuote < ActiveRecord::Base
     UNKNOWN = 'unknown'
   end
 
+  def future?
+    fo_type == 'XX'
+  end
 end

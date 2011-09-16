@@ -8,7 +8,7 @@
     <tr>
       <th> Date</th>
       <% headers = Set.new
-         @quotes_by_date.each_pair do |date, quotes|
+         @fo_quotes_by_date.each_pair do |date, quotes|
              max_volume = max_io = 0
              quotes.each do |quote|
                  next if quote.fo_type == 'XX'
@@ -31,7 +31,7 @@
        put_data = []
        call_data = []
     %>
-    <% @quotes_by_date.each_pair do |date, quotes| %>
+    <% @fo_quotes_by_date.each_pair do |date, quotes| %>
         <% max_volume = max_io = 0
            quotes.each do |quote|
                next if quote.fo_type == 'XX'
@@ -63,13 +63,15 @@
   </table>
 </div>
 
+<% quotes = @quotes.inject([]) {|arr, quote| arr << [quote.date, quote.close.to_f]} %>
 <div id="chart3" style="margin-top:20px; margin-left:20px; width:1200px; height:500px;"></div>
+<div id="chart4" style="margin-top:20px; margin-left:20px; width:1200px; height:500px;"></div>
 <script type="text/javascript">
     var put_data = <%=raw put_data.to_json %>;
     var call_data = <%=raw call_data.to_json %>;
-
+    var quotes = <%=raw quotes.to_json %>
     $(document).ready(function() {
-        $.jqplot('chart3', [put_data, call_data], {
+        $.jqplot('chart3', [put_data, call_data, quotes], {
             title: 'Put/Call movement',
             seriesDefaults:{
                 renderer: $.jqplot.BubbleRenderer,
@@ -83,13 +85,16 @@
                 shadowAlpha: 0.05
             },
             series: [
-                { label: 'Put', color:'#F5909C', markerOptions: {show: false}, shadow: false},
-                { label: 'Call', color:'#90F59F', markerOptions: {show: false}, shadow: false}
+                { label: 'Put', markerOptions: {show: false}, shadow: false},
+                { label: 'Call', markerOptions: {show: false}, shadow: false},
+                {label: 'NIFTY', renderer:$.jqplot.LineRenderer, pointLabels: {show: false}}
             ],
+            seriesColors:['#F5909C', '#90F59F', '#C5B47F'],
             axes: {
                 xaxis: {
                     renderer:$.jqplot.DateAxisRenderer,
                     tickOptions:{formatString:'%d/%m/%Y'},
+                    min: '<%=@fo_quotes_by_date.min.first - 1%>', max: '<%=@fo_quotes_by_date.max.first + 1%>'
                 }
             },
             legend: {
@@ -99,6 +104,45 @@
             }
         });
 
+        $.jqplot('chart4', [<%=raw @price_future_diff.to_json%>, quotes], {
+              stackSeries: false,
+              title:'Equity vs Future price movement',
+              axes:{
+                  xaxis:{renderer:$.jqplot.DateAxisRenderer, min: '<%=@fo_quotes_by_date.min.first - 1%>', max: '<%=@fo_quotes_by_date.max.first + 1%>'},
+                  y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
+              },
+              legend: {
+                  renderer: $.jqplot.EnhancedLegendRenderer,
+                  show:true,
+                  location: 'se',
+                  placement:'outside',
+                  yoffset: 30,
+                  rendererOptions:{
+                      numberRows: 2
+                  }
+              },
+              grid: {
+                  drawGridLines: true,
+                  gridLineColor: '#cccccc',
+                  background: '#ffffff'
+              },
+              seriesColors:['#4BB2C5', '#EAA228'],
+              seriesDefaults: {
+                useNegativeColors: false
+              },
+              series:[
+                  {label: 'Eq-Index Diff', pointLabels: {show: false}},
+                  {label: 'NIFTY', yaxis: 'y2axis', pointLabels: {show: false}}
+              ],
+              highlighter: {
+                  show: true,
+                  sizeAdjust: 7.5,
+                  yvalues: 1
+              },
+              cursor: {
+                  show:false
+              }
+          });
     });
 
 </script>
