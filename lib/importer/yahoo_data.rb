@@ -36,7 +36,6 @@ module Importer
                      d: today.month - 1, e: today.day, f: today.year,
                      g: 'd', ignore: '.csv'}
       path = params_hash.inject('/table.csv?') { |params, pair| "#{params}&#{pair.first}=#{pair.last}" }
-      path
     end
   end
 end

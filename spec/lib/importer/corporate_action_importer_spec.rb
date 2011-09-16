@@ -17,8 +17,7 @@ describe Importer::CorporateActionImporter do
     Stock.create(symbol: 'M&M', series: Stock::Series::EQUITY)
     @http = stub()
     Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-    #@http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=M%26M", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-    @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=M%26M", Importer::NseConnection.user_agent).returns(stub(body: open('corp.html').read))
+    @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=M%26M", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
     Importer::CorporateActionImporter.new.import
   end
 

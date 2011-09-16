@@ -3,7 +3,7 @@ require 'zip/zipfilesystem'
 
 describe Importer::MarketActivityImporter do
 
-  describe 'import' do
+  describe 'FT' do
 
     before :all do
       @importer = Importer::MarketActivityImporter.new

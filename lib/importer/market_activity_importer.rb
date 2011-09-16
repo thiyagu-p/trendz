@@ -40,12 +40,19 @@ module Importer
     end
 
     private
+    def save_to_temp_file(path)
+      response = get(path).body
+      file_path = File.join('data', File.basename(path))
+      open(file_path, "wb") {|file| file.write response}
+      file_path
+    end
+
     def import_and_save_data_for(date)
-      xls_url = "http://www.nseindia.com/content/fo/fii_stats_#{date.strftime('%d-%b-%Y')}.xls"
-      Rails.logger.info "Processing F&O market data - #{date} : #{xls_url}"
+      xls_path = "/content/fo/fii_stats_#{date.strftime('%d-%b-%Y')}.xls"
+      Rails.logger.info "Processing F&O market data - #{date} : #{xls_path}"
       market_activity = MarketActivity.find_by_date(date)
       if market_activity
-        excel = Excel.new(xls_url) rescue return
+        excel = Excel.new(save_to_temp_file(xls_path))
         excel.default_sheet = excel.sheets.first
         4.upto(7) do |row|
           next unless excel.cell(row, 'A') =~ /INDEX|STOCK/
