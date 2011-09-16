@@ -48,11 +48,11 @@
                    unless quotes_by_group.nil?
                        (quotes_by_group.sort { |a, b| a.fo_type <=> b.fo_type }).each do |quote| %>
                         <% if quote.fo_type == 'XX' %>
-                            <span class="fo_<%= quote.fo_type %>"><%= "#{quote.close} : #{quote.traded_quantity} : #{quote.open_interest}(#{(quote.change_in_open_interest / quote.open_interest * 100).round(2)})" %></span>
+                            <span class="fo_<%= quote.fo_type %>"><%= "#{quote.close} : #{quote.open_interest}(#{(quote.change_in_open_interest / quote.open_interest * 100).round(2)}) : #{quote.traded_quantity} " %></span>
                         <% elsif quote.traded_quantity > max_volume * 0.05 or quote.open_interest > max_io * 0.05 %>
                             <% (put_data << [quote.date, quote.strike_price.to_f, (quote.traded_quantity / max_volume * 100).round(2).to_f, {color: '#F5909C'}]) if quote.fo_type == 'PE' %>
                             <% (call_data << [quote.date, quote.strike_price.to_f, (quote.traded_quantity / max_volume * 100).round(2).to_f, {color: '#90F59F'}]) if quote.fo_type == 'CE' %>
-                            <span class="fo_<%= quote.fo_type %>"><%= "#{(quote.traded_quantity / max_volume * 100).round(2)} : #{(quote.open_interest / max_io * 100).round(2)}(#{(quote.change_in_open_interest / quote.open_interest * 100).round(2)})" %></span>
+                            <span class="fo_<%= quote.fo_type %>"><%= "#{(quote.open_interest / max_io * 100).round(2)}(#{(quote.change_in_open_interest / quote.open_interest * 100).round(2)}) : #{(quote.traded_quantity / max_volume * 100).round(2)}" %></span>
                         <% end %>
                     <% end %>
                 <% end %>
