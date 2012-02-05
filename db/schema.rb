@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110912020322) do
+ActiveRecord::Schema.define(:version => 20120205170434) do
 
   create_table "eq_quotes", :force => true do |t|
     t.integer "stock_id"
@@ -27,7 +27,7 @@ ActiveRecord::Schema.define(:version => 20110912020322) do
   end
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
-  add_index "eq_quotes", ["stock_id", "date"], :name => "index_eq_quotes_on_stock_id_and_date"
+  add_index "eq_quotes", ["stock_id", "date"], :name => "eq_quotes_stock_id_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
 
   create_table "fo_quotes", :force => true do |t|
@@ -51,9 +51,7 @@ ActiveRecord::Schema.define(:version => 20110912020322) do
   create_table "market_activities", :force => true do |t|
     t.date    "date",                                                      :null => false
     t.decimal "fii_buy_equity",             :precision => 14, :scale => 2
-    t.decimal "dii_buy_equity",             :precision => 14, :scale => 2
     t.decimal "fii_sell_equity",            :precision => 14, :scale => 2
-    t.decimal "dii_sell_equity",            :precision => 14, :scale => 2
     t.decimal "fii_index_futures_buy",      :precision => 14, :scale => 2
     t.decimal "fii_index_futures_sell",     :precision => 14, :scale => 2
     t.decimal "fii_index_options_buy",      :precision => 14, :scale => 2
@@ -70,6 +68,8 @@ ActiveRecord::Schema.define(:version => 20110912020322) do
     t.decimal "fii_stock_futures_oi_value", :precision => 14, :scale => 2
     t.decimal "fii_stock_options_oi",       :precision => 14, :scale => 2
     t.decimal "fii_stock_options_oi_value", :precision => 14, :scale => 2
+    t.decimal "fii_buy_debit",              :precision => 14, :scale => 2
+    t.decimal "fii_sell_debit",             :precision => 14, :scale => 2
   end
 
   add_index "market_activities", ["date"], :name => "index_market_activities_on_date"

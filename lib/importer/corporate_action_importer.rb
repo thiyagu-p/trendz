@@ -18,7 +18,7 @@ module Importer
         doc.css('table table table table table tr').each do |row|
           columns = row.css('td')
           next unless columns[0].text.strip =~ /EQ/
-          file << "#{symbol}|#{Date.parse(columns[4].text)}|#{columns[7].text}\n"
+          file << "#{symbol}|#{columns[0].text}|#{columns[4].text}|#{columns[7].text}\n"
         end
       end
     end

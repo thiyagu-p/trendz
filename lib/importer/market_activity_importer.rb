@@ -1,75 +1,78 @@
 require 'net/http'
 require 'nokogiri'
-require 'csv'
-require 'roo'
 
 
 module Importer
   class MarketActivityImporter
-    include NseConnection
+    include Connectable
+    SEBI_URL = URI.parse('http://www.sebi.gov.in/sebiweb/investment/FIITrendsNew.jsp')
 
     def import
-      import_equity_data
-      import_fo_data
-    end
-
-    def import_fo_data
-      start_date = MarketActivity.maximum('date', :conditions => 'fii_index_futures_buy is not null')
-      start_date = Date.parse('1/1/2011') if start_date == nil
-      (start_date .. Date.today).each do |date|
-        import_and_save_data_for(date)
+      start_date = ((MarketActivity.maximum('date') or Date.parse('31/12/2009')) + 1.day)
+      today = Date.today
+      while(start_date.beginning_of_month < today.beginning_of_month)
+        start_date = start_date.end_of_month
+        load_data_for_month_upto(start_date)
+        start_date = start_date + 1
       end
-    end
-
-    def import_equity_data
-      start_date = ((MarketActivity.maximum('date') or Date.parse('31/12/2009')) + 1.day).strftime('%d-%m-%Y')
-      end_date = Date.today.strftime('%d-%m-%Y')
-      url = "/products/dynaContent/equities/equities/eq_fiidii_archives.jsp?category=all&check=new&fromDate=#{start_date}&toDate=#{end_date}"
-      Rails.logger.info "Processing Equity market activity @ #{url}"
-      response = get(url)
-      csv_url = find_csv_url(response.body)
-      return unless csv_url
-      csv_content = get(csv_url).body
-      CSV.parse(csv_content) do |row|
-        next unless row[0] =~ /FII|DII/
-        market_activity = MarketActivity.find_or_create_by_date(Date.parse(row[1]))
-        market_activity.update_attribute("#{row[0].downcase}_buy_equity", row[2])
-        market_activity.update_attribute("#{row[0].downcase}_sell_equity", row[3])
-        market_activity.save!
-      end
+      load_data_for_month_upto(today)
     end
 
     private
-    def save_to_temp_file(path)
-      response = get(path).body
-      file_path = File.join('data', File.basename(path))
-      open(file_path, "wb") {|file| file.write response}
-      file_path
+
+    def load_data_for_month_upto(start_date)
+      params = {txtCalendar: start_date.strftime('%d/%m/%Y')}
+      resp, data = Net::HTTP.post_form(SEBI_URL, params)
+      parse(data)
     end
 
-    def import_and_save_data_for(date)
-      xls_path = "/content/fo/fii_stats_#{date.strftime('%d-%b-%Y')}.xls"
-      Rails.logger.info "Processing F&O market data - #{date} : #{xls_path}"
-      market_activity = MarketActivity.find_by_date(date)
-      if market_activity
-        excel = Excel.new(save_to_temp_file(xls_path))
-        excel.default_sheet = excel.sheets.first
-        4.upto(7) do |row|
-          next unless excel.cell(row, 'A') =~ /INDEX|STOCK/
-          row_downcase_gsub = excel.cell(row, 'A').downcase!.gsub!(' ', '_')
-          market_activity.update_attribute("fii_#{row_downcase_gsub}_buy", excel.cell(row, 'C'))
-          market_activity.update_attribute("fii_#{row_downcase_gsub}_sell", excel.cell(row, 'E'))
-          market_activity.update_attribute("fii_#{row_downcase_gsub}_oi", excel.cell(row, 'F'))
-          market_activity.update_attribute("fii_#{row_downcase_gsub}_oi_value", excel.cell(row, 'G'))
+    def parse(data)
+      doc = Nokogiri::HTML(data)
+      data_rows = doc.css('.defaultTxtFII')
+      index = 0
+      while (index < data_rows.count)
+        row = data_rows[index]
+        tds = row.css('td')
+
+        if tds[1].content == 'Equity'
+          begin index += 3; next end if tds.first.content =~ /Cumulative/
+          begin index += 7; next end if tds.first.content =~ /Total/
+          load_equity_data(index, data_rows)
+          index += tds.first.attr('rowspan').to_i
+        else
+          begin index += 5; next end if tds.first.content =~ /Total/
+          load_fo_data(index, data_rows)
+          index += 5
         end
-        market_activity.save!
       end
     end
 
-    def find_csv_url(content)
-      doc = Nokogiri::HTML(content)
-      anchor_elements = (doc.css('a').reject { |x| x.content != ' Download file in csv format' })
-      anchor_elements.length > 0 and anchor_elements.first['href']
+    def load_equity_data(index, data_rows)
+      date = find_date(index, data_rows)
+      total_equity_row_data = data_rows[index + 2].css('td')
+      total_debit_row_data = data_rows[index + 5].css('td')
+      market_activity = MarketActivity.find_or_create_by_date(date)
+      market_activity.update_attributes!('fii_buy_equity' => total_equity_row_data[1].content,
+                                        'fii_sell_equity' => total_equity_row_data[2].content,
+                                        'fii_buy_debit' => total_debit_row_data[1].content,
+                                        'fii_sell_debit' => total_debit_row_data[2].content)
+    end
+
+    def find_date(index, data_rows)
+      Date.parse(data_rows[index].css('td').first.content)
+    end
+
+    def load_fo_data(index, data_rows)
+      date = find_date(index, data_rows)
+      market_activity = MarketActivity.find_by_date(date)
+      return unless market_activity
+      [:index_futures, :index_options, :stock_futures, :stock_options].each_with_index do |data_type, sub_index|
+        row_data = data_rows[index + sub_index].css('td')
+        market_activity.update_attributes!("fii_#{data_type}_buy" => row_data[3].content,
+                                           "fii_#{data_type}_sell" => row_data[5].content,
+                                           "fii_#{data_type}_oi" => row_data[6].content,
+                                           "fii_#{data_type}_oi_value" => row_data[7].content)
+      end
     end
   end
 end

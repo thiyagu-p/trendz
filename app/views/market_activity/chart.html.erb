@@ -15,7 +15,7 @@
           fii_fo_index_activities = []
           fii_fo_stock_activities = []
           equity_fii = []
-          equity_dii = []
+          debit_fii = []
           fii_index_futures = []
           fii_index_options = []
           fii_index_futures_oi = []
@@ -24,7 +24,7 @@
             @market_activities.each do |market_activity|
                date_in_seconds = market_activity.date
                equity_fii << [date_in_seconds, market_activity.equity_fii.to_f]
-               equity_dii << [date_in_seconds, market_activity.equity_dii.to_f]
+               debit_fii << [date_in_seconds, market_activity.debit_fii.to_f]
                fii_fo_index_activities << [date_in_seconds, market_activity.fo_index_fii.to_f]
                fii_fo_stock_activities << [date_in_seconds, market_activity.fo_stock_fii.to_f]
                fii_index_futures << [date_in_seconds, market_activity.index_futures.to_f]
@@ -34,15 +34,15 @@
             end
         %>
 
-        var equity_dii = <%=raw equity_dii.to_json %>;
+        var debit_fii = <%=raw debit_fii.to_json %>;
         var equity_fii = <%=raw equity_fii.to_json %>;
         var fii_fo_index = <%=raw fii_fo_index_activities.to_json %>;
         var fii_fo_stock = <%=raw fii_fo_stock_activities.to_json %>;
         var quotes = <%=raw quotes.to_json %>;
 
-        plot1 = $.jqplot('chart1', [equity_fii, equity_dii, quotes], {
+        plot1 = $.jqplot('chart1', [equity_fii, debit_fii, quotes], {
             stackSeries: false,
-            title:'Market Activities by both FII & DII on Equity',
+            title:'Market Activities by FII on Equity & Debit',
             axes:{
                 xaxis:{renderer:$.jqplot.DateAxisRenderer, min: '<%=start_date%>', max: '<%=end_date%>'},
                 y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
@@ -67,8 +67,8 @@
               useNegativeColors: false
             },
             series:[
-                {label: 'FII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
-                {label: 'DII', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
+                {label: 'Equity', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
+                {label: 'Debit', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
                 {label: 'NIFTY', yaxis: 'y2axis', pointLabels: {show: false}}
             ],
             highlighter: {
