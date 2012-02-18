@@ -55,3 +55,20 @@ body {
 #navigation ul li a:hover {
     color: #fff;
 }
+
+.red {
+    color: #ff2020;
+}
+
+.green {
+    color: green;
+}
+
+.returns {
+    padding: 4px;
+}
+
+.returns span {
+    border-right: 1px solid #b0c4de;
+    padding-right: 5px;
+}
