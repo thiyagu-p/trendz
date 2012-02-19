@@ -1,6 +1,6 @@
 development:
   adapter: postgresql
-  database: trendz
+  database: trendz_development
   username: postgres
   password:
 

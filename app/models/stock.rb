@@ -7,4 +7,8 @@ class Stock < ActiveRecord::Base
 
   has_many :fo_quotes
   has_many :eq_quotes
+
+  def performance
+    StockPerformance.new(self)
+  end
 end

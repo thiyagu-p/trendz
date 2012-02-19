@@ -1,0 +1,18 @@
+<% if watchlist.stocks.count > 0 %>
+    <table>
+      <tr>
+        <th>Stock</th>
+        <% watchlist.stocks.first.performance.returns.each do |days, value| %>
+            <th><%= days %></th>
+            <% end %>
+      </tr>
+      <% watchlist.stocks.each do |stock| %>
+          <tr>
+            <td><%= stock.symbol %></td>
+            <% stock.performance.returns.each do |days, value| %>
+                <td><%= raw display_returns(value) %></td>
+            <% end %>
+          </tr>
+      <% end %>
+    </table>
+<% end %>

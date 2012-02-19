@@ -1,6 +1,6 @@
 <div class="returns">
-  <% @returns.each do |key, return_percentage| %>
-    <%= "#{key}: " %><span class="<%=return_percentage.to_f < 0 ? 'red' :'green'%>"> <%= "#{number_to_percentage return_percentage.to_f, precision: 0}" %></span>
+  <% @stock.performance.returns.each do |key, return_percentage| %>
+    <%= "#{key}: " %> <%=raw display_returns(return_percentage) %>
   <% end %>
 </div>
 <div class="jqPlot" id="chart1" style="height:500px; width:1200px;"></div>

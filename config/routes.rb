@@ -16,6 +16,8 @@ Trendz::Application.routes.draw do
     resource :foQuote, :only => [:show]
   end
 
+  resources :watchlists
+
   # Sample of regular route:
   #   match 'products/:id' => 'catalog#view'
   # Keep in mind you can assign values other than :controller and :action

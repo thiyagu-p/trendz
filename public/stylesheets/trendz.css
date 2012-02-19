@@ -72,3 +72,10 @@ body {
     border-right: 1px solid #b0c4de;
     padding-right: 5px;
 }
+
+table, table td, table th {
+    border: 1px solid #222;
+    border-collapse: collapse;
+    padding: 3px;
+    text-align: right;
+}

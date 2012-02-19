@@ -1,0 +1,11 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Watchlist : </b> <%= @watchlist.name %>
+</p>
+
+<%= render :partial => 'show_stock_performance', locals: {watchlist: @watchlist} %>
+<p>
+  <%= link_to 'Edit', edit_watchlist_path(@watchlist) %> |
+  <%= link_to 'Back', watchlists_path %>
+</p>
