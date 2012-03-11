@@ -5,7 +5,8 @@
   <%= stylesheet_link_tag 'demo_table_jui', 'jquery.jqplot.min', 'smoothness/jquery-ui-1.8.16.custom', 'trendz' %>
   <%= javascript_include_tag 'jquery', 'jquery.jqplot', 'jqplot.barRenderer.min', 'jqplot.cursor.min',
                              'jqplot.dateAxisRenderer.min', 'application', 'jqplot.highlighter.min', 'jqplot.bubbleRenderer.min',
-                             'jqplot.ohlcRenderer.min', 'jqplot.enhancedLegendRenderer.min', 'jqplot.dragable.min', 'jquery-ui-1.8.16.custom.min', 'jquery.dataTables.min', 'jqplot.categoryAxisRenderer.min', 'jqplot.pointLabels.min' %>
+                             'jqplot.ohlcRenderer.min', 'jqplot.enhancedLegendRenderer.min', 'jqplot.dragable.min', 'jquery-ui-1.8.16.custom.min',
+                             'jquery.dataTables.min', 'jqplot.categoryAxisRenderer.min', 'jqplot.pointLabels.min', 'jquery.numeric' %>
   <%= csrf_meta_tag %>
 </head>
 <body>
@@ -24,6 +25,9 @@
   </ul>
   <ul>
     <li><a href="<%= market_activity_path %>">Market Activity</a></li>
+  </ul>
+  <ul>
+    <li><a href="<%= equity_transactions_path %>">Transaction</a></li>
   </ul>
   <ul>
     <li><a href="<%= status_path %>">Import Status</a></li>

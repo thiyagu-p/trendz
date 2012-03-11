@@ -10,6 +10,8 @@ Trendz::Application.routes.draw do
 
   resources :watchlists
 
+  resources :equity_transactions
+
   match 'status' => 'status#show'
   match 'fo_charts' => 'fo_charts#index'
   match 'fo_charts/data/:symbol' => 'fo_charts#show_data'

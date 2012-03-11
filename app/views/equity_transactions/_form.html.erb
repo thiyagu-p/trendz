@@ -1,0 +1,61 @@
+<div id="error_message" class="red"></div>
+<%= form_for(EquityTransaction.new) do |f| %>
+    <span>
+      <%= f.select :action, [[EquityTransaction::BUY.camelcase, EquityTransaction::BUY], [EquityTransaction::SELL.camelcase, EquityTransaction::SELL]] %>
+    </span>
+    <span>
+      <%= f.label :date %>
+      <%= f.text_field :date, {size: 10} %>
+    </span>
+    <span>
+      <%= f.label :stock %>
+      <%= f.select :stock_id, Stock.order(:symbol).all.map { |stock| [stock.symbol, stock.id] } %>
+    </span>
+    <span>
+      <%= f.label :price %>
+      <%= f.text_field :price, {size: 10} %>
+    </span>
+    <span>
+      <%= f.label :quantity %>
+      <%= f.text_field :quantity, {size: 8} %>
+    </span>
+    <span>
+      <%= f.label :brokerage %>
+      <%= f.text_field :brokerage, {size: 8} %>
+    </span>
+    <span>
+      <%= f.label :account %>
+      <%= f.select :trading_account_id, TradingAccount.order(:name).all.map { |trading_account| [trading_account.name, trading_account.id] } %>
+    </span>
+    <span>
+      <%= f.label :portfolio %>
+      <%= f.select :portfolio_id, Portfolio.order(:name).all.map { |portfolio| [portfolio.name, portfolio.id] } %>
+    </span>
+    <span class="actions">
+      <%= f.submit 'Add' %>
+    </span>
+<% end %>
+<script>
+    $(function () {
+        $("#equity_transaction_date").datepicker({
+            dateFormat: 'dd/mm/yy',
+            minDate: new Date('01/01/2000'),
+            maxDate: new Date()
+        });
+        $("#equity_transaction_price").numeric({negative: false });
+        $("#equity_transaction_quantity").numeric({ decimal: false, negative: false });
+        $("#equity_transaction_brokerage").numeric({negative: false });
+        $("#equity_transaction_submit").click(function(event){
+            var form=$("#new_equity_transaction"), url = form.attr('action'), data = form.serialize();
+            $.ajax({
+                url: url,
+                data: data,
+                type: 'POST',
+                dataType: 'text',
+                success: function(response) {location.reload()},
+                error: function(response){$("#error_message").text(response.responseText);}
+            });
+            event.preventDefault();
+        });
+    });
+</script>
