@@ -1,3 +1,4 @@
+<%= render 'select_options' %>
 <div class="returns">
   <% @stock.performance.returns.each do |key, return_percentage| %>
     <%= "#{key}: " %> <%=raw display_returns(return_percentage) %>

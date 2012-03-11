@@ -2,13 +2,15 @@
     <table>
       <tr>
         <th>Stock</th>
+        <th>Latest Price</th>
         <% watchlist.stocks.first.performance.returns.each do |days, value| %>
             <th><%= days %></th>
-            <% end %>
+        <% end %>
       </tr>
       <% watchlist.stocks.each do |stock| %>
           <tr>
-            <td><%= stock.symbol %></td>
+            <td><%= display_stock_symbol stock.symbol %></td>
+            <td><%= display_price stock.latest_quote.close %></td>
             <% stock.performance.returns.each do |days, value| %>
                 <td><%= raw display_returns(value) %></td>
             <% end %>
