@@ -38,6 +38,6 @@ class WatchlistsController < ApplicationController
   def destroy
     @watchlist = Watchlist.find(params[:id])
     @watchlist.destroy
-    redirect_to(watchlists_url)
+    redirect_to action: :index
   end
 end

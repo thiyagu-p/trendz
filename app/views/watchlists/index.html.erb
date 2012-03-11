@@ -1,14 +1,16 @@
 <% @watchlists.each do |watchlist| %>
+    <div>
       <div>
-        <div>
-          <b><%= watchlist.name %></b>
-          <%= link_to 'Edit', edit_watchlist_path(watchlist) %>
-          <%= link_to 'Destroy', watchlist, :confirm => 'Are you sure?', :method => :delete %>
-        </div>
-        <%= render :partial => 'show_stock_performance', locals: {watchlist: watchlist} %>
+        <b><%= watchlist.name %></b>
+        <%= link_to 'Edit', edit_watchlist_path(watchlist) %>
       </div>
+      <%= render :partial => 'show_stock_performance', locals: {watchlist: watchlist} %>
+      <%= form_tag(watchlist_url(watchlist), method: 'DELETE') do %>
+          <%= submit_tag("Delete", class: 'button') %>
+      <% end %>
+    </div>
 <% end %>
 
-<br />
+<br/>
 
 <%= link_to 'New Watchlist', new_watchlist_path %>
