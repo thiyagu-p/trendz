@@ -30,4 +30,9 @@ describe EquityTransaction do
       EquityTransaction.new(@hash.merge(action: EquityTransaction::SELL)).should be_valid
     end
   end
+
+  it "should identify buy transaction" do
+    create(:equity_transaction, action: EquityTransaction::BUY).buy?.should be_true
+    create(:equity_transaction, action: EquityTransaction::SELL).buy?.should be_false
+  end
 end

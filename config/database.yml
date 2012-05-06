@@ -1,10 +1,12 @@
 development:
+  host: localhost
   adapter: postgresql
   database: trendz_development
   username: postgres
   password:
 
 test:
+  host: localhost
   adapter: postgresql
   database: trendz_test
   timeout: 5000
@@ -12,6 +14,7 @@ test:
   password:
 
 production:
+  host: localhost
   adapter: postgresql
   database: trendz
   timeout: 5000

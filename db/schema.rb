@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120311101120) do
+ActiveRecord::Schema.define(:version => 20120325123227) do
 
   create_table "eq_quotes", :force => true do |t|
     t.integer "stock_id"
@@ -27,8 +27,23 @@ ActiveRecord::Schema.define(:version => 20120311101120) do
   end
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
-  add_index "eq_quotes", ["stock_id", "date"], :name => "eq_quotes_stock_id_date"
+  add_index "eq_quotes", ["stock_id", "date"], :name => "index_eq_quotes_on_stock_id_and_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
+
+  create_table "equity_holdings", :force => true do |t|
+    t.integer  "equity_transaction_id", :null => false
+    t.integer  "quantity",              :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "equity_trades", :force => true do |t|
+    t.integer  "buy_transaction_id",  :null => false
+    t.integer  "sell_transaction_id", :null => false
+    t.integer  "quantity",            :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "equity_transactions", :force => true do |t|
     t.string   "action"
@@ -41,6 +56,7 @@ ActiveRecord::Schema.define(:version => 20120311101120) do
     t.integer  "stock_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "delivery",           :default => true
   end
 
   create_table "fo_quotes", :force => true do |t|

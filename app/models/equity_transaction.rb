@@ -11,4 +11,7 @@ class EquityTransaction < ActiveRecord::Base
   validates_numericality_of :quantity, greater_than: 0
   validates_inclusion_of :action, in: [BUY, SELL]
 
+  def buy?
+    action == BUY
+  end
 end
