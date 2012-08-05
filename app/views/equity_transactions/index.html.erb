@@ -1,6 +1,27 @@
 <%=  render 'form' %>
-
-<div id="transactions-list">
+<h3>Consolidated Holdings</h3>
+<div id="holding_list">
+  <table cellpadding="0" cellspacing="0" border="0" class="display" id="holdings_data_area">
+    <thead>
+    <tr>
+      <th>Stock</th>
+      <th>Quantity</th>
+      <th>Account</th>
+      <th>Portfolio</th>
+    </tr>
+    </thead>
+    <% @consolidated_holdings.each do |holding| %>
+        <tr>
+          <td><%= display_stock_symbol Stock.find(holding.stock_id).symbol %></td>
+          <td><%= holding.quantity %></td>
+          <td><%= TradingAccount.find(holding.trading_account_id).name %></td>
+          <td><%= Portfolio.find(holding.portfolio_id).name %></td>
+        </tr>
+    <% end %>
+  </table>
+</div>
+<h3>Transactions</h3>
+<div id="transaction_list">
   <table cellpadding="0" cellspacing="0" border="0" class="display" id="transactions_data_area">
     <thead>
     <tr>
@@ -35,7 +56,15 @@
         "sPaginationType": "full_numbers",
         "aaSorting": [[ 1, "desc" ]],
         "oLanguage": {
-            "sSearch": "Search all columns:"
+            "sSearch": "Search:"
+        }
+    });
+    $('#holdings_data_area').dataTable({
+        "bJQueryUI": true,
+        "sPaginationType": "full_numbers",
+        "aaSorting": [[ 3, "asc" ],[ 0, "asc" ],[ 2, "asc" ]],
+        "oLanguage": {
+            "sSearch": "Search:"
         }
     });
 </script>

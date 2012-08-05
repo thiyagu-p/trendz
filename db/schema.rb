@@ -27,7 +27,7 @@ ActiveRecord::Schema.define(:version => 20120325123227) do
   end
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
-  add_index "eq_quotes", ["stock_id", "date"], :name => "index_eq_quotes_on_stock_id_and_date"
+  add_index "eq_quotes", ["stock_id", "date"], :name => "eq_quotes_stock_id_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
 
   create_table "equity_holdings", :force => true do |t|

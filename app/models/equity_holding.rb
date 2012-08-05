@@ -8,8 +8,19 @@ class EquityHolding < ActiveRecord::Base
                                     stock_id: transaction.stock_id,
                                     delivery: transaction.delivery?,
                                     action: transaction.action == EquityTransaction::BUY ? EquityTransaction::SELL : EquityTransaction::BUY}).
-        where("date <= '#{transaction.date}'").
+        where("date #{date_condition transaction} '#{transaction.date}'").
         order("date asc").readonly(false)
+  end
+
+  def self.consolidated
+     self.select([:stock_id, :trading_account_id, :portfolio_id, "sum(equity_holdings.quantity) as quantity"]).joins(:equity_transaction)
+     .group([:stock_id, :trading_account_id, :portfolio_id])
+     .order([:portfolio_id, :stock_id, :quantity, :trading_account_id])
+  end
+
+  private
+  def self.date_condition(transaction)
+    transaction.action == EquityTransaction::SELL ? '<=' : '='
   end
 
 end
