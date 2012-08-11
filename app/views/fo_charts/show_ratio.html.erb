@@ -1,3 +1,4 @@
+<% unless @ratio_data.empty? %>
 <div>
   <h3>Put/Call Ratio</h3>
 
@@ -85,3 +86,6 @@
 
     });
 </script>
+<% else %>
+    Data not available
+<% end %>

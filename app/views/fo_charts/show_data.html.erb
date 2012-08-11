@@ -1,148 +1,154 @@
-<div>
-  <div>
-    <span>&nbsp;&nbsp;Volume % : Open Interest %(change in open interest). % in relation to over all put call data.</span>
-    <span class="fo_CE">&nbsp;Call&nbsp;</span><span class="fo_PE">&nbsp;Put &nbsp;</span>
-  </div>
-  <table border="1" style="font-size: 0.9em">
-    <thead>
-    <tr>
-      <th> Date</th>
-      <% headers = Set.new
-         @fo_quotes_by_date.each_pair do |date, quotes|
-             max_volume = max_io = 0
-             quotes.each do |quote|
+<% unless @fo_quotes_by_date.empty? %>
+
+    <div>
+      <div>
+        <span>&nbsp;&nbsp;Volume % : Open Interest %(change in open interest). % in relation to over all put call data.</span>
+        <span class="fo_CE">&nbsp;Call&nbsp;</span><span class="fo_PE">&nbsp;Put &nbsp;</span>
+      </div>
+      <table border="1" style="font-size: 0.9em">
+        <thead>
+        <tr>
+          <th> Date</th>
+          <% headers = Set.new
+             @fo_quotes_by_date.each_pair do |date, quotes|
+               max_volume = max_io = 0
+               quotes.each do |quote|
                  next if quote.fo_type == 'XX'
                  max_volume += quote.traded_quantity
                  max_io += quote.open_interest
-             end
-             quotes.each do |quote|
+               end
+               quotes.each do |quote|
                  headers << quote.strike_price if quote.fo_type == 'XX' or (quote.traded_quantity > max_volume * 0.05 and quote.open_interest > max_io * 0.05)
+               end
              end
-         end
-         headers = headers.sort
-      %>
+             headers = headers.sort
+          %>
 
-      <% headers.each do |header| %>
-          <th><%= header == 0 ? 'Future' : header %></th>
-      <% end %>
-    </tr>
-    </thead>
-    <%
-       put_data = []
-       call_data = []
-    %>
-    <% @fo_quotes_by_date.each_pair do |date, quotes| %>
-        <% max_volume = max_io = 0
-           quotes.each do |quote|
-               next if quote.fo_type == 'XX'
-               max_volume += quote.traded_quantity
-               max_io += quote.open_interest
-           end
-        %>
-        <% quotes_by_strike_price = quotes.group_by(&:strike_price) %>
-        <tr>
-          <td><%= date %></td>
-          <% headers.each do |strike_price| %>
-              <td>
-                <% quotes_by_group = quotes_by_strike_price[strike_price]
-                   unless quotes_by_group.nil?
-                       (quotes_by_group.sort { |a, b| a.fo_type <=> b.fo_type }).each do |quote| %>
-                        <% if quote.fo_type == 'XX' %>
-                            <span class="fo_<%= quote.fo_type %>"><%= "#{quote.close} : #{quote.open_interest}(#{(quote.change_in_open_interest / quote.open_interest * 100).round(2)}) : #{quote.traded_quantity} " %></span>
-                        <% elsif quote.traded_quantity > max_volume * 0.05 or quote.open_interest > max_io * 0.05 %>
-                            <% (put_data << [quote.date, quote.strike_price.to_f, (quote.traded_quantity / max_volume * 100).round(2).to_f, {color: '#F5909C'}]) if quote.fo_type == 'PE' %>
-                            <% (call_data << [quote.date, quote.strike_price.to_f, (quote.traded_quantity / max_volume * 100).round(2).to_f, {color: '#90F59F'}]) if quote.fo_type == 'CE' %>
-                            <span class="fo_<%= quote.fo_type %>"><%= "#{(quote.open_interest / max_io * 100).round(2)}(#{(quote.change_in_open_interest / quote.open_interest * 100).round(2)}) : #{(quote.traded_quantity / max_volume * 100).round(2)}" %></span>
-                        <% end %>
-                    <% end %>
-                <% end %>
-              </td>
+          <% headers.each do |header| %>
+              <th><%= header == 0 ? 'Future' : header %></th>
           <% end %>
         </tr>
-    <% end %>
-  </table>
-</div>
+        </thead>
+        <%
+           put_data = []
+           call_data = []
+        %>
+        <% @fo_quotes_by_date.each_pair do |date, quotes| %>
+            <% max_volume = max_io = 0
+               quotes.each do |quote|
+                 next if quote.fo_type == 'XX'
+                 max_volume += quote.traded_quantity
+                 max_io += quote.open_interest
+               end
+            %>
+            <% quotes_by_strike_price = quotes.group_by(&:strike_price) %>
+            <tr>
+              <td><%= date %></td>
+              <% headers.each do |strike_price| %>
+                  <td>
+                    <% quotes_by_group = quotes_by_strike_price[strike_price]
+                       unless quotes_by_group.nil?
+                         (quotes_by_group.sort { |a, b| a.fo_type <=> b.fo_type }).each do |quote| %>
+                            <% if quote.fo_type == 'XX' %>
+                                <span class="fo_<%= quote.fo_type %>"><%= "#{quote.close} : #{quote.open_interest}(#{(quote.change_in_open_interest / quote.open_interest * 100).round(2)}) : #{quote.traded_quantity} " %></span>
+                            <% elsif quote.traded_quantity > max_volume * 0.05 or quote.open_interest > max_io * 0.05 %>
+                                <% (put_data << [quote.date, quote.strike_price.to_f, (quote.traded_quantity / max_volume * 100).round(2).to_f, {color: '#F5909C'}]) if quote.fo_type == 'PE' %>
+                                <% (call_data << [quote.date, quote.strike_price.to_f, (quote.traded_quantity / max_volume * 100).round(2).to_f, {color: '#90F59F'}]) if quote.fo_type == 'CE' %>
+                                <span class="fo_<%= quote.fo_type %>"><%= "#{(quote.open_interest / max_io * 100).round(2)}(#{(quote.change_in_open_interest / quote.open_interest * 100).round(2)}) : #{(quote.traded_quantity / max_volume * 100).round(2)}" %></span>
+                            <% end %>
+                        <% end %>
+                    <% end %>
+                  </td>
+              <% end %>
+            </tr>
+        <% end %>
+      </table>
+    </div>
 
-<% quotes = @quotes.inject([]) {|arr, quote| arr << [quote.date, quote.close.to_f]} %>
-<div id="chart3" style="margin-top:20px; margin-left:20px; width:1200px; height:500px;"></div>
-<div id="chart4" style="margin-top:20px; margin-left:20px; width:1200px; height:500px;"></div>
-<script type="text/javascript">
-    var put_data = <%=raw put_data.to_json %>;
-    var call_data = <%=raw call_data.to_json %>;
-    var quotes = <%=raw quotes.to_json %>
-    $(document).ready(function() {
-        $.jqplot('chart3', [put_data, call_data, quotes], {
-            title: 'Put/Call movement',
-            seriesDefaults:{
-                renderer: $.jqplot.BubbleRenderer,
-                rendererOptions: {
-                    autoscalePointsFactor: -0.15,
-                    autoscaleMultiplier: 0.70,
-                    highlightMouseDown: true,
-                    bubbleAlpha: 0.7
-                },
-                shadow: true,
-                shadowAlpha: 0.05
-            },
-            series: [
-                { label: 'Put', markerOptions: {show: false}, shadow: false},
-                { label: 'Call', markerOptions: {show: false}, shadow: false},
-                {label: 'NIFTY', renderer:$.jqplot.LineRenderer, pointLabels: {show: false}}
-            ],
-            seriesColors:['#F5909C', '#90F59F', '#C5B47F'],
-            axes: {
-                xaxis: {
-                    renderer:$.jqplot.DateAxisRenderer,
-                    tickOptions:{formatString:'%d/%m/%Y'},
-                    min: '<%=@fo_quotes_by_date.min.first - 1%>', max: '<%=@fo_quotes_by_date.max.first + 1%>'
-                }
-            },
-            legend: {
-                show: true,
-                placement:'outside',
-                location: 'ne'
-            }
-        });
+    <% quotes = @quotes.inject([]) { |arr, quote| arr << [quote.date, quote.close.to_f] } %>
+    <div id="chart3" style="margin-top:20px; margin-left:20px; width:1200px; height:500px;"></div>
+    <div id="chart4" style="margin-top:20px; margin-left:20px; width:1200px; height:500px;"></div>
+    <script type="text/javascript">
+        var put_data = <%=raw put_data.to_json %>;
+        var call_data = <%=raw call_data.to_json %>;
+        var quotes = <%=raw quotes.to_json %>
+                $(document).ready(function () {
+                    $.jqplot('chart3', [put_data, call_data, quotes], {
+                        title:'Put/Call movement',
+                        seriesDefaults:{
+                            renderer:$.jqplot.BubbleRenderer,
+                            rendererOptions:{
+                                autoscalePointsFactor:-0.15,
+                                autoscaleMultiplier:0.70,
+                                highlightMouseDown:true,
+                                bubbleAlpha:0.7
+                            },
+                            shadow:true,
+                            shadowAlpha:0.05
+                        },
+                        series:[
+                            { label:'Put', markerOptions:{show:false}, shadow:false},
+                            { label:'Call', markerOptions:{show:false}, shadow:false},
+                            {label:'NIFTY', renderer:$.jqplot.LineRenderer, pointLabels:{show:false}}
+                        ],
+                        seriesColors:['#F5909C', '#90F59F', '#C5B47F'],
+                        axes:{
+                            xaxis:{
+                                renderer:$.jqplot.DateAxisRenderer,
+                                tickOptions:{formatString:'%d/%m/%Y'},
+                                min:'<%=@fo_quotes_by_date.min.first - 1%>', max:'<%=@fo_quotes_by_date.max.first + 1%>'
+                            }
+                        },
+                        legend:{
+                            show:true,
+                            placement:'outside',
+                            location:'ne'
+                        }
+                    });
 
-        $.jqplot('chart4', [<%=raw @price_future_diff.to_json%>, quotes], {
-              stackSeries: false,
-              title:'Equity vs Future price movement',
-              axes:{
-                  xaxis:{renderer:$.jqplot.DateAxisRenderer, min: '<%=@fo_quotes_by_date.min.first - 1%>', max: '<%=@fo_quotes_by_date.max.first + 1%>'},
-                  y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
-              },
-              legend: {
-                  renderer: $.jqplot.EnhancedLegendRenderer,
-                  show:true,
-                  location: 'se',
-                  placement:'outside',
-                  yoffset: 30,
-                  rendererOptions:{
-                      numberRows: 2
-                  }
-              },
-              grid: {
-                  drawGridLines: true,
-                  gridLineColor: '#cccccc',
-                  background: '#ffffff'
-              },
-              seriesColors:['#4BB2C5', '#EAA228'],
-              seriesDefaults: {
-                useNegativeColors: false
-              },
-              series:[
-                  {label: 'Eq-Index Diff', pointLabels: {show: false}},
-                  {label: 'NIFTY', yaxis: 'y2axis', pointLabels: {show: false}}
-              ],
-              highlighter: {
-                  show: true,
-                  sizeAdjust: 7.5,
-                  yvalues: 1
-              },
-              cursor: {
-                  show:false
-              }
-          });
-    });
+                    $.jqplot('chart4', [<%=raw @price_future_diff.to_json%>, quotes], {
+                        stackSeries:false,
+                        title:'Equity vs Future price movement',
+                        axes:{
+                            xaxis:{renderer:$.jqplot.DateAxisRenderer, min:'<%=@fo_quotes_by_date.min.first - 1%>', max:'<%=@fo_quotes_by_date.max.first + 1%>'},
+                            y2axis:{autoscale:true, tickOptions:{ showMark:false, showGridline:false }}
+                        },
+                        legend:{
+                            renderer:$.jqplot.EnhancedLegendRenderer,
+                            show:true,
+                            location:'se',
+                            placement:'outside',
+                            yoffset:30,
+                            rendererOptions:{
+                                numberRows:2
 
-</script>
+ }
+                        },
+                        grid:{
+                            drawGridLines:true,
+                            gridLineColor:'#cccccc',
+                            background:'#ffffff'
+                        },
+                        seriesColors:['#4BB2C5', '#EAA228'],
+                        seriesDefaults:{
+                            useNegativeColors:false
+                        },
+                        series:[
+                            {label:'Eq-Index Diff', pointLabels:{show:false}},
+                            {label:'NIFTY', yaxis:'y2axis', pointLabels:{show:false}}
+                        ],
+                        highlighter:{
+                            show:true,
+                            sizeAdjust:7.5,
+                            yvalues:1
+                        },
+                        cursor:{
+                            show:false
+                        }
+                    });
+                });
+
+    </script>
+<% else %>
+    Data not available
+<% end %>

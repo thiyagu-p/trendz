@@ -12,7 +12,7 @@ class FoChartsController < ApplicationController
     @fo_quotes_by_date = fo_quotes.group_by(&:date)
     @quotes = EqQuote.find_all_by_stock_id(@stock.id, :conditions => "date >= '#{from_date}'", :order => 'date asc')
     future_quotes = fo_quotes.inject({}) {|hash, quote| hash[quote.date] = quote.close if quote.future?; hash}
-    @price_future_diff = @quotes.collect {|quote| [quote.date, (future_quotes[quote.date] - quote.close).to_f]}
+    @price_future_diff = @quotes.collect {|quote| [quote.date, ((future_quotes[quote.date] || 0) - quote.close).to_f]}
     render :layout => false
   end
 

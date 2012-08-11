@@ -1,209 +1,213 @@
-<div class="jqPlot" id="chart1" style="height:500px; width:1200px;"></div>
-<div class="jqPlot" id="chart2" style="height:500px; width:1200px;"></div>
-<div class="jqPlot" id="chart3" style="height:500px; width:1200px;"></div>
-<div class="jqPlot" id="chart4" style="height:500px; width:1200px;"></div>
-<script type="text/javascript" language="javascript">
+<% unless @market_activities.empty? %>
+    <div class="jqPlot" id="chart1" style="height:500px; width:1200px;"></div>
+    <div class="jqPlot" id="chart2" style="height:500px; width:1200px;"></div>
+    <div class="jqPlot" id="chart3" style="height:500px; width:1200px;"></div>
+    <div class="jqPlot" id="chart4" style="height:500px; width:1200px;"></div>
+    <script type="text/javascript" language="javascript">
 
-    var plot1, plot2;
-    $(document).ready(function() {
-        $.jqplot.config.enablePlugins = true;
-        <%
-          start_date = (@market_activities.first.date - 1).to_s
-          end_date = (@market_activities.last.date + 1).to_s
+        var plot1, plot2;
+        $(document).ready(function () {
+            $.jqplot.config.enablePlugins = true;
+            <%
+              start_date = (@market_activities.first.date - 1).to_s
+              end_date = (@market_activities.last.date + 1).to_s
 
-          quotes = @nifty_quotes.inject([]) {|arr, quote| arr << [quote.date, quote.close.to_f]}
-          fii_fo_index_activities = []
-          fii_fo_stock_activities = []
-          equity_fii = []
-          debit_fii = []
-          fii_index_futures = []
-          fii_index_options = []
-          fii_index_futures_oi = []
-          fii_index_options_oi = []
+              quotes = @nifty_quotes.inject([]) {|arr, quote| arr << [quote.date, quote.close.to_f]}
+              fii_fo_index_activities = []
+              fii_fo_stock_activities = []
+              equity_fii = []
+              debit_fii = []
+              fii_index_futures = []
+              fii_index_options = []
+              fii_index_futures_oi = []
+              fii_index_options_oi = []
 
-            @market_activities.each do |market_activity|
-               date_in_seconds = market_activity.date
-               equity_fii << [date_in_seconds, market_activity.equity_fii.to_f]
-               debit_fii << [date_in_seconds, market_activity.debit_fii.to_f]
-               fii_fo_index_activities << [date_in_seconds, market_activity.fo_index_fii.to_f]
-               fii_fo_stock_activities << [date_in_seconds, market_activity.fo_stock_fii.to_f]
-               fii_index_futures << [date_in_seconds, market_activity.index_futures.to_f]
-               fii_index_options << [date_in_seconds, market_activity.index_options.to_f]
-               fii_index_futures_oi << [date_in_seconds, market_activity.fii_index_futures_oi.to_f]
-               fii_index_options_oi << [date_in_seconds, market_activity.fii_index_options_oi.to_f]
-            end
-        %>
+                @market_activities.each do |market_activity|
+                   date_in_seconds = market_activity.date
+                   equity_fii << [date_in_seconds, market_activity.equity_fii.to_f]
+                   debit_fii << [date_in_seconds, market_activity.debit_fii.to_f]
+                   fii_fo_index_activities << [date_in_seconds, market_activity.fo_index_fii.to_f]
+                   fii_fo_stock_activities << [date_in_seconds, market_activity.fo_stock_fii.to_f]
+                   fii_index_futures << [date_in_seconds, market_activity.index_futures.to_f]
+                   fii_index_options << [date_in_seconds, market_activity.index_options.to_f]
+                   fii_index_futures_oi << [date_in_seconds, market_activity.fii_index_futures_oi.to_f]
+                   fii_index_options_oi << [date_in_seconds, market_activity.fii_index_options_oi.to_f]
+                end
+            %>
 
-        var debit_fii = <%=raw debit_fii.to_json %>;
-        var equity_fii = <%=raw equity_fii.to_json %>;
-        var fii_fo_index = <%=raw fii_fo_index_activities.to_json %>;
-        var fii_fo_stock = <%=raw fii_fo_stock_activities.to_json %>;
-        var quotes = <%=raw quotes.to_json %>;
+            var debit_fii = <%=raw debit_fii.to_json %>;
+            var equity_fii = <%=raw equity_fii.to_json %>;
+            var fii_fo_index = <%=raw fii_fo_index_activities.to_json %>;
+            var fii_fo_stock = <%=raw fii_fo_stock_activities.to_json %>;
+            var quotes = <%=raw quotes.to_json %>;
 
-        plot1 = $.jqplot('chart1', [equity_fii, debit_fii, quotes], {
-            stackSeries: false,
-            title:'Market Activities by FII on Equity & Debit',
-            axes:{
-                xaxis:{renderer:$.jqplot.DateAxisRenderer, min: '<%=start_date%>', max: '<%=end_date%>'},
-                y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
-            },
-            legend: {
-                renderer: $.jqplot.EnhancedLegendRenderer,
-                show:true,
-                location: 'se',
-                placement:'outside',
-                yoffset: 30,
-                rendererOptions:{
-                    numberRows: 2
+            plot1 = $.jqplot('chart1', [equity_fii, debit_fii, quotes], {
+                stackSeries:false,
+                title:'Market Activities by FII on Equity & Debit',
+                axes:{
+                    xaxis:{renderer:$.jqplot.DateAxisRenderer, min:'<%=start_date%>', max:'<%=end_date%>'},
+                    y2axis:{autoscale:true, tickOptions:{ showMark:false, showGridline:false }}
+                },
+                legend:{
+                    renderer:$.jqplot.EnhancedLegendRenderer,
+                    show:true,
+                    location:'se',
+                    placement:'outside',
+                    yoffset:30,
+                    rendererOptions:{
+                        numberRows:2
+                    }
+                },
+                grid:{
+                    drawGridLines:true,
+                    gridLineColor:'#cccccc',
+                    background:'#ffffff'
+                },
+                seriesColors:['#4BB2C5', '#EAA228', '#C5B47F'],
+                seriesDefaults:{
+                    useNegativeColors:false
+                },
+                series:[
+                    {label:'Equity', renderer:$.jqplot.BarRenderer, rendererOptions:{fillToZero:true, barWidth:5, barPadding:1}},
+                    {label:'Debit', renderer:$.jqplot.BarRenderer, rendererOptions:{fillToZero:true, barWidth:5, barPadding:1}},
+                    {label:'NIFTY', yaxis:'y2axis', pointLabels:{show:false}}
+                ],
+                highlighter:{
+                    show:true,
+                    sizeAdjust:7.5,
+                    yvalues:1
+                },
+                cursor:{
+                    show:false
                 }
-            },
-            grid: {
-                drawGridLines: true,
-                gridLineColor: '#cccccc',
-                background: '#ffffff'
-            },
-            seriesColors:['#4BB2C5', '#EAA228', '#C5B47F'],
-            seriesDefaults: {
-              useNegativeColors: false
-            },
-            series:[
-                {label: 'Equity', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
-                {label: 'Debit', renderer:$.jqplot.BarRenderer, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
-                {label: 'NIFTY', yaxis: 'y2axis', pointLabels: {show: false}}
-            ],
-            highlighter: {
-                show: true,
-                sizeAdjust: 7.5,
-                yvalues: 1
-            },
-            cursor: {
-                show:false
-            }
-        });
+            });
 
-        plot2 = $.jqplot('chart2', [equity_fii, fii_fo_index, fii_fo_stock, quotes], {
-            stackSeries: false,
-            title:'Market Activities by FII',
-            axes:{
-                xaxis:{renderer:$.jqplot.DateAxisRenderer, min: '<%=start_date%>', max: '<%=end_date%>'},
-                y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
-            },
-            legend: {
-                renderer: $.jqplot.EnhancedLegendRenderer,
-                show:true,
-                location: 'se',
-                placement:'outside',
-                yoffset: 30,
-                rendererOptions:{
-                    numberRows: 2
+            plot2 = $.jqplot('chart2', [equity_fii, fii_fo_index, fii_fo_stock, quotes], {
+                stackSeries:false,
+                title:'Market Activities by FII',
+                axes:{
+                    xaxis:{renderer:$.jqplot.DateAxisRenderer, min:'<%=start_date%>', max:'<%=end_date%>'},
+                    y2axis:{autoscale:true, tickOptions:{ showMark:false, showGridline:false }}
+                },
+                legend:{
+                    renderer:$.jqplot.EnhancedLegendRenderer,
+                    show:true,
+                    location:'se',
+                    placement:'outside',
+                    yoffset:30,
+                    rendererOptions:{
+                        numberRows:2
+                    }
+                },
+                grid:{
+                    drawGridLines:true,
+                    gridLineColor:'#cccccc',
+                    background:'#ffffff'
+                },
+                seriesColors:['#4BB2C5', '#EAA228', '#85802b', '#C5B47F'],
+                seriesDefaults:{
+                    useNegativeColors:false
+                },
+                series:[
+                    {label:'Equity', renderer:$.jqplot.BarRenderer, pointLabels:{stackedValue:true}, rendererOptions:{fillToZero:true, barWidth:5, barPadding:1}},
+                    {label:'Index F&O', renderer:$.jqplot.BarRenderer, pointLabels:{stackedValue:true}, rendererOptions:{fillToZero:true, barWidth:5, barPadding:1}},
+                    {label:'Stock F&O', renderer:$.jqplot.BarRenderer, pointLabels:{stackedValue:true}, rendererOptions:{fillToZero:true, barWidth:5, barPadding:1}},
+                    {label:'NIFTY', yaxis:'y2axis', pointLabels:{show:false}}
+                ],
+                highlighter:{
+                    show:true,
+                    sizeAdjust:7.5,
+                    yvalues:1
+                },
+                cursor:{
+                    show:false
                 }
-            },
-            grid: {
-                drawGridLines: true,
-                gridLineColor: '#cccccc',
-                background: '#ffffff'
-            },
-            seriesColors:['#4BB2C5', '#EAA228', '#85802b', '#C5B47F'],
-            seriesDefaults: {
-              useNegativeColors: false
-            },
-            series:[
-                {label: 'Equity', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
-                {label: 'Index F&O', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
-                {label: 'Stock F&O', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
-                {label: 'NIFTY', yaxis: 'y2axis', pointLabels: {show: false}}
-            ],
-            highlighter: {
-                show: true,
-                sizeAdjust: 7.5,
-                yvalues: 1
-            },
-            cursor: {
-                show:false
-            }
-        });
+            });
 
-        $.jqplot('chart3', [<%=raw fii_index_futures.to_json %>, <%=raw fii_index_options.to_json%>, quotes], {
-            stackSeries: false,
-            title:'Market Activities by FII in Futures and Options',
-            axes:{
-                xaxis:{renderer:$.jqplot.DateAxisRenderer, min: '<%=start_date%>', max: '<%=end_date%>'},
-                y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
-            },
-            legend: {
-                renderer: $.jqplot.EnhancedLegendRenderer,
-                show:true,
-                location: 'se',
-                placement:'outside',
-                yoffset: 30,
-                rendererOptions:{
-                    numberRows: 2
+            $.jqplot('chart3', [<%=raw fii_index_futures.to_json %>, <%=raw fii_index_options.to_json%>, quotes], {
+                stackSeries:false,
+                title:'Market Activities by FII in Futures and Options',
+                axes:{
+                    xaxis:{renderer:$.jqplot.DateAxisRenderer, min:'<%=start_date%>', max:'<%=end_date%>'},
+                    y2axis:{autoscale:true, tickOptions:{ showMark:false, showGridline:false }}
+                },
+                legend:{
+                    renderer:$.jqplot.EnhancedLegendRenderer,
+                    show:true,
+                    location:'se',
+                    placement:'outside',
+                    yoffset:30,
+                    rendererOptions:{
+                        numberRows:2
+                    }
+                },
+                grid:{
+                    drawGridLines:true,
+                    gridLineColor:'#cccccc',
+                    background:'#ffffff'
+                },
+                seriesColors:['#4BB2C5', '#EAA228', '#C5B47F'],
+                seriesDefaults:{
+                    useNegativeColors:false
+                },
+                series:[
+                    {label:'Index Futures', renderer:$.jqplot.BarRenderer, pointLabels:{stackedValue:true}, rendererOptions:{fillToZero:true, barWidth:5, barPadding:1}},
+                    {label:'Index Options', renderer:$.jqplot.BarRenderer, pointLabels:{stackedValue:true}, rendererOptions:{fillToZero:true, barWidth:5, barPadding:1}},
+                    {label:'NIFTY', yaxis:'y2axis', pointLabels:{show:false}}
+                ],
+                highlighter:{
+                    show:true,
+                    sizeAdjust:7.5,
+                    yvalues:1
+                },
+                cursor:{
+                    show:false
                 }
-            },
-            grid: {
-                drawGridLines: true,
-                gridLineColor: '#cccccc',
-                background: '#ffffff'
-            },
-            seriesColors:['#4BB2C5', '#EAA228', '#C5B47F'],
-            seriesDefaults: {
-              useNegativeColors: false
-            },
-            series:[
-                {label: 'Index Futures', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
-                {label: 'Index Options', renderer:$.jqplot.BarRenderer,pointLabels:{stackedValue: true}, rendererOptions: {fillToZero: true, barWidth: 5, barPadding: 1}},
-                {label: 'NIFTY', yaxis: 'y2axis', pointLabels: {show: false}}
-            ],
-            highlighter: {
-                show: true,
-                sizeAdjust: 7.5,
-                yvalues: 1
-            },
-            cursor: {
-                show:false
-            }
-        });
+            });
 
-        $.jqplot('chart4', [<%=raw fii_index_futures_oi.to_json %>, <%=raw fii_index_options_oi.to_json%>, quotes], {
-            stackSeries: false,
-            title:'Market Activities by FII F&O Open Interest',
-            axes:{
-                xaxis:{renderer:$.jqplot.DateAxisRenderer, min: '<%=start_date%>', max: '<%=end_date%>'},
-                y2axis: {autoscale: true, tickOptions: { showMark: false, showGridline: false }}
-            },
-            legend: {
-                renderer: $.jqplot.EnhancedLegendRenderer,
-                show:true,
-                location: 'se',
-                placement:'outside',
-                yoffset: 30,
-                rendererOptions:{
-                    numberRows: 2
+            $.jqplot('chart4', [<%=raw fii_index_futures_oi.to_json %>, <%=raw fii_index_options_oi.to_json%>, quotes], {
+                stackSeries:false,
+                title:'Market Activities by FII F&O Open Interest',
+                axes:{
+                    xaxis:{renderer:$.jqplot.DateAxisRenderer, min:'<%=start_date%>', max:'<%=end_date%>'},
+                    y2axis:{autoscale:true, tickOptions:{ showMark:false, showGridline:false }}
+                },
+                legend:{
+                    renderer:$.jqplot.EnhancedLegendRenderer,
+                    show:true,
+                    location:'se',
+                    placement:'outside',
+                    yoffset:30,
+                    rendererOptions:{
+                        numberRows:2
+                    }
+                },
+                grid:{
+                    drawGridLines:true,
+                    gridLineColor:'#cccccc',
+                    background:'#ffffff'
+                },
+                seriesColors:['#4BB2C5', '#EAA228', '#C5B47F'],
+                seriesDefaults:{
+                    useNegativeColors:false,
+                    pointLabels:{show:false}
+                },
+                series:[
+                    {label:'Index Futures O/I'},
+                    {label:'Index Options O/I'},
+                    {label:'NIFTY', yaxis:'y2axis'}
+                ],
+                highlighter:{
+                    show:true,
+                    sizeAdjust:7.5,
+                    yvalues:1
+                },
+                cursor:{
+                    show:false
                 }
-            },
-            grid: {
-                drawGridLines: true,
-                gridLineColor: '#cccccc',
-                background: '#ffffff'
-            },
-            seriesColors:['#4BB2C5', '#EAA228', '#C5B47F'],
-            seriesDefaults: {
-              useNegativeColors: false,
-              pointLabels: {show: false}
-            },
-            series:[
-                {label: 'Index Futures O/I'},
-                {label: 'Index Options O/I'},
-                {label: 'NIFTY', yaxis: 'y2axis'}
-            ],
-            highlighter: {
-                show: true,
-                sizeAdjust: 7.5,
-                yvalues: 1
-            },
-            cursor: {
-                show:false
-            }
+            });
         });
-    });
-</script>
+    </script>
+<% else %>
+    Data not available
+<% end %>
