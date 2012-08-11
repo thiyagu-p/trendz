@@ -24,6 +24,10 @@
       <%= f.text_field :brokerage, {size: 8} %>
     </span>
     <span>
+      <%= f.label :delivery %>
+      <%= f.check_box :delivery %>
+    </span>
+    <span>
       <%= f.label :account %>
       <%= f.select :trading_account_id, TradingAccount.order(:name).all.map { |trading_account| [trading_account.name, trading_account.id] } %>
     </span>

@@ -1,7 +1,7 @@
 class EquityTransactionsController < ApplicationController
   def index
     @transactions = EquityTransaction.all
-    @consolidated_holdings = EquityHolding.consolidated
+    @consolidated_holdings = EquityHolding.delivery.consolidated
   end
 
   def new

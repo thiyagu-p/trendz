@@ -18,6 +18,8 @@ class EquityHolding < ActiveRecord::Base
      .order([:portfolio_id, :stock_id, :quantity, :trading_account_id])
   end
 
+  scope :delivery, lambda { where('delivery') }
+
   private
   def self.date_condition(transaction)
     transaction.action == EquityTransaction::SELL ? '<=' : '='

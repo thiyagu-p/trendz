@@ -31,6 +31,7 @@
       <th>Price</th>
       <th>Quantity</th>
       <th>Brokerage</th>
+      <th>Delivery</th>
       <th>Account</th>
       <th>Portfolio</th>
     </tr>
@@ -43,6 +44,7 @@
           <td><%= display_price transaction.price %></td>
           <td><%= transaction.quantity %></td>
           <td><%= display_price transaction.brokerage %></td>
+          <td><%= transaction.delivery? %></td>
           <td><%= transaction.trading_account.name %></td>
           <td><%= transaction.portfolio.name %></td>
         </tr>

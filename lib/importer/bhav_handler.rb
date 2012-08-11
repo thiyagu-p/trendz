@@ -38,8 +38,8 @@ module Importer
       begin
         Stock.transaction do
           Zip::ZipFile.open("data/#{zip_file_name}") do |zipfile|
-            CSV.parse(zipfile.file.read(file_name)) do |line|
-              process_row(line)
+            CSV.parse(zipfile.file.read(file_name)) do |columns|
+              process_row(columns) if columns.count > 1
             end
           end
         end
