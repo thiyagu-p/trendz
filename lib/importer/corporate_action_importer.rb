@@ -1,29 +1,34 @@
 module Importer
   class CorporateActionImporter
     include NseConnection
-    def self.check
-      open('company_action_consolidated.csv').readlines.each do |line|
-        actions_data = line.split('|').last
-        str = CorporateActionImporter.new.parse_action(actions_data).to_s
-        p "#{line}" if str =~ /unknown/
-      end
-      ''
-    end
 
     def import
       stocks = Stock.all(order: :symbol, conditions: "series = 'e'")
       stocks.each do |stock|
-        response = get("/marketinfo/companyinfo/eod/action.jsp?symbol=#{CGI.escape(stock.symbol)}")
-        next if response.class == Net::HTTPNotFound
-        symbol = stock.symbol
-        data = response.body
-        doc = Nokogiri::HTML(data)
-        doc.css('table table table table table tr').each do |row|
-          columns = row.css('td')
-          next unless columns[0].text.strip =~ /EQ/
-          #file << "#{symbol}|#{columns[0].text}|#{columns[4].text}|#{columns[7].text}\n"
+        begin
+          response = get("/marketinfo/companyinfo/eod/action.jsp?symbol=#{CGI.escape(stock.symbol)}")
+          next if response.class == Net::HTTPNotFound
+          data = response.body
+          doc = Nokogiri::HTML(data)
+          doc.css('table table table table table tr').each do |row|
+            columns = row.css('td')
+            next unless columns[0].text.strip =~ /EQ/
+            action_data = columns[7].text
+            ex_date = find_ex_date(columns)
+            next if CorporateAction.find_by_raw_data_and_ex_date(action_data, ex_date)
+            CorporateAction.create! stock_id: stock.id, ex_date: ex_date,
+                                    parsed_data: parse_action(action_data).to_json, raw_data: action_data
+          end
+        rescue
+          p "Error importing company info for #{stock.symbol}"
         end
       end
+    end
+
+    def find_ex_date(columns)
+      ex_date_str = columns[4].text
+      record_date_str = columns[1].text != '-' ? columns[1].text : columns[2].text
+      ex_date_str != '-' ? Date.parse(ex_date_str) : Date.parse(record_date_str) - 1
     end
 
     def import_and_save_to_file

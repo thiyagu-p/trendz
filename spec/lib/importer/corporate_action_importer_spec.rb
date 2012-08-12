@@ -22,8 +22,57 @@ describe Importer::CorporateActionImporter do
       Importer::CorporateActionImporter.new.import
     end
 
+    it "should import and save parsed data" do
+      stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY)
+      @http = stub()
+      Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
+      @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+      Importer::CorporateActionImporter.new.import
+      corporate_action = CorporateAction.find_by_stock_id stock1.id
+      corporate_action.ex_date.should == Date.parse('31/05/2012')
+      corporate_action.raw_data.should == 'ANNUAL GENERAL MEETING AND DIVIDEND RS.8.50 PER SHARE'
+      corporate_action.parsed_data.should == '[{"type":"ignore","data":"ANNUAL GENERAL MEETING"},{"type":"divident","value":"8.50"}]'
+    end
+
+    it "should ignore non equity actions" do
+      stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY)
+      @http = stub()
+      Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
+      @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+      Importer::CorporateActionImporter.new.import
+      CorporateAction.count.should == 2
+    end
+
+    it "should ignore existing equity actions" do
+      stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY)
+      @http = stub()
+      Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
+      Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
+      @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+      @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+      Importer::CorporateActionImporter.new.import
+      CorporateAction.count.should == 2
+      Importer::CorporateActionImporter.new.import
+      CorporateAction.count.should == 2
+    end
   end
 
+  describe :ex_date do
+    it 'should use ex_date if exist' do
+      doc = Nokogiri::HTML('<tr> <td class=t2>EQ</td> <td class=t2>-</td> <td class=t2>02/06/2012</td> <td class=t2>07/06/2012</td> <td class=t2>31/05/2012</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t0>ANNUAL GENERAL MEETING AND DIVIDEND RS.8.50 PER SHARE</td> </tr>')
+      Importer::CorporateActionImporter.new.find_ex_date(doc.css('td')).should == Date.parse('31/05/2012')
+    end
+
+    it 'should use record_date if ex_date missing' do
+      doc = Nokogiri::HTML('<tr> <td class=t2>EQ</td> <td class=t2>02/06/2012</td> <td class=t2>01/06/2012</td> <td class=t2>07/06/2012</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t0>ANNUAL GENERAL MEETING AND DIVIDEND RS.8.50 PER SHARE</td> </tr>')
+      Importer::CorporateActionImporter.new.find_ex_date(doc.css('td')).should == Date.parse('01/06/2012')
+    end
+
+    it 'should use BC Start date if exdate and record date missing' do
+      doc = Nokogiri::HTML('<tr> <td class=t2>EQ</td> <td class=t2>-</td> <td class=t2>02/06/2012</td> <td class=t2>07/06/2012</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t0>ANNUAL GENERAL MEETING AND DIVIDEND RS.8.50 PER SHARE</td> </tr>')
+      Importer::CorporateActionImporter.new.find_ex_date(doc.css('td')).should == Date.parse('01/06/2012')
+    end
+  end
   describe :parse_action do
     it 'should parse value divident' do
       importer = Importer::CorporateActionImporter.new
@@ -113,4 +162,88 @@ describe Importer::CorporateActionImporter do
     end
 
   end
+end
+
+def corporate_action_html
+<<EOF
+<HTML>
+<BODY bgcolor="#ffffff" leftmargin=0 topmargin=0 marginheight=0 marginwidth=0>
+<div name="menulayer" id="menulayer" class=menufont style="background-color: #f5c078; visibility:hidden; position:absolute; width:1px; height:1px; z-index:1; left:1; top:1"></div>
+<TABLE cellspacing=0 border=0 cellpadding=0 height=100%>
+<tr>
+<td width=600 valign=top>
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 width=592 height=100%>
+<TR>
+<TD width=20>&nbsp;</TD>
+<TD valign=top>
+<font class=header>Corporate Information</font><br>
+<font class=header3>Corporate Actions</font><br><br>
+	<table border=0 cellspacing=1 cellpadding=4 align=center width=450>
+	<tr>
+	<td class=tablehead WIDTH=100>Company</td>
+	<td class=t0>Reliance Industries Limited</td>
+	</tr>
+	<tr>
+	<td class=tablehead WIDTH=100>NSE Symbol</td>
+	<td class=t0><a href="/marketinfo/equities/quotesearch.jsp?companyname=RELIANCE">RELIANCE</a></td>
+	</tr>
+	</table><br>
+	<table border="0">
+		 <tr><td>
+	<table cellpadding=0 cellspacing=0 border=0 align=center bgcolor=#969696>
+	<tr><td>
+ <table cellpadding=2 border=0 cellspacing=1 align=center width=570>
+ <TR>
+	<TD class=tablehead>Series</TD>
+	<TD class=tablehead>Record Date</TD>
+	<TD class=tablehead>BC Start Date</TD>
+	<TD class=tablehead>BC End Date</TD>
+	<TD class=tablehead>Ex Date</TD>
+	<TD class=tablehead>No Delivery Start Date</TD>
+	<TD class=tablehead>No Delivery End Date</TD>
+	<TD class=tablehead>Purpose</TD>
+	</tr>
+	<tr>
+	 <td class=t2>BL</td>
+	 <td class=t2>-</td>
+	 <td class=t2>03/06/2006</td>
+	 <td class=t2>10/06/2006</td>
+	 <td class=t2>01/06/2006</td>
+	 <td class=t2>-</td>
+	 <td class=t2>-</td>
+	<td class=t0>DIVIDEND-RS.10/- PER SH</td>
+	</tr>
+	<tr>
+	 <td class=t2>EQ</td>
+	 <td class=t2>-</td>
+	 <td class=t2>02/06/2012</td>
+	 <td class=t2>07/06/2012</td>
+	 <td class=t2>31/05/2012</td>
+	 <td class=t2>-</td>
+	 <td class=t2>-</td>
+	<td class=t0>ANNUAL GENERAL MEETING AND DIVIDEND RS.8.50 PER SHARE</td>
+	</tr>
+	<tr>
+	 <td class=t2>EQ</td>
+	 <td class=t2>-</td>
+	 <td class=t2>02/06/2011</td>
+	 <td class=t2>07/06/2011</td>
+	 <td class=t2>31/05/2011</td>
+	 <td class=t2>-</td>
+	 <td class=t2>-</td>
+	<td class=t0>ANNUAL GENERAL MEETING AND DIVIDEND RS.8.50 PER SHARE</td>
+	</tr>
+ </table></td></tr></table>
+	</td></tr>
+ </table>
+</td>
+<td width=10></td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
+EOF
 end

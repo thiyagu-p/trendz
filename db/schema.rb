@@ -10,7 +10,16 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120325123227) do
+ActiveRecord::Schema.define(:version => 20120812143625) do
+
+  create_table "corporate_actions", :force => true do |t|
+    t.integer  "stock_id"
+    t.date     "ex_date"
+    t.string   "parsed_data"
+    t.string   "raw_data"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "eq_quotes", :force => true do |t|
     t.integer "stock_id"
