@@ -3,6 +3,7 @@ class HomeController < ApplicationController
   def index
     future_corporate_actions = CorporateAction.includes(:stock).where("ex_date >= ?", Date.today).order(:ex_date)
     @corporate_actions = filter_ignore(future_corporate_actions)
+    @equity_holding = EquityHolding.all
   end
 
   private

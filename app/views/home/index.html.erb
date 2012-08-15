@@ -1,19 +1,68 @@
+<div id="holdings">
+  <table>
+    <tr>
+      <th>Symbol</th>
+      <th>Quantity</th>
+      <th>Holding Days</th>
+      <th>Purchase Price</th>
+      <th>Current Price</th>
+      <th>P/L</th>
+      <% @equity_holding.first.equity_transaction.stock.performance.returns.each do |days, value| %>
+          <th><%= days %></th>
+      <% end %>
+    </tr>
+    <%
+       @equity_holding.each do |holding|
+         stock = holding.equity_transaction.stock
+         latest_price = stock.latest_quote.close
+         purchase_price = holding.equity_transaction.price
+    %>
+        <tr>
+          <td><%= display_stock_symbol stock.symbol %></td>
+          <td><%= holding.quantity %></td>
+          <td><%= Date.today - holding.equity_transaction.date %></td>
+          <td><%= purchase_price %></td>
+          <td>
+            <%= latest_price %>
+            (<%= raw display_returns((latest_price - purchase_price)/purchase_price * 100) %>)
+          </td>
+          <td>
+            <%= holding.quantity * (latest_price - purchase_price) %>
+          </td>
+          <% stock.performance.returns.each do |days, value| %>
+              <td><%= raw display_returns(value) %></td>
+          <% end %>
+        </tr>
+    <% end %>
+  </table>
+</div>
 <div id="company_actions">
   <table>
-    <% @corporate_actions.each do |corporate_action| %>
-        <tr>
-          <td><%= corporate_action.ex_date %></td>
-          <td><%= display_stock_symbol corporate_action.stock.symbol %></td>
-          <td>
-            <% corporate_action.parsed_data.each do |action| %>
-                <% if action["type"] == 'divident' %>
-                    <span class="<%= (action["current_percentage"] || 0) > 3 ? 'green' : 'gray'%>" >D: <%= display_price action["current_percentage"] %>%</span>
-                <% else %>
-                    <%= action %>
+    <tr>
+      <td>Symbol</td>
+      <td>Date</td>
+      <td>Action</td>
+    </tr>
+    <% actions_by_date = @corporate_actions.group_by(&:ex_date) %>
+    <% actions_by_date.each do |date, actions| %>
+        <% actions.each_with_index do |corporate_action, index| %>
+            <tr>
+              <% if index == 0 %>
+              <td rowspan="<%=actions.count%>"><%= corporate_action.ex_date %></td>
+              <% end %>
+              <td><%= display_stock_symbol corporate_action.stock.symbol %></td>
+              <td>
+                <% corporate_action.parsed_data.each do |action| %>
+                    <% if action["type"] == 'divident' %>
+                    <span class="<%= (action["current_percentage"] || 0) > 3 ? 'green' : 'gray' %>">D: <%= display_price action["current_percentage"] %>
+                      %</span>
+                    <% else %>
+                        <%= action %>
+                    <% end %>
                 <% end %>
-            <% end %>
-          </td>
-        </tr>
+              </td>
+            </tr>
+        <% end %>
     <% end %>
   </table>
 </div>

@@ -92,5 +92,9 @@ table, table td, table th {
     height: 400px;
     overflow: scroll;
     overflow-style: scrollbar;
-    margin: 10px;
+    float: right;
+}
+
+#holdings {
+    float: left;
 }
