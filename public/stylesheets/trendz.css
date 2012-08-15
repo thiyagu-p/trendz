@@ -64,6 +64,10 @@ body {
     color: green;
 }
 
+.gray {
+    color: #ccc;
+}
+
 .returns {
     padding: 4px;
 }
@@ -81,5 +85,12 @@ table, table td, table th {
 }
 
 #holding_list, #transaction_list {
+    margin: 10px;
+}
+
+#company_actions {
+    height: 400px;
+    overflow: scroll;
+    overflow-style: scrollbar;
     margin: 10px;
 }

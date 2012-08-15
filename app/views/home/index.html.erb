@@ -1,0 +1,19 @@
+<div id="company_actions">
+  <table>
+    <% @corporate_actions.each do |corporate_action| %>
+        <tr>
+          <td><%= corporate_action.ex_date %></td>
+          <td><%= display_stock_symbol corporate_action.stock.symbol %></td>
+          <td>
+            <% corporate_action.parsed_data.each do |action| %>
+                <% if action["type"] == 'divident' %>
+                    <span class="<%= (action["current_percentage"] || 0) > 3 ? 'green' : 'gray'%>" >D: <%= display_price action["current_percentage"] %>%</span>
+                <% else %>
+                    <%= action %>
+                <% end %>
+            <% end %>
+          </td>
+        </tr>
+    <% end %>
+  </table>
+</div>

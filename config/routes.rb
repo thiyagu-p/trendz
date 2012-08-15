@@ -1,5 +1,5 @@
 Trendz::Application.routes.draw do
-  root :to => 'charts#index'
+  root :to => 'home#index'
 
   resources :charts, only: [:index, :show]
 
