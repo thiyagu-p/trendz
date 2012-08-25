@@ -17,7 +17,7 @@
     </div>
     <div>
       <%= f.label :stocks %>
-      <%= f.select :stock_ids, Stock.all.map {|stock| [stock.symbol, stock.id]}, {}, { :multiple => true, :size => 10 } %>
+      <%= f.select :stock_ids, Stock.order(:symbol).all.map {|stock| [stock.symbol, stock.id]}, {}, { :multiple => true, :size => 10 } %>
     </div>
     <div class="actions">
       <%= f.submit %>
