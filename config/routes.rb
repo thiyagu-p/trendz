@@ -2,6 +2,7 @@ Trendz::Application.routes.draw do
   root :to => 'home#index'
 
   resources :charts, only: [:index, :show]
+  resources :corporate_actions, only: [:index, :show]
 
   resources :stocks, :only => [:index] do
     resource :eqQuote, :only => [:show]

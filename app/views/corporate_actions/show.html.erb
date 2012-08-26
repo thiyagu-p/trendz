@@ -1,0 +1,16 @@
+<%= render 'select_options' %>
+<h3><%= @stock.symbol %></h3>
+<table>
+  <tr>
+    <th width="7%">Date</th>
+    <th>Raw Data</th>
+    <th>Parsed Data</th>
+  </tr>
+  <% @corporate_actions.each do |corporate_action| %>
+      <tr>
+        <td><%= corporate_action.ex_date %></td>
+        <td><%= corporate_action.raw_data %></td>
+        <td><%= corporate_action.parsed_data %></td>
+      </tr>
+  <% end %>
+</table>

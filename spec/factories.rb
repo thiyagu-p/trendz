@@ -36,9 +36,21 @@ FactoryGirl.define do
     action 'sell'
   end
 
- factory :equity_holding do
-   association :equity_transaction, quantity: 10
-   quantity 10
- end
+  factory :equity_holding do
+    association :equity_transaction, quantity: 10
+    quantity 10
+  end
+
+  factory :corporate_action do
+    stock
+  end
+
+  factory :corporate_action_divident, parent: :corporate_action do
+    parsed_data [{type: "divident", value: "12"}].to_json
+  end
+
+  factory :corporate_action_ignore, parent: :corporate_action do
+    parsed_data [{type: "ignore", data: "AGM"}].to_json
+  end
 
 end
