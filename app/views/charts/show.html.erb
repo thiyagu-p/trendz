@@ -1,24 +1,39 @@
 <%= render 'select_options' %>
+<div class="chart_meta">
+  <div class="returns">
+    <% @stock.performance.returns.each do |key, return_percentage| %>
+        <%= "#{key}: " %> <%= raw display_returns(return_percentage) %>
+    <% end %>
+  </div>
+  <div class="title"><%=@stock.symbol%></div>
+  <div class="legend mov_avg_10d">10 Days Avg</div>
+  <div class="legend mov_avg_50d">50 Days Avg</div>
+  <div class="legend mov_avg_200d">200 Days Avg</div>
+  <div class="legend volume">Trading Volume</div>
+</div>
 
 <div id="mychart"></div>
 <script type="text/javascript">
     <%
-      ohlc_data = []
-      @quotes.each do |quote|
-              ohlc_data << [quote.date, quote.open.to_f, quote.high.to_f, quote.low.to_f, quote.close.to_f]
-      end
       min_date = @quotes.first.date - 3
       max_date = @quotes.last.date + 3
+    data = []
+    @quotes.each do |quote|
+        data << {date: quote.date, open: quote.open.to_f, high: quote.high.to_f, low: quote.low.to_f, close: quote.close.to_f,
+        mov_avg_10d: quote.mov_avg_10d.to_f, mov_avg_50d: quote.mov_avg_50d.to_f, mov_avg_200d: quote.mov_avg_200d.to_f, traded_quantity: quote.traded_quantity.to_f}
+    end
     %>
 
     var height = 650, width = 1300, margin = 50;
-    var data = <%=raw ohlc_data.to_json %>;
+    var data = <%=raw data.to_json %>;
     var stDate = new Date("<%=min_date%>"), enDate = new Date("<%=max_date%>");
+
     var ymin = d3.min(data, function (d) {
-        return d[3]
+        return d['low']
     }), ymax = d3.max(data, function (d) {
-        return d[2]
+        return d['high']
     });
+
     var xscale = d3.time.scale()
             .domain([stDate, enDate])
             .range([1, width - margin]);
@@ -26,6 +41,14 @@
     var yscale = d3.scale.linear()
             .domain([ymin, ymax])
             .range([height - margin, 0]);
+
+    var volumeMin = d3.min(data, function (d) {
+        return d['traded_quantity']
+    });
+    var volumeMax = d3.max(data, function (d) {
+        return d['traded_quantity']
+    });
+    var volumeScale = d3.scale.linear().domain([volumeMin, volumeMax]).range([margin, (height - margin) / 4]);
 
     var svg = d3.select("#mychart").append("svg").attr("height", height).attr("width", width);
 
@@ -39,14 +62,40 @@
 
     var g = svg.append("g");
     var text = g.append("text").attr("x", xscale(enDate) - 150).attr("y", yscale(ymax) + 15);
+
+    var volume_bars = g.selectAll("rect").data(data).enter().append("rect")
+    .attr("x",function (d) {
+        return xscale(new Date(d['date']))
+    }).attr("y",function (d) {
+                return height - margin - volumeScale(d['traded_quantity']);
+            }).attr("width", 2).attr("height", function (d) {
+                return (volumeScale(d['traded_quantity']));
+            })
+    .attr("class", "volume");
+
+    function drawMovingAverage(mov_avg) {
+        var line = d3.svg.line()
+                .x(function (d) {
+                    return xscale(new Date(d['date']));
+                })
+                .y(function (d) {
+                    return yscale(d[mov_avg]);
+                });
+        g.append("svg:path").attr("d", line(data)).attr("class", mov_avg);
+    }
+
+    drawMovingAverage('mov_avg_10d');
+    drawMovingAverage('mov_avg_50d');
+    drawMovingAverage('mov_avg_200d');
+
     var previousClose = 0;
     data.forEach(function (d) {
-        var color = d[4] > previousClose ? "green" : "red";
-        var date = new Date(d[0]);
-        g.append("line").attr("class", color).attr("x1", xscale(date) - 3).attr("x2", xscale(date)).attr("y1", yscale(d[1])).attr("y2", yscale(d[1]));//.append("svg:title").text("abcd");
-        g.append("line").attr("class", color).attr("x1", xscale(date)).attr("x2", xscale(date)).attr("y1", yscale(d[2])).attr("y2", yscale(d[3]));//.append("svg:title").text("abcd");
-        g.append("line").attr("class", color).attr("x1", xscale(date)).attr("x2", xscale(date) + 3).attr("y1", yscale(d[4])).attr("y2", yscale(d[4]));//.append("svg:title").text("abcd");
-        previousClose = d[4];
+        var color = d['close'] > previousClose ? "green" : "red";
+        var date = new Date(d['date']);
+        g.append("line").attr("class", color).attr("x1", xscale(date) - 3).attr("x2", xscale(date)).attr("y1", yscale(d['open'])).attr("y2", yscale(d['open']));//.append("svg:title").text("abcd");
+        g.append("line").attr("class", color).attr("x1", xscale(date)).attr("x2", xscale(date)).attr("y1", yscale(d['high'])).attr("y2", yscale(d['low']));//.append("svg:title").text("abcd");
+        g.append("line").attr("class", color).attr("x1", xscale(date)).attr("x2", xscale(date) + 3).attr("y1", yscale(d['close'])).attr("y2", yscale(d['close']));//.append("svg:title").text("abcd");
+        previousClose = d['close'];
     });
 
     g.attr("transform", "translate(" + margin + ", 0)");
@@ -74,5 +123,6 @@
     });
     svg.on("mouseout", function () {
         g.selectAll('.cursor_axis').attr("x1", -1).attr("x2", -1).attr("y1", -1).attr("y2", -1);
+        text.text("");
     });
 </script>

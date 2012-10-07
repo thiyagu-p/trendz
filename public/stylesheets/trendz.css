@@ -1,6 +1,6 @@
 body {
     font-size: small;
-    font-family: Monaco, Consolas, monospace ;
+    font-family: Monaco, Consolas, monospace;
     margin-top: 1px;
 }
 
@@ -48,7 +48,7 @@ body {
     color: #fff;
 }
 
-#navigation ul li.last a{
+#navigation ul li.last a {
     background-image: none;
 }
 
@@ -112,13 +112,13 @@ table, table td, table th {
 
 line {
     shape-rendering: crispEdges;
-    stroke-width:2;
+    stroke-width: 2;
 }
 
 line.tick {
     stroke: #EEE;
     shape-rendering: crispEdges;
-    stroke-width:1;
+    stroke-width: 1;
 }
 
 line.red {
@@ -134,5 +134,57 @@ line.cursor_axis {
 }
 
 svg {
-    background-color: #FCFBF0;
+    background-color: #fffdf6;
+}
+
+#mychart svg {
+    box-shadow: 5px 5px 2px #c2c2c2;
+}
+
+path {
+    stroke-width: 2;
+    fill: none;
+}
+
+.domain {
+    stroke-width: 1;
+}
+
+.mov_avg_10d {
+    opacity: 0.6;
+    stroke: #9cf5ff;
+    background-color: #9cf5ff;
+}
+
+.mov_avg_50d {
+    opacity: 0.5;
+    stroke: #feb32a;
+    background-color: #feb32a;
+}
+
+.mov_avg_200d {
+    opacity: 0.5;
+    stroke: #dbca93;
+    background-color: #dbca93;
+}
+
+.volume {
+    fill: #e5f6ff;
+    background-color: #e5f6ff;
+}
+
+.chart_meta > .returns, .chart_meta > .legend, .chart_meta > .title {
+    float: left;
+}
+
+.legend {
+    padding: 2px;
+    margin: 3px;
+}
+
+.chart_meta > .title {
+    font-weight: bolder;
+    padding: 2px;
+    margin: 3px 20px 3px 20px;
+    color: #ED7E7E;
 }
