@@ -98,3 +98,41 @@ table, table td, table th {
 #holdings {
     float: left;
 }
+
+.axis path, .axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
+line {
+    shape-rendering: crispEdges;
+    stroke-width:2;
+}
+
+line.tick {
+    stroke: #EEE;
+    shape-rendering: crispEdges;
+    stroke-width:1;
+}
+
+line.red {
+    stroke: #ED7E7E;
+}
+
+line.green {
+    stroke: #46E871;
+}
+
+line.cursor_axis {
+    stroke: #B3ABAB;
+}
+
+svg {
+    background-color: #FCFBF0;
+}
