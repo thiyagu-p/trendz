@@ -169,8 +169,9 @@ path {
 }
 
 .volume {
-    fill: #e5f6ff;
-    background-color: #e5f6ff;
+    fill: #92d6ff;
+    background-color: #92d6ff;
+    opacity: 0.5;
 }
 
 .chart_meta > .returns, .chart_meta > .legend, .chart_meta > .title {

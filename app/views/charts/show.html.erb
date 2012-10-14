@@ -15,114 +15,12 @@
 <div id="mychart"></div>
 <script type="text/javascript">
     <%
-      min_date = @quotes.first.date - 3
-      max_date = @quotes.last.date + 3
     data = []
     @quotes.each do |quote|
         data << {date: quote.date, open: quote.open.to_f, high: quote.high.to_f, low: quote.low.to_f, close: quote.close.to_f,
         mov_avg_10d: quote.mov_avg_10d.to_f, mov_avg_50d: quote.mov_avg_50d.to_f, mov_avg_200d: quote.mov_avg_200d.to_f, traded_quantity: quote.traded_quantity.to_f}
     end
     %>
-
-    var height = 650, width = 1300, margin = 50;
-    var data = <%=raw data.to_json %>;
-    var stDate = new Date("<%=min_date%>"), enDate = new Date("<%=max_date%>");
-
-    var ymin = d3.min(data, function (d) {
-        return d['low']
-    }), ymax = d3.max(data, function (d) {
-        return d['high']
-    });
-
-    var xscale = d3.time.scale()
-            .domain([stDate, enDate])
-            .range([1, width - margin]);
-
-    var yscale = d3.scale.linear()
-            .domain([ymin, ymax])
-            .range([height - margin, 0]);
-
-    var volumeMin = d3.min(data, function (d) {
-        return d['traded_quantity']
-    });
-    var volumeMax = d3.max(data, function (d) {
-        return d['traded_quantity']
-    });
-    var volumeScale = d3.scale.linear().domain([volumeMin, volumeMax]).range([margin, (height - margin) / 4]);
-
-    var svg = d3.select("#mychart").append("svg").attr("height", height).attr("width", width);
-
-    var dateFormat = d3.time.format("%Y-%m-%d");
-    var xaxis = d3.svg.axis().scale(xscale).orient("bottom").tickFormat(dateFormat);
-    xaxis.tickSize(-width + 1);
-    svg.append("g").attr("transform", "translate(" + (margin - 1) + "," + (height - margin) + ")").attr("class", "axis").call(xaxis);
-
-    var yaxis = d3.svg.axis().scale(yscale).orient("left").tickSize(-xscale.range()[1] + 1);
-    svg.append("g").attr("transform", "translate(" + margin + ", 0)").attr("class", "axis").call(yaxis);
-
-    var g = svg.append("g");
-    var text = g.append("text").attr("x", xscale(enDate) - 150).attr("y", yscale(ymax) + 15);
-
-    var volume_bars = g.selectAll("rect").data(data).enter().append("rect")
-    .attr("x",function (d) {
-        return xscale(new Date(d['date']))
-    }).attr("y",function (d) {
-                return height - margin - volumeScale(d['traded_quantity']);
-            }).attr("width", 2).attr("height", function (d) {
-                return (volumeScale(d['traded_quantity']));
-            })
-    .attr("class", "volume");
-
-    function drawMovingAverage(mov_avg) {
-        var line = d3.svg.line()
-                .x(function (d) {
-                    return xscale(new Date(d['date']));
-                })
-                .y(function (d) {
-                    return yscale(d[mov_avg]);
-                });
-        g.append("svg:path").attr("d", line(data)).attr("class", mov_avg);
-    }
-
-    drawMovingAverage('mov_avg_10d');
-    drawMovingAverage('mov_avg_50d');
-    drawMovingAverage('mov_avg_200d');
-
-    var previousClose = 0;
-    data.forEach(function (d) {
-        var color = d['close'] > previousClose ? "green" : "red";
-        var date = new Date(d['date']);
-        g.append("line").attr("class", color).attr("x1", xscale(date) - 3).attr("x2", xscale(date)).attr("y1", yscale(d['open'])).attr("y2", yscale(d['open']));//.append("svg:title").text("abcd");
-        g.append("line").attr("class", color).attr("x1", xscale(date)).attr("x2", xscale(date)).attr("y1", yscale(d['high'])).attr("y2", yscale(d['low']));//.append("svg:title").text("abcd");
-        g.append("line").attr("class", color).attr("x1", xscale(date)).attr("x2", xscale(date) + 3).attr("y1", yscale(d['close'])).attr("y2", yscale(d['close']));//.append("svg:title").text("abcd");
-        previousClose = d['close'];
-    });
-
-    g.attr("transform", "translate(" + margin + ", 0)");
-
-    var xCursor, yCursor;
-    function drawCursorMarker(xy, x, y) {
-        if (xCursor == null) {
-            xCursor = g.append("line").attr("class", "cursor_axis");
-            yCursor = g.append("line").attr("class", "cursor_axis");
-        }
-        if ((xy[0] - margin) > 0 && (height - xy[1] - margin) > 0) {
-            xCursor.attr("x1", xy[0] - margin).attr("x2", xy[0] - margin).attr("y1", yscale(ymin)).attr("y2", yscale(ymax));
-            yCursor.attr("x1", xscale(stDate)).attr("x2", xscale(enDate)).attr("y1", xy[1]).attr("y2", xy[1]);
-        }
-        text.text(x + " " + new Number(y).toFixed(2));
-    }
-
-    svg.on("mousemove", function () {
-        var xy = d3.mouse(this), x = dateFormat(xscale.invert(xy[0])), y = yscale.invert(xy[1]);
-        drawCursorMarker(xy, x, y);
-    });
-    g.on("mousemove", function () {
-        var xy = d3.mouse(this), x = dateFormat(xscale.invert(xy[0])), y = yscale.invert(xy[1]);
-        drawCursorMarker(xy, x, y);
-    });
-    svg.on("mouseout", function () {
-        g.selectAll('.cursor_axis').attr("x1", -1).attr("x2", -1).attr("y1", -1).attr("y2", -1);
-        text.text("");
-    });
+    ohlc.draw({data: <%=raw data.to_json %>});
 </script>
+
