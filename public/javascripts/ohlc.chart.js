@@ -1,33 +1,33 @@
 function OHLC(params) {
 
     OHLC.prototype._init = function (params) {
-        this.height = params['height'] || 650;
-        this.width = params['height'] || 1300;
-        this.margin = params['height'] || 50;
-        this.data = params['data'];
+        this.height = params.height || 650;
+        this.width = params.width || 1300;
+        this.margin = params.margin || 50;
+        this.data = params.data;
         this.movingAverageTypes = ['mov_avg_10d', 'mov_avg_50d', 'mov_avg_200d'];
 
         this.dateFormat = d3.time.format("%Y-%m-%d");
 
         this.data.forEach(function (d) {
-            d['date'] = new Date(d['date']);
+            d.date = new Date(d.date);
         });
-        var firstDate = this.data[0]['date'];
-        var lastDate = this.data[this.data.length - 1]['date'];
+        var firstDate = this.data[0].date;
+        var lastDate = this.data[this.data.length - 1].date;
 
         this.stDate = new Date(firstDate).setDate(firstDate.getDate() - 3);
         this.enDate = new Date(lastDate).setDate(lastDate.getDate() + 3);
 
-        var chartId = params['chartId'] || '#chart';
+        var chartId = params.chartId || '#chart';
         this._svg = d3.select(chartId).append("svg").attr("height", this.height).attr("width", this.width);
     };
 
     OHLC.prototype._createScale = function () {
         this._ymin = d3.min(this.data, function (d) {
-            return d['low']
+            return d.low;
         });
         this._ymax = d3.max(this.data, function (d) {
-            return d['high']
+            return d.high;
         });
         this._xscale = d3.time.scale().domain([this.stDate, this.enDate]).range([1, this.width - this.margin]);
         this._yscale = d3.scale.linear().domain([this._ymin, this._ymax]).range([this.height - this.margin, 0]);
@@ -48,7 +48,7 @@ function OHLC(params) {
         var _yscale = this._yscale;
         var line = d3.svg.line()
             .x(function (d) {
-                return _xscale(d['date']);
+                return _xscale(d.date);
             })
             .y(function (d) {
                 return _yscale(d[mov_avg]);
@@ -58,20 +58,20 @@ function OHLC(params) {
 
     OHLC.prototype._addVolumeBar = function (g, chart) {
         this._volumeMin = d3.min(this.data, function (d) {
-            return d['traded_quantity']
+            return d.traded_quantity;
         });
         this._volumeMax = d3.max(this.data, function (d) {
-            return d['traded_quantity']
+            return d.traded_quantity;
         });
         this._volumeScale = d3.scale.linear().domain([this._volumeMin, this._volumeMax]).range([this.margin, (this.height - this.margin) / 4]);
 
         g.selectAll("rect").data(this.data).enter().append("rect")
             .attr("x",function (d) {
-                return chart._xscale(d['date'])
+                return chart._xscale(d.date);
             }).attr("y",function (d) {
-                return chart.height - chart.margin - chart._volumeScale(d['traded_quantity']);
+                return chart.height - chart.margin - chart._volumeScale(d.traded_quantity);
             }).attr("width", 2).attr("height", function (d) {
-                return (chart._volumeScale(d['traded_quantity']));
+                return (chart._volumeScale(d.traded_quantity));
             })
             .attr("class", "volume");
     };
@@ -95,17 +95,17 @@ function OHLC(params) {
         var previousClose = 0;
         var chart = this;
         this.data.forEach(function (d) {
-            var color = d['close'] > previousClose ? "green" : "red", x = chart._xscale(d['date']);
-            chart._drawLine(g, x - 3, x, chart._yscale(d['open']), chart._yscale(d['open']), color);
-            chart._drawLine(g, x, x, chart._yscale(d['high']), chart._yscale(d['low']), color);
-            chart._drawLine(g, x, x + 3, chart._yscale(d['close']), chart._yscale(d['close']), color);
-            previousClose = d['close'];
+            var color = d.close > previousClose ? "green" : "red", x = chart._xscale(d.date);
+            chart._drawLine(g, x - 3, x, chart._yscale(d.open), chart._yscale(d.open), color);
+            chart._drawLine(g, x, x, chart._yscale(d.high), chart._yscale(d.low), color);
+            chart._drawLine(g, x, x + 3, chart._yscale(d.close), chart._yscale(d.close), color);
+            previousClose = d.close;
         });
     };
 
     OHLC.prototype._drawCursorMarker = function (g, xy, text) {
         var x = this.dateFormat(this._xscale.invert(xy[0])), y = this._yscale.invert(xy[1]);
-        if (this.xCursor == undefined) {
+        if (this.xCursor === undefined) {
             this.xCursor = this._drawLine(g, -1, -1, -1, -1, "cursor_axis");
             this.yCursor = this._drawLine(g, -1, -1, -1, -1, "cursor_axis");
         }
@@ -113,7 +113,7 @@ function OHLC(params) {
             this._moveLine(this.xCursor, xy[0] - this.margin, xy[0] - this.margin, this._yscale(this._ymin), this._yscale(this._ymax));
             this._moveLine(this.yCursor, this._xscale(this.stDate), this._xscale(this.enDate), xy[1], xy[1]);
         }
-        text.text(x + " " + new Number(y).toFixed(2));
+        text.text(x + " " + y.toFixed(2));
     };
 
     OHLC.prototype._addCursor = function (chart, g, text) {
