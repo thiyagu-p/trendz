@@ -10,13 +10,24 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120812143625) do
+ActiveRecord::Schema.define(:version => 20121020110501) do
 
   create_table "corporate_actions", :force => true do |t|
     t.integer  "stock_id"
     t.date     "ex_date"
     t.string   "parsed_data"
     t.string   "raw_data"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "corporate_results", :force => true do |t|
+    t.integer  "stock_id"
+    t.date     "quarter_end"
+    t.decimal  "net_sales",                :precision => 12, :scale => 2
+    t.decimal  "net_p_and_l",              :precision => 12, :scale => 2
+    t.decimal  "eps_before_extraordinary", :precision => 12, :scale => 2
+    t.decimal  "eps",                      :precision => 12, :scale => 2
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -36,7 +47,7 @@ ActiveRecord::Schema.define(:version => 20120812143625) do
   end
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
-  add_index "eq_quotes", ["stock_id", "date"], :name => "eq_quotes_stock_id_date"
+  add_index "eq_quotes", ["stock_id", "date"], :name => "index_eq_quotes_on_stock_id_and_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
 
   create_table "equity_holdings", :force => true do |t|

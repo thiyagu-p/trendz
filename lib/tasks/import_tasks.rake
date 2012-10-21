@@ -9,7 +9,10 @@ namespace :data do
     Importer::NiftyLiveImporter.new.import
   end
 
-  task :corp_action => :environment do
+  desc "import corporate action and results"
+  task :corp_details => :environment do
     Importer::CorporateActionImporter.new.import
+    Importer::CorporateResultImporter.new.import
   end
+
 end
