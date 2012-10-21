@@ -1,7 +1,7 @@
 development:
   host: localhost
   adapter: postgresql
-  database: trendz_development
+  database: trendz
   username: postgres
   password:
 

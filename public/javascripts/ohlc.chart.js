@@ -5,6 +5,7 @@ function OHLC(params) {
         this.width = params.width || 1300;
         this.margin = params.margin || 50;
         this.data = params.data;
+        this.eps_data = params.eps_data;
         this.movingAverageTypes = ['mov_avg_10d', 'mov_avg_50d', 'mov_avg_200d'];
 
         this.dateFormat = d3.time.format("%Y-%m-%d");
@@ -18,6 +19,12 @@ function OHLC(params) {
         this.stDate = new Date(firstDate).setDate(firstDate.getDate() - 3);
         this.enDate = new Date(lastDate).setDate(lastDate.getDate() + 3);
 
+        this.eps_data.forEach(function (d) {
+            d.start_date = new Date(d.start_date);
+            if (d.start_date < firstDate) {
+                d.start_date = firstDate;
+            }
+        });
         var chartId = params.chartId || '#chart';
         this._svg = d3.select(chartId).append("svg").attr("height", this.height).attr("width", this.width);
     };
@@ -30,6 +37,7 @@ function OHLC(params) {
             return d.high;
         });
         this._xscale = d3.time.scale().domain([this.stDate, this.enDate]).range([1, this.width - this.margin]);
+        this._xscale.clamp();
         this._yscale = d3.scale.linear().domain([this._ymin, this._ymax]).range([this.height - this.margin, 0]);
     };
 
@@ -56,6 +64,28 @@ function OHLC(params) {
         g.append("svg:path").attr("d", line(this.data)).attr("class", mov_avg);
     };
 
+    OHLC.prototype._addEPS = function(g, chart) {
+        this._epsMin = d3.min(this.eps_data, function (d) {
+            return d.eps;
+        });
+        this._epsMax = d3.max(this.eps_data, function (d) {
+            return d.eps;
+        });
+        this._epsScale = d3.scale.linear().domain([this._epsMin, this._epsMax]).range([this.margin, (this.height - this.margin)*0.9]);
+
+        g.selectAll(".eps").data(this.eps_data).enter().append("rect")
+            .attr("x",function (d) {
+                return chart._xscale(new Date(d.start_date));
+            }).attr("y",function (d) {
+                return chart.height - chart.margin - chart._epsScale(d.eps);
+            }).attr("width", function(d) {
+                return chart._xscale(new Date(d.end_date)) - chart._xscale(new Date(d.start_date));
+            }).attr("height", function (d) {
+                return (chart._epsScale(d.eps));
+            })
+            .attr("class", "eps");
+    };
+
     OHLC.prototype._addVolumeBar = function (g, chart) {
         this._volumeMin = d3.min(this.data, function (d) {
             return d.traded_quantity;
@@ -65,7 +95,7 @@ function OHLC(params) {
         });
         this._volumeScale = d3.scale.linear().domain([this._volumeMin, this._volumeMax]).range([this.margin, (this.height - this.margin) / 4]);
 
-        g.selectAll("rect").data(this.data).enter().append("rect")
+        g.selectAll(".volume").data(this.data).enter().append("rect")
             .attr("x",function (d) {
                 return chart._xscale(d.date);
             }).attr("y",function (d) {
@@ -134,6 +164,7 @@ function OHLC(params) {
         this._createAxis();
         var g = this._svg.append("g");
         var text = g.append("text").attr("x", this._xscale(this.enDate) - 150).attr("y", this._yscale(this._ymax) + 15);
+        this._addEPS(g, this);
         this._addVolumeBar(g, this);
         this._addMovingAverageLines(g);
         this._addOHLC(g);

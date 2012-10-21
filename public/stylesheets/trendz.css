@@ -134,7 +134,7 @@ line.cursor_axis {
 }
 
 svg {
-    background-color: #fffdf6;
+    background-color: #ffffff;
     box-shadow: 5px 5px 2px #c2c2c2;
 }
 
@@ -148,9 +148,9 @@ path {
 }
 
 .mov_avg_10d {
-    opacity: 0.6;
-    stroke: #9cf5ff;
-    background-color: #9cf5ff;
+    opacity: 0.8;
+    stroke: #ffef95;
+    background-color: #ffef95;
 }
 
 .mov_avg_50d {
@@ -168,6 +168,12 @@ path {
 .volume {
     fill: #92d6ff;
     background-color: #92d6ff;
+    opacity: 0.5;
+}
+
+.eps {
+    fill: #d1ff90;
+    background-color: #d1ff90;
     opacity: 0.5;
 }
 
