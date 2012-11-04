@@ -8,10 +8,12 @@ class ChartsController < ApplicationController
 
   def show
     @stock = Stock.find_by_symbol(params[:id])
+    no_of_days = (params[:days] || 365).to_i
     max_date = EqQuote.where(stock_id: @stock.id).maximum(:date) || Date.today
-    start_date = max_date - 365
+    start_date = max_date - no_of_days
     @quotes = EqQuote.find_all_by_stock_id(@stock.id, :order => :date, :conditions => "date >= '#{start_date}'")
     @results = CorporateResult.where("stock_id =  #{@stock.id} and quarter_end >= '#{start_date}'").all
+    @all_results = CorporateResult.where("stock_id =  #{@stock.id}").all
   end
 
   private

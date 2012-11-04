@@ -177,6 +177,11 @@ path {
     opacity: 0.5;
 }
 
+.pe {
+    stroke: #73e551;
+    background-color: #73e551;
+    opacity: 0.5;
+}
 .chart_meta > .returns, .chart_meta > .legend, .chart_meta > .title {
     float: left;
 }

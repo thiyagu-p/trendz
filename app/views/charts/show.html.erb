@@ -16,10 +16,18 @@
 <div id="chart"></div>
 <script type="text/javascript">
     <%
+    quaterly_eps = @all_results.inject({}) do |hash, result|
+    hash[result.quarter_end] = result.eps
+    hash
+    end
     data = []
+    last_eps = 1
     @quotes.each do |quote|
+        eps = quaterly_eps[quote.date.end_of_quarter] || last_eps
         data << {date: quote.date, open: quote.open.to_f, high: quote.high.to_f, low: quote.low.to_f, close: quote.close.to_f,
-        mov_avg_10d: quote.mov_avg_10d.to_f, mov_avg_50d: quote.mov_avg_50d.to_f, mov_avg_200d: quote.mov_avg_200d.to_f, traded_quantity: quote.traded_quantity.to_f}
+        mov_avg_10d: quote.mov_avg_10d.to_f, mov_avg_50d: quote.mov_avg_50d.to_f, mov_avg_200d: quote.mov_avg_200d.to_f,
+        traded_quantity: quote.traded_quantity.to_f, pe: (quote.close/(eps*4)), eps: eps*4}
+        last_eps = eps
     end
 
     result_data = @results.collect do |result|

@@ -64,6 +64,30 @@ function OHLC(params) {
         g.append("svg:path").attr("d", line(this.data)).attr("class", mov_avg);
     };
 
+    OHLC.prototype._addPE = function (g) {
+        this._peMin = d3.min(this.data, function (d) {
+            return d.pe;
+        });
+        this._peMax = d3.max(this.data, function (d) {
+            return d.pe;
+        });
+        this._peScale = d3.scale.linear().domain([this._peMin, this._peMax]).range([(this.height - this.margin)*0.6, this.margin]);
+
+        this._y1axis = d3.svg.axis().scale(this._peScale).orient("right").tickSize(-this._xscale.range()[1] + 1);
+        this._svg.append("g").attr("transform", "translate(" + 0 + "," + 0 + ")").attr("class", "axis").call(this._y1axis);
+
+        var _xscale = this._xscale;
+        var _yscale = this._peScale;
+        var line = d3.svg.line()
+            .x(function (d) {
+                return _xscale(d.date);
+            })
+            .y(function (d) {
+                return _yscale(d.pe);
+            });
+        g.append("svg:path").attr("d", line(this.data)).attr('class', 'pe');
+    };
+
     OHLC.prototype._addEPS = function(g, chart) {
         this._epsMin = d3.min(this.eps_data, function (d) {
             return d.eps;
@@ -165,6 +189,7 @@ function OHLC(params) {
         var g = this._svg.append("g");
         var text = g.append("text").attr("x", this._xscale(this.enDate) - 150).attr("y", this._yscale(this._ymax) + 15);
         this._addEPS(g, this);
+        this._addPE(g);
         this._addVolumeBar(g, this);
         this._addMovingAverageLines(g);
         this._addOHLC(g);
