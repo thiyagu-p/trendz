@@ -9,9 +9,12 @@ function OHLC(params) {
         this.movingAverageTypes = ['mov_avg_10d', 'mov_avg_50d', 'mov_avg_200d'];
 
         this.dateFormat = d3.time.format("%Y-%m-%d");
-
+        var attributes = ['open', 'high', 'low', 'close', 'mov_avg_10d', 'mov_avg_50d', 'mov_avg_200d', 'traded_quantity']
         this.data.forEach(function (d) {
             d.date = new Date(d.date);
+            attributes.forEach(function (attr) {
+                d[attr] = parseFloat(d[attr]);
+            });
         });
         var firstDate = this.data[0].date;
         var lastDate = this.data[this.data.length - 1].date;
@@ -20,9 +23,11 @@ function OHLC(params) {
         this.enDate = new Date(lastDate).setDate(lastDate.getDate() + 3);
 
         this.eps_data.forEach(function (d) {
-            d.start_date = new Date(d.start_date);
-            if (d.start_date < firstDate) {
-                d.start_date = firstDate;
+            d.quarter_start = new Date(d.quarter_start);
+            d.quarter_end = new Date(d.quarter_end);
+            d.eps = parseFloat(d.eps);
+            if (d.quarter_start < firstDate) {
+                d.quarter_start = firstDate;
             }
         });
         var chartId = params.chartId || '#chart';
@@ -64,30 +69,6 @@ function OHLC(params) {
         g.append("svg:path").attr("d", line(this.data)).attr("class", mov_avg);
     };
 
-    OHLC.prototype._addPE = function (g) {
-        this._peMin = d3.min(this.data, function (d) {
-            return d.pe;
-        });
-        this._peMax = d3.max(this.data, function (d) {
-            return d.pe;
-        });
-        this._peScale = d3.scale.linear().domain([this._peMin, this._peMax]).range([(this.height - this.margin)*0.6, this.margin]);
-
-        this._y1axis = d3.svg.axis().scale(this._peScale).orient("right").tickSize(-this._xscale.range()[1] + 1);
-        this._svg.append("g").attr("transform", "translate(" + 0 + "," + 0 + ")").attr("class", "axis").call(this._y1axis);
-
-        var _xscale = this._xscale;
-        var _yscale = this._peScale;
-        var line = d3.svg.line()
-            .x(function (d) {
-                return _xscale(d.date);
-            })
-            .y(function (d) {
-                return _yscale(d.pe);
-            });
-        g.append("svg:path").attr("d", line(this.data)).attr('class', 'pe');
-    };
-
     OHLC.prototype._addEPS = function(g, chart) {
         this._epsMin = d3.min(this.eps_data, function (d) {
             return d.eps;
@@ -99,11 +80,11 @@ function OHLC(params) {
 
         g.selectAll(".eps").data(this.eps_data).enter().append("rect")
             .attr("x",function (d) {
-                return chart._xscale(new Date(d.start_date));
+                return chart._xscale(d.quarter_start);
             }).attr("y",function (d) {
                 return chart.height - chart.margin - chart._epsScale(d.eps);
             }).attr("width", function(d) {
-                return chart._xscale(new Date(d.end_date)) - chart._xscale(new Date(d.start_date));
+                return chart._xscale(d.quarter_end) - chart._xscale(d.quarter_start);
             }).attr("height", function (d) {
                 return (chart._epsScale(d.eps));
             })
@@ -189,7 +170,6 @@ function OHLC(params) {
         var g = this._svg.append("g");
         var text = g.append("text").attr("x", this._xscale(this.enDate) - 150).attr("y", this._yscale(this._ymax) + 15);
         this._addEPS(g, this);
-        this._addPE(g);
         this._addVolumeBar(g, this);
         this._addMovingAverageLines(g);
         this._addOHLC(g);
