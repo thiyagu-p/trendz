@@ -14,4 +14,13 @@ class EquityTransaction < ActiveRecord::Base
   def buy?
     action == BUY
   end
+
+
+  def self.find_holding_quantity stock, date, trading_account, portfolio
+    query = where(stock_id: stock).where("date <= '#{date}'").where(trading_account_id: trading_account).where(portfolio_id: portfolio)
+    total_buy_quantity = query.where(action: BUY).sum(:quantity)
+    total_sell_quantity = query.where(action: SELL).sum(:quantity)
+    total_buy_quantity - total_sell_quantity
+  end
+
 end

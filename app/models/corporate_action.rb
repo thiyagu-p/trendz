@@ -2,6 +2,10 @@ class CorporateAction < ActiveRecord::Base
 
   belongs_to :stock
 
+  def actions
+    JSON.parse(parsed_data)
+  end
+
   def self.future_actions_with_current_percentage
     actions_with_current_percentage
   end

@@ -11,5 +11,5 @@ group :development, :test do
   gem "rspec-rails", "2.6.1"
   gem 'mocha'
   gem 'autotest', '4.4.6'
-  gem "factory_girl_rails", "1.1.0"
+  gem "factory_girl_rails", "4.1.0"
 end
