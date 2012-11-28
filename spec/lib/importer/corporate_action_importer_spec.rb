@@ -85,6 +85,10 @@ describe Importer::CorporateActionImporter do
       importer.parse_action('DIVIDEND-RE.0.20 PER SHARE').first.should == {type: :divident, value: '0.20'}
       importer.parse_action('DV-RE.1 PR SH').first.should == {type: :divident, value: '1'}
     end
+    it 'should ignore nil divident' do
+      importer = Importer::CorporateActionImporter.new
+      importer.parse_action('DIVIDEND-NIL').first.should == {type: :ignore, data: 'DIVIDEND-NIL'}
+    end
     it 'should parse percentage divident' do
       importer = Importer::CorporateActionImporter.new
       importer.parse_action('DIVIDEND-120%').first.should == {type: :divident, percentage: '120'}
@@ -110,6 +114,7 @@ describe Importer::CorporateActionImporter do
       importer.parse_action('FV SPLIT RS.10/- TO RS.1/').should == [{type: :split, from: '10', to: '1'}]
       importer.parse_action('FV SPLIT RS 10 TO RS 1').should == [{type: :split, from: '10', to: '1'}]
       importer.parse_action('FV SPLIT RS.10 TO RS.5').should == [{type: :split, from: '10', to: '5'}]
+      importer.parse_action('SPL RS10-RS2').should == [{type: :split, from: '10', to: '2'}]
     end
 
     it 'should parse consolidation' do
@@ -153,6 +158,21 @@ describe Importer::CorporateActionImporter do
       importer = Importer::CorporateActionImporter.new
       importer.parse_action('BONUS DEBENTURES 1:1').should == [{:type=>:ignore, :data=>"BONUS DEBENTURES 1:1"}]
       importer.parse_action('RGTS-EQ 29:100@PREM RS135').should == [{:type=>:ignore, :data=>"RGTS-EQ 29:100@PREM RS135"}]
+      importer.parse_action('RH2:9@PRM215').should == [{:type=>:ignore, :data=>"RH2:9@PRM215"}]
+    end
+
+    it 'should ignore noises' do
+      importer = Importer::CorporateActionImporter.new
+      importer.parse_action('ARNGMNT').should == [{:type=>:ignore, :data=>"ARNGMNT"}]
+      importer.parse_action('-').should == [{:type=>:ignore, :data=>"-"}]
+      importer.parse_action('ELEC.').should == [{:type=>:ignore, :data=>"ELEC."}]
+      importer.parse_action('WARRANT').should == [{:type=>:ignore, :data=>"WARRANT"}]
+      importer.parse_action('WRNT').should == [{:type=>:ignore, :data=>"WRNT"}]
+      importer.parse_action('WAR : 5 EQ').should == [{:type=>:ignore, :data=>"WAR : 5 EQ"}]
+      importer.parse_action('CAPT.').should == [{:type=>:ignore, :data=>"CAPT."}]
+      importer.parse_action('BK CL').should == [{:type=>:ignore, :data=>"BK CL"}]
+      importer.parse_action('FCD').should == [{:type=>:ignore, :data=>"FCD"}]
+      importer.parse_action('CCPS').should == [{:type=>:ignore, :data=>"CCPS"}]
     end
 
     it 'should ignore line separator' do

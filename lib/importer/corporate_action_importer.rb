@@ -64,7 +64,7 @@ module Importer
             parsed_actions << parse_bonus(action)
           elsif action =~ /CONSOLIDATION/i
             parsed_actions << parse_consolidation(action)
-          elsif action =~ /AGM|ANNUAL|SCH|RHT|RIGHT|RIGTHS|RGTS|RHS|RHGT|RGHT|RIGTS|EGM|ELECTION|ELCTN|GENERAL|CAPITAL|REDEMPTION|DEBENTURES|REVISED/i
+          elsif action =~ /AGM|ANNUAL|SCH|RHT|RIGHT|RIGTHS|RGTS|RH|RGHT|RIGTS|EGM|ELECTION|ELCTN|ELEC|GENERAL|CAPITAL|CAPT|REDEMPTION|DEBENTURES|REVISED|ARNGMNT|-|WARRANT|WRNT|WAR|BK\sCL|FCD|CCPS/i
             parsed_actions << {type: :ignore, data: action}
           else
             parsed_actions << {type: :unknown, data: action}
@@ -86,6 +86,8 @@ module Importer
         parsed_data[:value] = $1
       elsif action =~ /(\d+)/ix
         parsed_data[:value] = $1
+      elsif action =~ /NIL/i
+        parsed_data = {type: :ignore, data: action}
       else
         parsed_data = {type: :unknown, data: action}
       end
@@ -95,7 +97,7 @@ module Importer
     def parse_split(action)
       parsed_data = {}
       parsed_data[:type] = :split
-      if action =~ /(\d+).*?TO.*?(\d+)/
+      if action =~ /(\d+).*?TO.*?(\d+)/ || action =~ /(\d+).*?-.*?(\d+)/
         parsed_data[:from] = $1
         parsed_data[:to] = $2
       else
