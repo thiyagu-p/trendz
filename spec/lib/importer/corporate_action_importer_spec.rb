@@ -154,6 +154,12 @@ describe Importer::CorporateActionImporter do
           [{type: :bonus, bonus: '22', holding: '1'},{type: :divident, value: '0.60'},{type: :divident, value: '1.40'}]
     end
 
+    it 'should not split if / is immediately after number' do
+      importer = Importer::CorporateActionImporter.new
+      importer.parse_action('DIVIDEND-RS.16/ PER SHARE').should == [{type: :divident, value: '16'}]
+      importer.parse_action('AGM/DIVIDEND-RS.5/ PER SH').should == [{type: :ignore, data: 'AGM'},{type: :divident, value: '5'}]
+    end
+
     it 'should ignore debenture, rights' do
       importer = Importer::CorporateActionImporter.new
       importer.parse_action('BONUS DEBENTURES 1:1').should == [{:type=>:ignore, :data=>"BONUS DEBENTURES 1:1"}]
@@ -173,6 +179,8 @@ describe Importer::CorporateActionImporter do
       importer.parse_action('BK CL').should == [{:type=>:ignore, :data=>"BK CL"}]
       importer.parse_action('FCD').should == [{:type=>:ignore, :data=>"FCD"}]
       importer.parse_action('CCPS').should == [{:type=>:ignore, :data=>"CCPS"}]
+      importer.parse_action('ANN BC').should == [{:type=>:ignore, :data=>"ANN BC"}]
+      importer.parse_action('ANN CLSNG').should == [{:type=>:ignore, :data=>"ANN CLSNG"}]
     end
 
     it 'should ignore line separator' do

@@ -53,6 +53,7 @@ module Importer
       parsed_actions = []
       actions_data.split('AND').each do |action_split|
         action_split.gsub!('/-', '')
+        action_split.gsub!(/(\d)\//) {|match| "#{$1}"}
         action_split.gsub!('//', '/')
         action_split.strip!
         action_split.split(/\//).each do |action|
@@ -64,7 +65,7 @@ module Importer
             parsed_actions << parse_bonus(action)
           elsif action =~ /CONSOLIDATION/i
             parsed_actions << parse_consolidation(action)
-          elsif action =~ /AGM|ANNUAL|SCH|RHT|RIGHT|RIGTHS|RGTS|RH|RGHT|RIGTS|EGM|ELECTION|ELCTN|ELEC|GENERAL|CAPITAL|CAPT|REDEMPTION|DEBENTURES|REVISED|ARNGMNT|-|WARRANT|WRNT|WAR|BK\sCL|FCD|CCPS/i
+          elsif action =~ /AGM|ANNUAL|ANN|SCH|RHT|RIGHT|RIGTHS|RGTS|RH|RGHT|RIGTS|EGM|ELECTION|ELCTN|ELEC|GENERAL|CAPITAL|CAPT|REDEMPTION|DEBENTURES|REVISED|ARNGMNT|-|WARRANT|WRNT|WAR|BK\sCL|FCD|CCPS/i
             parsed_actions << {type: :ignore, data: action}
           else
             parsed_actions << {type: :unknown, data: action}
