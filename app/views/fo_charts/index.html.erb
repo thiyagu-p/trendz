@@ -10,7 +10,7 @@
     $(document).ready(function() {
         $("button").button();
         $("input#stockcode").autocomplete({
-            source: [<%= @stocks.collect!{ |s| "'#{s.symbol}'" }.join(',') %>]
+            source: [<%=raw @stocks.collect!{ |s| "'#{s.symbol}'" }.join(',') %>]
         });
         $("button").click(function() {
             var stock_id = $('#stockcode').val();
