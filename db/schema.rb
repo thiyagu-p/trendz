@@ -10,9 +10,24 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121202164041) do
+ActiveRecord::Schema.define(:version => 20130204122744) do
 
-  create_table "corporate_action_logs", :force => true do |t|
+  create_table "bonus_actions", :force => true do |t|
+    t.integer "stock_id"
+    t.date    "ex_date"
+    t.integer "holding_qty"
+    t.integer "bonus_qty"
+  end
+
+  create_table "corporate_action_errors", :force => true do |t|
+    t.integer "stock_id"
+    t.date    "ex_date"
+    t.boolean "is_ignored",   :default => false
+    t.string  "full_data"
+    t.string  "partial_data"
+  end
+
+  create_table "corporate_actions", :force => true do |t|
     t.integer  "stock_id"
     t.date     "ex_date"
     t.string   "parsed_data"
@@ -32,6 +47,13 @@ ActiveRecord::Schema.define(:version => 20121202164041) do
     t.datetime "updated_at"
   end
 
+  create_table "dividend_actions", :force => true do |t|
+    t.integer "stock_id"
+    t.date    "ex_date"
+    t.decimal "percentage",               :precision => 6, :scale => 2
+    t.string  "nature",     :limit => 10
+  end
+
   create_table "eq_quotes", :force => true do |t|
     t.integer "stock_id"
     t.decimal "open",            :precision => 8,  :scale => 2
@@ -47,7 +69,7 @@ ActiveRecord::Schema.define(:version => 20121202164041) do
   end
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
-  add_index "eq_quotes", ["stock_id", "date"], :name => "eq_quotes_stock_id_date"
+  add_index "eq_quotes", ["stock_id", "date"], :name => "index_eq_quotes_on_stock_id_and_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
 
   create_table "equity_holdings", :force => true do |t|
@@ -77,6 +99,13 @@ ActiveRecord::Schema.define(:version => 20121202164041) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "delivery",           :default => true
+  end
+
+  create_table "face_value_actions", :force => true do |t|
+    t.integer "stock_id"
+    t.date    "ex_date"
+    t.integer "from"
+    t.integer "to"
   end
 
   create_table "fo_quotes", :force => true do |t|
@@ -130,10 +159,13 @@ ActiveRecord::Schema.define(:version => 20121202164041) do
   end
 
   create_table "stocks", :force => true do |t|
-    t.string "symbol"
-    t.string "series"
-    t.date   "date"
-    t.string "yahoo_code", :limit => 15
+    t.string  "symbol"
+    t.string  "series"
+    t.date    "date"
+    t.string  "yahoo_code", :limit => 15
+    t.integer "face_value",               :default => 10
+    t.string  "name"
+    t.string  "isin",       :limit => 12
   end
 
   add_index "stocks", ["symbol"], :name => "index_stocks_on_symbol"

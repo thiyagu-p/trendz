@@ -1,7 +1,7 @@
 class CreateDividends < ActiveRecord::Migration
   def self.up
 
-    add_column :stocks, :face_value, :integer
+    add_column :stocks, :face_value, :integer, default: 10
 
     create_table :dividend_actions do |t|
       t.references :stock
