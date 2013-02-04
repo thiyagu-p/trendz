@@ -16,11 +16,10 @@ module Importer
             action_data = columns[7].text
             ex_date = find_ex_date(columns)
             next if CorporateAction.find_by_raw_data_and_ex_date(action_data, ex_date)
-            CorporateAction.create! stock_id: stock.id, ex_date: ex_date,
-                                    parsed_data: parse_action(action_data).to_json, raw_data: action_data
+            persist_actions(action_data, parse_action(action_data), ex_date, stock)
           end
-        rescue
-          p "Error importing company info for #{stock.symbol}"
+        rescue => e
+          p "Error importing company info for #{stock.symbol} #{e}"
         end
       end
     end
@@ -53,12 +52,12 @@ module Importer
       parsed_actions = []
       actions_data.split('AND').each do |action_split|
         action_split.gsub!('/-', '')
-        action_split.gsub!(/(\d)\//) {|match| "#{$1}"}
+        action_split.gsub!(/(\d)\//) { |match| "#{$1}" }
         action_split.gsub!('//', '/')
         action_split.strip!
         action_split.split(/\//).each do |action|
           if action =~ /(DIV|DV|SPECIAL|FINAL)/i
-            action.split('+').each { |split_action| parsed_actions << parse_divident(split_action) }
+            action.split('+').each { |split_action| parsed_actions << parse_dividend(split_action) }
           elsif action =~ /SPL|FV/i
             parsed_actions << parse_split(action)
           elsif action =~ /BON/i && !(action =~ /DEBENTURES/i)
@@ -76,9 +75,36 @@ module Importer
     end
 
     private
-    def parse_divident(action)
-      parsed_data = {}
-      parsed_data[:type] = :divident
+
+    def persist_actions(action_data, actions, ex_date, stock)
+      actions.each do |action|
+        if action[:type] == :dividend
+          percentage = (action[:percentage].nil? ? action[:value].to_f / stock.face_value * 100 : action[:percentage].to_f).round(2)
+          dividend = DividendAction.find_or_create_by_stock_id_and_ex_date_and_nature_and_percentage(stock.id, ex_date, action[:nature], percentage)
+        elsif action[:type] == :bonus
+          bonus = BonusAction.find_or_create_by_stock_id_and_ex_date(stock.id, ex_date)
+          bonus.update_attributes!(holding_qty: action[:holding], bonus_qty: action[:bonus])
+        elsif action[:type] == :split or action[:type] == :consolidation
+          split = FaceValueAction.find_or_create_by_stock_id_and_ex_date(stock.id, ex_date)
+          split.update_attributes!(from: action[:from], to: action[:to])
+        else
+          corporate_action_error = CorporateActionError.find_or_create_by_stock_id_and_ex_date(stock.id, ex_date)
+          corporate_action_error.update_attributes!(full_data: action_data, partial_data: action[:data], is_ignored: (action[:type] == :ignore))
+        end
+      end
+    end
+
+    def parse_dividend(action)
+      parsed_data = {type: :dividend}
+      dividend_nature = {'SP' => :SPECIAL, 'FI' => :FINAL, 'INT' => :INTERIM, 'DIV' => :DIVIDEND, 'DV' => :DIVIDEND}
+      if action =~ /(SP|FI|INT)/i
+        parsed_data[:nature] = dividend_nature[$1]
+      elsif action =~ /(DIV|DV)/i
+        parsed_data[:nature] = dividend_nature[$1]
+      else
+        parsed_data[:nature] = :UNKNOWN
+      end
+
       if action =~ /(\d+\.\d*)%/ix
         parsed_data[:percentage] = $1
       elsif action =~ /(\d+)%/ix
@@ -96,7 +122,7 @@ module Importer
     end
 
     def parse_split(action)
-      parsed_data = {}
+      parsed_data = {type: :split}
       parsed_data[:type] = :split
       if action =~ /(\d+).*?TO.*?(\d+)/ || action =~ /(\d+).*?-.*?(\d+)/
         parsed_data[:from] = $1
@@ -108,8 +134,7 @@ module Importer
     end
 
     def parse_bonus(action)
-      parsed_data = {}
-      parsed_data[:type] = :bonus
+      parsed_data = {type: :bonus}
       if action =~ /(\d+).*?:.*?(\d+)/
         parsed_data[:bonus] = $1
         parsed_data[:holding] = $2

@@ -10,9 +10,9 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121020110501) do
+ActiveRecord::Schema.define(:version => 20121202164041) do
 
-  create_table "corporate_actions", :force => true do |t|
+  create_table "corporate_action_logs", :force => true do |t|
     t.integer  "stock_id"
     t.date     "ex_date"
     t.string   "parsed_data"
