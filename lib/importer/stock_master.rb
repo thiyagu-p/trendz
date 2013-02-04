@@ -8,9 +8,8 @@ module Importer
       header = true
       CSV.parse(data) do |line|
         (header = false; next) if header
-        next unless line[2] == 'EQ'
         stock = Stock.find_or_create_by_symbol(line[0])
-        stock.update_attributes!(:name => line[1], :face_value => line[7], :isin => line[6])
+        stock.update_attributes!(name: line[1], face_value: line[7], isin: line[6], series: line[2])
       end
     end
 

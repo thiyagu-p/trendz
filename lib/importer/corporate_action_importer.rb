@@ -1,51 +1,32 @@
 module Importer
   class CorporateActionImporter
     include NseConnection
-
+    URL_PATH = '/corporates/corpInfo/equities/getCorpActions.jsp?symbol='
     def import
       stocks = Stock.all(order: :symbol, conditions: "series = 'e'")
       stocks.each do |stock|
+        p "#{stock.symbol}"
         begin
-          response = get("/marketinfo/companyinfo/eod/action.jsp?symbol=#{CGI.escape(stock.symbol)}")
+          response = get("#{URL_PATH}#{CGI.escape(stock.symbol)}")
           next if response.class == Net::HTTPNotFound
           data = response.body
-          doc = Nokogiri::HTML(data)
-          doc.css('table table table table table tr').each do |row|
-            columns = row.css('td')
-            next unless columns[0].text.strip =~ /EQ/
-            action_data = columns[7].text
-            ex_date = find_ex_date(columns)
-            next if CorporateAction.find_by_raw_data_and_ex_date(action_data, ex_date)
+          eval(data)[:rows].each do |row|
+            action_data = row[:sub]
+            ex_date = find_ex_date(row)
+            p action_data
             persist_actions(action_data, parse_action(action_data), ex_date, stock)
           end
         rescue => e
           p "Error importing company info for #{stock.symbol} #{e}"
+          puts e.backtrace
         end
       end
     end
 
-    def find_ex_date(columns)
-      ex_date_str = columns[4].text
-      record_date_str = columns[1].text != '-' ? columns[1].text : columns[2].text
+    def find_ex_date(row)
+      ex_date_str = row[:exDt]
+      record_date_str = row[:recordDt] != '-' ? row[:recordDt] : row[:bcStartDt]
       ex_date_str != '-' ? Date.parse(ex_date_str) : Date.parse(record_date_str) - 1
-    end
-
-    def import_and_save_to_file
-      stocks = Stock.all(order: :symbol, conditions: "series = 'e'")
-      open('company_action_consolidated.csv', 'w') do |file|
-        stocks.each do |stock|
-          response = get("/marketinfo/companyinfo/eod/action.jsp?symbol=#{CGI.escape(stock.symbol)}")
-          next if response.class == Net::HTTPNotFound
-          symbol = stock.symbol
-          data = response.body
-          doc = Nokogiri::HTML(data)
-          doc.css('table table table table table tr').each do |row|
-            columns = row.css('td')
-            next unless columns[0].text.strip =~ /EQ/
-            file << "#{symbol}|#{columns[0].text}|#{columns[4].text}|#{columns[7].text}\n"
-          end
-        end
-      end
     end
 
     def parse_action(actions_data)
@@ -79,7 +60,7 @@ module Importer
     def persist_actions(action_data, actions, ex_date, stock)
       actions.each do |action|
         if action[:type] == :dividend
-          percentage = (action[:percentage].nil? ? action[:value].to_f / stock.face_value_on(ex_date) * 100 : action[:percentage].to_f).round(2)
+          percentage = (action[:percentage].nil? ? (action[:value].to_f / stock.face_value_on(ex_date) * 100) : action[:percentage].to_f).round(2)
           dividend = DividendAction.find_or_create_by_stock_id_and_ex_date_and_nature_and_percentage(stock.id, ex_date, action[:nature], percentage)
         elsif action[:type] == :bonus
           bonus = BonusAction.find_or_create_by_stock_id_and_ex_date(stock.id, ex_date)
@@ -98,13 +79,12 @@ module Importer
       parsed_data = {type: :dividend}
       dividend_nature = {'SP' => :SPECIAL, 'FI' => :FINAL, 'INT' => :INTERIM, 'DIV' => :DIVIDEND, 'DV' => :DIVIDEND}
       if action =~ /(SP|FI|INT)/i
-        parsed_data[:nature] = dividend_nature[$1]
+        parsed_data[:nature] = dividend_nature[$1.upcase]
       elsif action =~ /(DIV|DV)/i
-        parsed_data[:nature] = dividend_nature[$1]
+        parsed_data[:nature] = dividend_nature[$1.upcase]
       else
         parsed_data[:nature] = :UNKNOWN
       end
-
       if action =~ /(\d+\.\d*)%/ix
         parsed_data[:percentage] = $1
       elsif action =~ /(\d+)%/ix

@@ -9,8 +9,8 @@ describe Importer::CorporateActionImporter do
       index1 = Stock.create(symbol: 'NIFTY', series: Stock::Series::INDEX)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-      @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-      @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{stock2.symbol}", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
+      @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
+      @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{stock2.symbol}", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
       Importer::CorporateActionImporter.new.import
     end
 
@@ -18,7 +18,7 @@ describe Importer::CorporateActionImporter do
       Stock.create(symbol: 'M&M', series: Stock::Series::EQUITY)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-      @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=M%26M", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
+      @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}M%26M", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
       Importer::CorporateActionImporter.new.import
     end
   end
@@ -28,7 +28,7 @@ describe Importer::CorporateActionImporter do
       @stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY, face_value: 10)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-      @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+      @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
       Importer::CorporateActionImporter.new.import
     end
 
@@ -52,7 +52,7 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing dividend' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+        @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
         expect { Importer::CorporateActionImporter.new.import }.to change(DividendAction, :count).by(0)
       end
 
@@ -83,7 +83,7 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing bonus' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+        @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
         expect { Importer::CorporateActionImporter.new.import }.to change(BonusAction, :count).by(0)
       end
     end
@@ -98,7 +98,7 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing split action' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+        @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
         expect { Importer::CorporateActionImporter.new.import }.to change(BonusAction, :count).by(0)
       end
     end
@@ -142,7 +142,7 @@ describe Importer::CorporateActionImporter do
     @stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY, face_value: 10)
     @http = stub()
     Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-    @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+    @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
     FaceValueAction.create!(stock: @stock1, ex_date: Date.parse('01/07/2012'), from: 1, to: 10)
     Importer::CorporateActionImporter.new.import
     dividend = DividendAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2012')
@@ -151,31 +151,32 @@ describe Importer::CorporateActionImporter do
 
   describe :ex_date do
     it 'should use ex_date if exist' do
-      doc = Nokogiri::HTML('<tr> <td class=t2>EQ</td> <td class=t2>-</td> <td class=t2>02/06/2012</td> <td class=t2>07/06/2012</td> <td class=t2>31/05/2012</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t0>ANNUAL GENERAL MEETING AND DIVIDEND RS.8.50 PER SHARE</td> </tr>')
-      Importer::CorporateActionImporter.new.find_ex_date(doc.css('td')).should == Date.parse('31/05/2012')
+      data = {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR AND DIVIDEND RS.8.50 PER SHARE", exDt: "31-May-2012", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"}
+      Importer::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('31/05/2012')
     end
 
     it 'should use record_date if ex_date missing' do
-      doc = Nokogiri::HTML('<tr> <td class=t2>EQ</td> <td class=t2>02/06/2012</td> <td class=t2>01/06/2012</td> <td class=t2>07/06/2012</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t0>ANNUAL GENERAL MEETING AND DIVIDEND RS.8.50 PER SHARE</td> </tr>')
-      Importer::CorporateActionImporter.new.find_ex_date(doc.css('td')).should == Date.parse('01/06/2012')
+      data = {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR AND DIVIDEND RS.8.50 PER SHARE", exDt: "-", recordDt: "02-Jun-2012", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"}
+      Importer::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('01/06/2012')
     end
 
     it 'should use BC Start date if exdate and record date missing' do
-      doc = Nokogiri::HTML('<tr> <td class=t2>EQ</td> <td class=t2>-</td> <td class=t2>02/06/2012</td> <td class=t2>07/06/2012</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t2>-</td> <td class=t0>ANNUAL GENERAL MEETING AND DIVIDEND RS.8.50 PER SHARE</td> </tr>')
-      Importer::CorporateActionImporter.new.find_ex_date(doc.css('td')).should == Date.parse('01/06/2012')
+      data = {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR AND DIVIDEND RS.8.50 PER SHARE", exDt: "-", recordDt: "-", bcStartDt: "02-Jun-2012", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"}
+      Importer::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('01/06/2012')
     end
   end
   describe :parse_action do
     it 'should parse value divident' do
       importer = Importer::CorporateActionImporter.new
-      importer.parse_action('DIVIDEND RS 1.80 PER SHARE').first.should == {type: :dividend, :nature=>:DIVIDEND, value: '1.80'}
-      importer.parse_action('DIVIDEND RS1.80 PER SHARE').first.should == {type: :dividend, :nature=>:DIVIDEND, value: '1.80'}
-      importer.parse_action('DIVIDEND RS 10 PER SHARE').first.should == {type: :dividend, :nature=>:DIVIDEND, value: '10'}
-      importer.parse_action('DIVIDEND RS10 PER SHARE').first.should == {type: :dividend, :nature=>:DIVIDEND, value: '10'}
-      importer.parse_action('DIVIDEND RS.10 PER SHARE').first.should == {type: :dividend, :nature=>:DIVIDEND, value: '10'}
-      importer.parse_action('DIVIDEND RS.4.50 PER SHARE').first.should == {type: :dividend, :nature=>:DIVIDEND, value: '4.50'}
-      importer.parse_action('DIVIDEND-RE.0.20 PER SHARE').first.should == {type: :dividend, :nature=>:DIVIDEND, value: '0.20'}
-      importer.parse_action('DV-RE.1 PR SH').first.should == {type: :dividend, :nature=>:DIVIDEND, value: '1'}
+      importer.parse_action('DIVIDEND RS 1.80 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '1.80'}
+      importer.parse_action('DIVIDEND RS1.80 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '1.80'}
+      importer.parse_action('DIVIDEND RS 10 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '10'}
+      importer.parse_action('DIVIDEND RS10 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '10'}
+      importer.parse_action('DIVIDEND RS.10 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '10'}
+      importer.parse_action('DIVIDEND RS.4.50 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '4.50'}
+      importer.parse_action('DIVIDEND-RE.0.20 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '0.20'}
+      importer.parse_action('DV-RE.1 PR SH').first.should == {type: :dividend, :nature => :DIVIDEND, value: '1'}
+      importer.parse_action('Div.-Re.1/- Per Share').first.should == {type: :dividend, :nature => :DIVIDEND, value: '1'}
     end
     it 'should ignore nil divident' do
       importer = Importer::CorporateActionImporter.new
@@ -183,22 +184,22 @@ describe Importer::CorporateActionImporter do
     end
     it 'should parse percentage divident' do
       importer = Importer::CorporateActionImporter.new
-      importer.parse_action('DIVIDEND-120%').first.should == {type: :dividend, :nature=>:DIVIDEND, percentage: '120'}
-      importer.parse_action('DIVIDEND - 17.50%').first.should == {type: :dividend, :nature=>:DIVIDEND, percentage: '17.50'}
+      importer.parse_action('DIVIDEND-120%').first.should == {type: :dividend, :nature => :DIVIDEND, percentage: '120'}
+      importer.parse_action('DIVIDEND - 17.50%').first.should == {type: :dividend, :nature => :DIVIDEND, percentage: '17.50'}
     end
     it 'should parse combined value dividents' do
       importer = Importer::CorporateActionImporter.new
-      importer.parse_action('DIV-FIN RS.1.5+INT RS.2.1PURPOSE REVISED').should == [{type: :dividend, :nature=>:FINAL, value: '1.5'}, {type: :dividend, :nature=>:INTERIM, value: '2.1'}]
-      importer.parse_action('DIVIDEND - FINAL RS 22 + SPECIAL RS 10').should == [{type: :dividend, :nature=>:FINAL, value: '22'}, {type: :dividend, :nature=>:SPECIAL, value: '10'}]
-      importer.parse_action('DIV-FIN RE0.25+SPL RE0.35').should == [{type: :dividend, :nature=>:FINAL, value: '0.25'}, {type: :dividend, :nature=>:SPECIAL, value: '0.35'}]
-      importer.parse_action('DIV-RS10+GLD JUB-RS12.1').should == [{type: :dividend, :nature=>:DIVIDEND, value: '10'}, {type: :dividend, :nature=>:UNKNOWN, value: '12.1'}]
+      importer.parse_action('DIV-FIN RS.1.5+INT RS.2.1PURPOSE REVISED').should == [{type: :dividend, :nature => :FINAL, value: '1.5'}, {type: :dividend, :nature => :INTERIM, value: '2.1'}]
+      importer.parse_action('DIVIDEND - FINAL RS 22 + SPECIAL RS 10').should == [{type: :dividend, :nature => :FINAL, value: '22'}, {type: :dividend, :nature => :SPECIAL, value: '10'}]
+      importer.parse_action('DIV-FIN RE0.25+SPL RE0.35').should == [{type: :dividend, :nature => :FINAL, value: '0.25'}, {type: :dividend, :nature => :SPECIAL, value: '0.35'}]
+      importer.parse_action('DIV-RS10+GLD JUB-RS12.1').should == [{type: :dividend, :nature => :DIVIDEND, value: '10'}, {type: :dividend, :nature => :UNKNOWN, value: '12.1'}]
     end
     it 'should parse combined percentage dividents' do
       importer = Importer::CorporateActionImporter.new
-      importer.parse_action('DIV-50% + SPL DIV-60%').should == [{type: :dividend, :nature=>:DIVIDEND, percentage: '50'}, {type: :dividend, :nature=>:SPECIAL, percentage: '60'}]
-      importer.parse_action('DIV.-FIN.75%+SPL.25%').should == [{type: :dividend, :nature=>:FINAL, percentage: '75'}, {type: :dividend, :nature=>:SPECIAL, percentage: '25'}]
-      importer.parse_action('DIV-(FIN-100%+SP-30%)').should == [{type: :dividend, :nature=>:FINAL, percentage: '100'}, {type: :dividend, :nature=>:SPECIAL, percentage: '30'}]
-      importer.parse_action('FINALDIV.-10%+SPL.DIV.-5%').should == [{type: :dividend, :nature=>:FINAL, percentage: '10'}, {type: :dividend, :nature=>:SPECIAL, percentage: '5'}]
+      importer.parse_action('DIV-50% + SPL DIV-60%').should == [{type: :dividend, :nature => :DIVIDEND, percentage: '50'}, {type: :dividend, :nature => :SPECIAL, percentage: '60'}]
+      importer.parse_action('DIV.-FIN.75%+SPL.25%').should == [{type: :dividend, :nature => :FINAL, percentage: '75'}, {type: :dividend, :nature => :SPECIAL, percentage: '25'}]
+      importer.parse_action('DIV-(FIN-100%+SP-30%)').should == [{type: :dividend, :nature => :FINAL, percentage: '100'}, {type: :dividend, :nature => :SPECIAL, percentage: '30'}]
+      importer.parse_action('FINALDIV.-10%+SPL.DIV.-5%').should == [{type: :dividend, :nature => :FINAL, percentage: '10'}, {type: :dividend, :nature => :SPECIAL, percentage: '5'}]
     end
 
     it 'should parse split' do
@@ -227,29 +228,29 @@ describe Importer::CorporateActionImporter do
       importer.parse_action('BONUS 22:1 AND FACE VALUE SPLIT FROM RS.10/- TO RE.1/').should ==
           [{type: :bonus, bonus: '22', holding: '1'}, {type: :split, from: '10', to: '1'}]
       importer.parse_action('DIVIDEND RS.6/- PER SHARE AND FACE VALUE SPLIT FROM RS.2/- TO RE.1/-').should ==
-          [{type: :dividend, :nature=>:DIVIDEND, value: '6'}, {type: :split, from: '2', to: '1'}]
+          [{type: :dividend, :nature => :DIVIDEND, value: '6'}, {type: :split, from: '2', to: '1'}]
       importer.parse_action('BONUS - 1:1 AND FACE VALUE SPLIT FROM RS. 10 TO RS. 2').should ==
           [{type: :bonus, bonus: '1', holding: '1'}, {type: :split, from: '10', to: '2'}]
       importer.parse_action('BONUS 1:2 AND FACE VALUE SPLIT FROM RS.10 TO RS.2').should ==
           [{type: :bonus, bonus: '1', holding: '2'}, {type: :split, from: '10', to: '2'}]
       importer.parse_action('INTERIM DIVIDEND RS.3/- PER SHARE AND FACE VALUE SPLIT FROM RS.5/- TO RS.2/- (PURPOSE REVISED)').should ==
-          [{type: :dividend, :nature=>:INTERIM, value: '3'}, {type: :split, from: '5', to: '2'}]
+          [{type: :dividend, :nature => :INTERIM, value: '3'}, {type: :split, from: '5', to: '2'}]
     end
 
     it 'should handle multiple actions split by / and AND' do
       importer = Importer::CorporateActionImporter.new
       importer.parse_action('BONUS 22:1 / FINAL DIVIDEND RS 0.60  AND SPECIAL DIVIDEND RS 1.40 PER SHARE.').should ==
-          [{type: :bonus, bonus: '22', holding: '1'}, {type: :dividend, :nature=>:FINAL, value: '0.60'}, {type: :dividend, :nature=>:SPECIAL, value: '1.40'}]
+          [{type: :bonus, bonus: '22', holding: '1'}, {type: :dividend, :nature => :FINAL, value: '0.60'}, {type: :dividend, :nature => :SPECIAL, value: '1.40'}]
       importer.parse_action('BONUS 22:1 AND FINAL DIVIDEND RS 0.60  + SPECIAL DIVIDEND RS 1.40 PER SHARE.').should ==
-          [{type: :bonus, bonus: '22', holding: '1'}, {type: :dividend, :nature=>:FINAL, value: '0.60'}, {type: :dividend, :nature=>:SPECIAL, value: '1.40'}]
+          [{type: :bonus, bonus: '22', holding: '1'}, {type: :dividend, :nature => :FINAL, value: '0.60'}, {type: :dividend, :nature => :SPECIAL, value: '1.40'}]
       importer.parse_action('BONUS 22:1 AND FINAL DIVIDEND RS 0.60 AND SPECIAL DIVIDEND RS 1.40 PER SHARE.').should ==
-          [{type: :bonus, bonus: '22', holding: '1'}, {type: :dividend, :nature=>:FINAL, value: '0.60'}, {type: :dividend, :nature=>:SPECIAL, value: '1.40'}]
+          [{type: :bonus, bonus: '22', holding: '1'}, {type: :dividend, :nature => :FINAL, value: '0.60'}, {type: :dividend, :nature => :SPECIAL, value: '1.40'}]
     end
 
     it 'should not split if / is immediately after number' do
       importer = Importer::CorporateActionImporter.new
-      importer.parse_action('DIVIDEND-RS.16/ PER SHARE').should == [{type: :dividend, :nature=>:DIVIDEND, value: '16'}]
-      importer.parse_action('AGM/DIVIDEND-RS.5/ PER SH').should == [{type: :ignore, data: 'AGM'}, {type: :dividend, :nature=>:DIVIDEND, value: '5'}]
+      importer.parse_action('DIVIDEND-RS.16/ PER SHARE').should == [{type: :dividend, :nature => :DIVIDEND, value: '16'}]
+      importer.parse_action('AGM/DIVIDEND-RS.5/ PER SH').should == [{type: :ignore, data: 'AGM'}, {type: :dividend, :nature => :DIVIDEND, value: '5'}]
     end
 
     it 'should ignore debenture, rights' do
@@ -284,136 +285,16 @@ describe Importer::CorporateActionImporter do
   end
 end
 
-def corporate_action_html
+def corporate_action_json
   <<EOF
-<HTML>
-<BODY bgcolor="#ffffff" leftmargin=0 topmargin=0 marginheight=0 marginwidth=0>
-<div name="menulayer" id="menulayer" class=menufont style="background-color: #f5c078; visibility:hidden; position:absolute; width:1px; height:1px; z-index:1; left:1; top:1"></div>
-<TABLE cellspacing=0 border=0 cellpadding=0 height=100%>
-<tr>
-<td width=600 valign=top>
-<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 width=592 height=100%>
-<TR>
-<TD width=20>&nbsp;</TD>
-<TD valign=top>
-<font class=header>Corporate Information</font><br>
-<font class=header3>Corporate Actions</font><br><br>
-	<table border=0 cellspacing=1 cellpadding=4 align=center width=450>
-	<tr>
-	<td class=tablehead WIDTH=100>Company</td>
-	<td class=t0>Reliance Industries Limited</td>
-	</tr>
-	<tr>
-	<td class=tablehead WIDTH=100>NSE Symbol</td>
-	<td class=t0><a href="/marketinfo/equities/quotesearch.jsp?companyname=RELIANCE">RELIANCE</a></td>
-	</tr>
-	</table><br>
-	<table border="0">
-		 <tr><td>
-	<table cellpadding=0 cellspacing=0 border=0 align=center bgcolor=#969696>
-	<tr><td>
- <table cellpadding=2 border=0 cellspacing=1 align=center width=570>
- <TR>
-	<TD class=tablehead>Series</TD>
-	<TD class=tablehead>Record Date</TD>
-	<TD class=tablehead>BC Start Date</TD>
-	<TD class=tablehead>BC End Date</TD>
-	<TD class=tablehead>Ex Date</TD>
-	<TD class=tablehead>No Delivery Start Date</TD>
-	<TD class=tablehead>No Delivery End Date</TD>
-	<TD class=tablehead>Purpose</TD>
-	</tr>
-	<tr>
-	 <td class=t2>BL</td>
-	 <td class=t2>-</td>
-	 <td class=t2>03/06/2006</td>
-	 <td class=t2>10/06/2006</td>
-	 <td class=t2>01/06/2006</td>
-	 <td class=t2>-</td>
-	 <td class=t2>-</td>
-	<td class=t0>DIVIDEND-RS.10/- PER SH</td>
-	</tr>
-	<tr>
-	 <td class=t2>EQ</td>
-	 <td class=t2>-</td>
-	 <td class=t2>02/06/2012</td>
-	 <td class=t2>07/06/2012</td>
-	 <td class=t2>31/05/2012</td>
-	 <td class=t2>-</td>
-	 <td class=t2>-</td>
-	<td class=t0>ERROR AND DIVIDEND RS.8.50 PER SHARE</td>
-	</tr>
-	<tr>
-	 <td class=t2>EQ</td>
-	 <td class=t2>-</td>
-	 <td class=t2>02/06/2011</td>
-	 <td class=t2>07/06/2011</td>
-	 <td class=t2>31/05/2011</td>
-	 <td class=t2>-</td>
-	 <td class=t2>-</td>
-	<td class=t0>ANNUAL GENERAL MEETING AND DIVIDEND 90%</td>
-	</tr>
-	<tr>
-	 <td class=t2>EQ</td>
-	 <td class=t2>-</td>
-	 <td class=t2>02/06/2010</td>
-	 <td class=t2>07/06/2010</td>
-	 <td class=t2>31/05/2010</td>
-	 <td class=t2>-</td>
-	 <td class=t2>-</td>
-	<td class=t0>INTERIM DIVIDEND 90% AND FINAL DIVIDEND 100% AND SPECIAL DIVIDEND 120%</td>
-	</tr>
-	<tr>
-	 <td class=t2>EQ</td>
-	 <td class=t2>-</td>
-	 <td class=t2>02/06/2009</td>
-	 <td class=t2>07/06/2009</td>
-	 <td class=t2>31/05/2009</td>
-	 <td class=t2>-</td>
-	 <td class=t2>-</td>
-	<td class=t0>INTERIM DIVIDEND 10% AND FINAL DIVIDEND 10%</td>
-	</tr>
-	<tr>
-	 <td class=t2>EQ</td>
-	 <td class=t2>-</td>
-	 <td class=t2>02/06/2008</td>
-	 <td class=t2>07/06/2008</td>
-	 <td class=t2>01/06/2008</td>
-	 <td class=t2>-</td>
-	 <td class=t2>-</td>
-	<td class=t0>BONUS 2:3</td>
-	</tr>
-	<tr>
-	 <td class=t2>EQ</td>
-	 <td class=t2>-</td>
-	 <td class=t2>02/06/2007</td>
-	 <td class=t2>07/06/2007</td>
-	 <td class=t2>01/06/2007</td>
-	 <td class=t2>-</td>
-	 <td class=t2>-</td>
-	<td class=t0>FV SPLIT RS.10 TO RS.2</td>
-	</tr>
-	<tr>
-	 <td class=t2>EQ</td>
-	 <td class=t2>-</td>
-	 <td class=t2>02/06/2005</td>
-	 <td class=t2>07/06/2005</td>
-	 <td class=t2>01/06/2005</td>
-	 <td class=t2>-</td>
-	 <td class=t2>-</td>
-	<td class=t0>CONSOLIDATION RE1 TO RS10</td>
-	</tr>
- </table></td></tr></table>
-	</td></tr>
- </table>
-</td>
-<td width=10></td>
-</tr>
-</table>
-</td>
-</tr>
-</table>
-</body>
-</html>
+  {success: true, results: 10, rows: [
+      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR AND DIVIDEND RS.8.50 PER SHARE", exDt: "31-May-2012", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
+      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ANNUAL GENERAL MEETING AND DIVIDEND 90%", exDt: "31-May-2011", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
+      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "INTERIM DIVIDEND 90% AND FINAL DIVIDEND 100% AND SPECIAL DIVIDEND 120%", exDt: "31-May-2010", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
+      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "INTERIM DIVIDEND 10% AND FINAL DIVIDEND 10%", exDt: "31-May-2009", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
+      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "BONUS 2:3", exDt: "01-June-2008", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
+      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "FV SPLIT RS.10 TO RS.2", exDt: "01-Jun-2007", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
+      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "CONSOLIDATION RE1 TO RS10", exDt: "01-Jun-2005", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"}
+  ]}
 EOF
 end

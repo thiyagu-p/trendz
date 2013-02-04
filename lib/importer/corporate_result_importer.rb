@@ -5,6 +5,7 @@ module Importer
     def import
       stocks = Stock.all(order: :symbol, conditions: "series = 'e'")
       stocks.each do |stock|
+        p "Results for : #{stock.symbol}"
         begin
           response = get("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{CGI.escape(stock.symbol)}")
           next if response.class == Net::HTTPNotFound

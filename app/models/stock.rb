@@ -1,8 +1,8 @@
 class Stock < ActiveRecord::Base
 
   module Series
-    EQUITY = 'e'
-    INDEX = 'i'
+    EQUITY = 'EQ'
+    INDEX = 'I'
   end
 
   has_many :fo_quotes
