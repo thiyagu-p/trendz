@@ -136,7 +136,17 @@ describe Importer::CorporateActionImporter do
       bonus = BonusAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('1/06/2006')
       bonus.should be_nil
     end
+  end
 
+  it 'should percentage conversion take into effect face value actions' do
+    @stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY, face_value: 10)
+    @http = stub()
+    Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
+    @http.expects(:request_get).with("/marketinfo/companyinfo/eod/action.jsp?symbol=#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_html))
+    FaceValueAction.create!(stock: @stock1, ex_date: Date.parse('01/07/2012'), from: 1, to: 10)
+    Importer::CorporateActionImporter.new.import
+    dividend = DividendAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2012')
+    dividend.percentage.to_f.should == 850
   end
 
   describe :ex_date do

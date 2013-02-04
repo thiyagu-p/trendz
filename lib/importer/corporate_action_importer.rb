@@ -79,7 +79,7 @@ module Importer
     def persist_actions(action_data, actions, ex_date, stock)
       actions.each do |action|
         if action[:type] == :dividend
-          percentage = (action[:percentage].nil? ? action[:value].to_f / stock.face_value * 100 : action[:percentage].to_f).round(2)
+          percentage = (action[:percentage].nil? ? action[:value].to_f / stock.face_value_on(ex_date) * 100 : action[:percentage].to_f).round(2)
           dividend = DividendAction.find_or_create_by_stock_id_and_ex_date_and_nature_and_percentage(stock.id, ex_date, action[:nature], percentage)
         elsif action[:type] == :bonus
           bonus = BonusAction.find_or_create_by_stock_id_and_ex_date(stock.id, ex_date)
