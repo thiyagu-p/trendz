@@ -207,6 +207,7 @@ describe Importer::CorporateActionImporter do
       importer.parse_action('FV SPLIT RS.10/- TO RS.1/').should == [{type: :split, from: '10', to: '1'}]
       importer.parse_action('FV SPLIT RS 10 TO RS 1').should == [{type: :split, from: '10', to: '1'}]
       importer.parse_action('FV SPLIT RS.10 TO RS.5').should == [{type: :split, from: '10', to: '5'}]
+      importer.parse_action('Fv Split Rs.10 To Re.1').should == [{type: :split, from: '10', to: '1'}]
       importer.parse_action('SPL RS10-RS2').should == [{type: :split, from: '10', to: '2'}]
     end
 
@@ -214,6 +215,7 @@ describe Importer::CorporateActionImporter do
       importer = Importer::CorporateActionImporter.new
       importer.parse_action('CONSOLIDATION RE1 TO RS10').should == [{type: :consolidation, from: '1', to: '10'}]
       importer.parse_action('CONSOLIDATION RE.1/- TO RS.10/-').should == [{type: :consolidation, from: '1', to: '10'}]
+      importer.parse_action('Consolidation Re1 To Rs10').should == [{type: :consolidation, from: '1', to: '10'}]
     end
 
     it 'should parse bonus' do
@@ -227,6 +229,8 @@ describe Importer::CorporateActionImporter do
       importer = Importer::CorporateActionImporter.new
       importer.parse_action('BONUS 22:1 AND FACE VALUE SPLIT FROM RS.10/- TO RE.1/').should ==
           [{type: :bonus, bonus: '22', holding: '1'}, {type: :split, from: '10', to: '1'}]
+      importer.parse_action('Bonus 1:1 And Face Value Split From Rs.10/- To Rs.5/-').should ==
+          [{type: :bonus, bonus: '1', holding: '1'}, {type: :split, from: '10', to: '5'}]
       importer.parse_action('DIVIDEND RS.6/- PER SHARE AND FACE VALUE SPLIT FROM RS.2/- TO RE.1/-').should ==
           [{type: :dividend, :nature => :DIVIDEND, value: '6'}, {type: :split, from: '2', to: '1'}]
       importer.parse_action('BONUS - 1:1 AND FACE VALUE SPLIT FROM RS. 10 TO RS. 2').should ==
@@ -282,6 +286,12 @@ describe Importer::CorporateActionImporter do
       importer.parse_action('BONUS 2:1//RGTS').should == [{type: :bonus, bonus: '2', holding: '1'}, {:type => :ignore, :data => "RGTS"}]
     end
 
+  end
+
+  it 'should import for TCS' do
+    stock = Stock.create!(symbol: 'TCS', series: 'e')
+    Importer::CorporateActionImporter.new.fetch_data_for stock
+    DividendAction.count.should > 0
   end
 end
 

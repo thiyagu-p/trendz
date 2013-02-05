@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130204122744) do
+ActiveRecord::Schema.define(:version => 20130205165510) do
 
   create_table "bonus_actions", :force => true do |t|
     t.integer "stock_id"
@@ -47,6 +47,22 @@ ActiveRecord::Schema.define(:version => 20130204122744) do
     t.datetime "updated_at"
   end
 
+  create_table "delayed_jobs", :force => true do |t|
+    t.integer  "priority",   :default => 0
+    t.integer  "attempts",   :default => 0
+    t.text     "handler"
+    t.text     "last_error"
+    t.datetime "run_at"
+    t.datetime "locked_at"
+    t.datetime "failed_at"
+    t.string   "locked_by"
+    t.string   "queue"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "delayed_jobs", ["priority", "run_at"], :name => "delayed_jobs_priority"
+
   create_table "dividend_actions", :force => true do |t|
     t.integer "stock_id"
     t.date    "ex_date"
@@ -69,7 +85,7 @@ ActiveRecord::Schema.define(:version => 20130204122744) do
   end
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
-  add_index "eq_quotes", ["stock_id", "date"], :name => "index_eq_quotes_on_stock_id_and_date"
+  add_index "eq_quotes", ["stock_id", "date"], :name => "eq_quotes_stock_id_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
 
   create_table "equity_holdings", :force => true do |t|

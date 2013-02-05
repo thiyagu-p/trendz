@@ -2,24 +2,26 @@ module Importer
   class CorporateActionImporter
     include NseConnection
     URL_PATH = '/corporates/corpInfo/equities/getCorpActions.jsp?symbol='
+
     def import
-      stocks = Stock.all(order: :symbol, conditions: "series = 'e'")
-      stocks.each do |stock|
-        p "#{stock.symbol}"
-        begin
-          response = get("#{URL_PATH}#{CGI.escape(stock.symbol)}")
-          next if response.class == Net::HTTPNotFound
+      Stock.all(order: :symbol, conditions: "series <> 'I'").each { |stock| fetch_data_for(stock) }
+    end
+
+    def fetch_data_for(stock)
+      p "#{stock.symbol}"
+      begin
+        response = get("#{URL_PATH}#{CGI.escape(stock.symbol)}")
+        unless response.class == Net::HTTPNotFound
           data = response.body
           eval(data)[:rows].each do |row|
             action_data = row[:sub]
             ex_date = find_ex_date(row)
-            p action_data
             persist_actions(action_data, parse_action(action_data), ex_date, stock)
           end
-        rescue => e
-          p "Error importing company info for #{stock.symbol} #{e}"
-          puts e.backtrace
         end
+      rescue => e
+        p "Error importing company info for #{stock.symbol} #{e}"
+        puts e.backtrace
       end
     end
 
@@ -31,7 +33,7 @@ module Importer
 
     def parse_action(actions_data)
       parsed_actions = []
-      actions_data.split('AND').each do |action_split|
+      actions_data.split(/AND/i).each do |action_split|
         action_split.gsub!('/-', '')
         action_split.gsub!(/(\d)\//) { |match| "#{$1}" }
         action_split.gsub!('//', '/')
@@ -104,7 +106,7 @@ module Importer
     def parse_split(action)
       parsed_data = {type: :split}
       parsed_data[:type] = :split
-      if action =~ /(\d+).*?TO.*?(\d+)/ || action =~ /(\d+).*?-.*?(\d+)/
+      if action =~ /(\d+).*?TO.*?(\d+)/i || action =~ /(\d+).*?-.*?(\d+)/
         parsed_data[:from] = $1
         parsed_data[:to] = $2
       else
@@ -127,7 +129,7 @@ module Importer
     def parse_consolidation(action)
       parsed_data = {}
       parsed_data[:type] = :consolidation
-      if action =~ /(\d+).*?TO.*?(\d+)/
+      if action =~ /(\d+).*?TO.*?(\d+)/i
         parsed_data[:from] = $1
         parsed_data[:to] = $2
       else
