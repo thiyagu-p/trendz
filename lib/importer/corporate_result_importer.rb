@@ -3,12 +3,13 @@ module Importer
     include NseConnection
 
     def import
-      stocks = Stock.all(order: :symbol, conditions: "series = 'e'")
-      stocks.each do |stock|
-        p "Results for : #{stock.symbol}"
-        begin
-          response = get("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{CGI.escape(stock.symbol)}")
-          next if response.class == Net::HTTPNotFound
+      Stock.all(order: :symbol, conditions: "series <> 'I'").each { |stock| delay.fetch_data_for(stock) }
+    end
+
+    def fetch_data_for(stock)
+      begin
+        response = get("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{CGI.escape(stock.symbol)}")
+        unless response.class == Net::HTTPNotFound
           data = response.body
           doc = Nokogiri::HTML(data)
           tables = doc.css('.viewTable')
@@ -18,17 +19,18 @@ module Importer
             corporate_result = CorporateResult.find_or_create_by_stock_id_and_quarter_end(stock.id, quarter)
             corporate_result.update_attributes! financial_data[index]
           end
-        rescue => e
-          p "Error importing company financial info for #{stock.symbol} #{e.inspect}"
         end
+      rescue => e
+        p "Error importing company financial info for #{stock.symbol} #{e.inspect}"
       end
     end
 
     def extract_quarter_ends table
       tds = table.css('tr')[0].css('td')
       tds.shift #skip title
-      quarter_ends = tds.collect {|td| Date.parse(td.text)}
+      tds.collect { |td| Date.parse(td.text) }
     end
+
     def extract_financial_data table
       financial_data = []
       table.css('tr').each do |tr|

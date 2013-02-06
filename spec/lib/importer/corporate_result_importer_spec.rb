@@ -3,23 +3,12 @@ require "spec_helper"
 describe Importer::CorporateResultImporter do
 
   describe :import do
-    it "should import for all equity stocks" do
-      stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY)
-      stock2 = Stock.create(symbol: 'TCS', series: Stock::Series::EQUITY)
-      index1 = Stock.create(symbol: 'NIFTY', series: Stock::Series::INDEX)
-      @http = stub()
-      Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-      @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-      @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{stock2.symbol}", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-      Importer::CorporateResultImporter.new.import
-    end
-
     it "should encode symbol" do
-      Stock.create(symbol: 'M&M', series: Stock::Series::EQUITY)
+      stock = Stock.create(symbol: 'M&M', series: Stock::Series::EQUITY)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=M%26M", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-      Importer::CorporateResultImporter.new.import
+      Importer::CorporateResultImporter.new.fetch_data_for stock
     end
 
     it "should import and save parsed data" do
@@ -27,7 +16,7 @@ describe Importer::CorporateResultImporter do
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: result_history_html))
-      Importer::CorporateResultImporter.new.import
+      Importer::CorporateResultImporter.new.fetch_data_for stock1
       corporate_result = CorporateResult.find_by_stock_id_and_quarter_end stock1.id, '2012-09-30'
       corporate_result.net_sales.should == 9033500.00
       corporate_result.net_p_and_l.should == 537600.00
@@ -40,7 +29,7 @@ describe Importer::CorporateResultImporter do
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: result_history_html))
-      Importer::CorporateResultImporter.new.import
+      Importer::CorporateResultImporter.new.fetch_data_for stock1
       corporate_results = CorporateResult.order(:quarter_end).all
       corporate_results.collect(&:quarter_end).should == [Date.parse('30/09/2011'),Date.parse('31/12/2011'),Date.parse('31/03/2012'),Date.parse('30/06/2012'),Date.parse('30/09/2012')]
     end
@@ -52,9 +41,9 @@ describe Importer::CorporateResultImporter do
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: result_history_html))
       @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: result_history_html))
-      Importer::CorporateResultImporter.new.import
+      Importer::CorporateResultImporter.new.fetch_data_for stock1
       CorporateResult.count.should == 5
-      Importer::CorporateResultImporter.new.import
+      Importer::CorporateResultImporter.new.fetch_data_for stock1
       CorporateResult.count.should == 5
     end
   end

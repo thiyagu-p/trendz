@@ -3,23 +3,12 @@ require "spec_helper"
 describe Importer::CorporateActionImporter do
 
   describe :import_all do
-    it 'should import for all equity stocks' do
-      stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY)
-      stock2 = Stock.create(symbol: 'TCS', series: Stock::Series::EQUITY)
-      index1 = Stock.create(symbol: 'NIFTY', series: Stock::Series::INDEX)
-      @http = stub()
-      Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-      @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-      @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{stock2.symbol}", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-      Importer::CorporateActionImporter.new.import
-    end
-
     it 'should encode symbol' do
-      Stock.create(symbol: 'M&M', series: Stock::Series::EQUITY)
+      stock = Stock.create(symbol: 'M&M', series: Stock::Series::EQUITY)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}M%26M", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-      Importer::CorporateActionImporter.new.import
+      Importer::CorporateActionImporter.new.fetch_data_for stock
     end
   end
 
@@ -29,7 +18,7 @@ describe Importer::CorporateActionImporter do
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
-      Importer::CorporateActionImporter.new.import
+      Importer::CorporateActionImporter.new.fetch_data_for @stock1
     end
 
     describe :dividend do
@@ -53,7 +42,7 @@ describe Importer::CorporateActionImporter do
       it 'should skip existing dividend' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
         @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
-        expect { Importer::CorporateActionImporter.new.import }.to change(DividendAction, :count).by(0)
+        expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(DividendAction, :count).by(0)
       end
 
       it 'should handle other type of dividend' do
@@ -84,7 +73,7 @@ describe Importer::CorporateActionImporter do
       it 'should skip existing bonus' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
         @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
-        expect { Importer::CorporateActionImporter.new.import }.to change(BonusAction, :count).by(0)
+        expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
       end
     end
 
@@ -99,7 +88,7 @@ describe Importer::CorporateActionImporter do
       it 'should skip existing split action' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
         @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
-        expect { Importer::CorporateActionImporter.new.import }.to change(BonusAction, :count).by(0)
+        expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
       end
     end
 
@@ -112,7 +101,7 @@ describe Importer::CorporateActionImporter do
       end
     end
 
-    describe :ignore do
+    describe :error do
       it 'should import and save ignored actions' do
         corporate_action_error = CorporateActionError.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2011')
         corporate_action_error.should_not be_nil
@@ -120,15 +109,24 @@ describe Importer::CorporateActionImporter do
         corporate_action_error.partial_data.should == 'ANNUAL GENERAL MEETING'
         corporate_action_error.is_ignored.should be_true
       end
-    end
 
-    describe :unknown do
-      it 'should import and save ignored actions' do
+      it 'should import and save unknown actions' do
         corporate_action_error = CorporateActionError.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2012')
         corporate_action_error.should_not be_nil
         corporate_action_error.full_data.should == 'ERROR AND DIVIDEND RS.8.50 PER SHARE'
         corporate_action_error.partial_data.should == 'ERROR'
         corporate_action_error.is_ignored.should be_false
+      end
+
+      it 'should import and save multiple unknown actions' do
+        corporate_action_errors = CorporateActionError.find_all_by_stock_id_and_ex_date @stock1.id, Date.parse('01/06/2004')
+        corporate_action_errors.count.should == 2
+      end
+
+      it 'should skip existing ignored actions' do
+        Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
+        @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
+        expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
       end
     end
 
@@ -144,7 +142,7 @@ describe Importer::CorporateActionImporter do
     Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
     @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
     FaceValueAction.create!(stock: @stock1, ex_date: Date.parse('01/07/2012'), from: 1, to: 10)
-    Importer::CorporateActionImporter.new.import
+    Importer::CorporateActionImporter.new.fetch_data_for @stock1
     dividend = DividendAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2012')
     dividend.percentage.to_f.should == 850
   end
@@ -304,6 +302,7 @@ def corporate_action_json
       {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "INTERIM DIVIDEND 10% AND FINAL DIVIDEND 10%", exDt: "31-May-2009", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
       {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "BONUS 2:3", exDt: "01-June-2008", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
       {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "FV SPLIT RS.10 TO RS.2", exDt: "01-Jun-2007", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
+      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR1 AND ERROR2", exDt: "01-Jun-2004", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
       {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "CONSOLIDATION RE1 TO RS10", exDt: "01-Jun-2005", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"}
   ]}
 EOF

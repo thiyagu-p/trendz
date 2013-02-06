@@ -4,11 +4,10 @@ module Importer
     URL_PATH = '/corporates/corpInfo/equities/getCorpActions.jsp?symbol='
 
     def import
-      Stock.all(order: :symbol, conditions: "series <> 'I'").each { |stock| fetch_data_for(stock) }
+      Stock.all(order: :symbol, conditions: "series <> 'I'").each { |stock| delay.fetch_data_for(stock) }
     end
 
     def fetch_data_for(stock)
-      p "#{stock.symbol}"
       begin
         response = get("#{URL_PATH}#{CGI.escape(stock.symbol)}")
         unless response.class == Net::HTTPNotFound
@@ -20,8 +19,7 @@ module Importer
           end
         end
       rescue => e
-        p "Error importing company info for #{stock.symbol} #{e}"
-        puts e.backtrace
+        p "Error importing company info for #{stock.symbol} #{e.inspect}"
       end
     end
 
@@ -71,7 +69,7 @@ module Importer
           split = FaceValueAction.find_or_create_by_stock_id_and_ex_date(stock.id, ex_date)
           split.update_attributes!(from: action[:from], to: action[:to])
         else
-          corporate_action_error = CorporateActionError.find_or_create_by_stock_id_and_ex_date(stock.id, ex_date)
+          corporate_action_error = CorporateActionError.find_or_create_by_stock_id_and_ex_date_and_partial_data(stock.id, ex_date, action[:data])
           corporate_action_error.update_attributes!(full_data: action_data, partial_data: action[:data], is_ignored: (action[:type] == :ignore))
         end
       end
