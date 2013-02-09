@@ -40,7 +40,7 @@
   <div class="dividend">
     <table>
       <tr>
-        <th colspan="3">Dividends</th>
+        <th colspan="3">Dividends (% of current price)</th>
       </tr>
       <% actions_by_date = @dividend_actions.group_by(&:ex_date) %>
       <% actions_by_date.each do |date, actions| %>

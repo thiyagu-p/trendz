@@ -107,7 +107,13 @@ table, table td, table th {
 }
 
 .dividend {
-    height: 300px;
+    height: 200px;
+    overflow: scroll;
+    overflow-style: scrollbar;
+}
+
+.company_actions .error {
+    height: 200px;
     overflow: scroll;
     overflow-style: scrollbar;
 }
