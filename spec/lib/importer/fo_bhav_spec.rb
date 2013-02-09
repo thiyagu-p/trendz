@@ -5,7 +5,7 @@ describe Importer::FoBhav do
 
   before :all do
     @importer = Importer::FoBhav.new
-    @stock = Stock.create(symbol: 'BANKNIFTY', series: Stock::Series::INDEX)
+    @stock = Stock.create(symbol: 'BANKNIFTY', nse_series: Stock::NseSeries::INDEX)
   end
 
   describe :import do
@@ -36,13 +36,13 @@ describe Importer::FoBhav do
     it "should create missing index and import" do
       @importer.process_row(CSV.parse_line('OPTIDX,MININIFTY,30-Jun-2011,5200,CE,186.5,186.5,186.5,186.5,186.5,1,1.07,100,-20,24-JUN-2011,'))
       FoQuote.count.should == 1
-      Stock.find_by_symbol('MININIFTY').series.should == Stock::Series::INDEX
+      Stock.find_by_symbol('MININIFTY').nse_series.should == Stock::NseSeries::INDEX
     end
 
     it "should create missing stock and import" do
       @importer.process_row(CSV.parse_line('OPTSTK,LICHSGFIN,30-Jun-2011,5200,CE,186.5,186.5,186.5,186.5,186.5,1,1.07,100,-20,24-JUN-2011,'))
       FoQuote.count.should == 1
-      Stock.find_by_symbol('LICHSGFIN').series.should == Stock::Series::EQUITY
+      Stock.find_by_symbol('LICHSGFIN').nse_series.should == Stock::NseSeries::EQUITY
     end
 
     it "should skip if it is not traded" do

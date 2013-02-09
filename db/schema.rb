@@ -1,3 +1,4 @@
+# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -10,13 +11,30 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130205165510) do
+ActiveRecord::Schema.define(:version => 20130209063528) do
+
+  create_table "ba", :id => false, :force => true do |t|
+    t.integer "id"
+    t.integer "stock_id"
+    t.date    "ex_date"
+    t.integer "holding_qty"
+    t.integer "bonus_qty"
+  end
 
   create_table "bonus_actions", :force => true do |t|
     t.integer "stock_id"
     t.date    "ex_date"
     t.integer "holding_qty"
     t.integer "bonus_qty"
+  end
+
+  create_table "ca_e", :id => false, :force => true do |t|
+    t.integer "id"
+    t.integer "stock_id"
+    t.date    "ex_date"
+    t.boolean "is_ignored"
+    t.string  "full_data"
+    t.string  "partial_data"
   end
 
   create_table "corporate_action_errors", :force => true do |t|
@@ -45,6 +63,14 @@ ActiveRecord::Schema.define(:version => 20130205165510) do
     t.decimal  "eps",                      :precision => 12, :scale => 2
     t.datetime "created_at"
     t.datetime "updated_at"
+  end
+
+  create_table "da", :id => false, :force => true do |t|
+    t.integer "id"
+    t.integer "stock_id"
+    t.date    "ex_date"
+    t.decimal "percentage",               :precision => 6, :scale => 2
+    t.string  "nature",     :limit => 10
   end
 
   create_table "delayed_jobs", :force => true do |t|
@@ -142,6 +168,14 @@ ActiveRecord::Schema.define(:version => 20130205165510) do
 
   add_index "fo_quotes", ["stock_id"], :name => "index_fo_quotes_on_stock_id"
 
+  create_table "fva", :id => false, :force => true do |t|
+    t.integer "id"
+    t.integer "stock_id"
+    t.date    "ex_date"
+    t.integer "from"
+    t.integer "to"
+  end
+
   create_table "market_activities", :force => true do |t|
     t.date    "date",                                                      :null => false
     t.decimal "fii_buy_equity",             :precision => 14, :scale => 2
@@ -176,12 +210,18 @@ ActiveRecord::Schema.define(:version => 20130205165510) do
 
   create_table "stocks", :force => true do |t|
     t.string  "symbol"
-    t.string  "series"
+    t.string  "nse_series"
     t.date    "date"
     t.string  "yahoo_code", :limit => 15
     t.integer "face_value",               :default => 10
     t.string  "name"
     t.string  "isin",       :limit => 12
+    t.integer "bse_code"
+    t.string  "bse_symbol", :limit => 15
+    t.string  "bse_group",  :limit => 3
+    t.boolean "bse_active",               :default => false
+    t.boolean "nse_active",               :default => false
+    t.string  "industry"
   end
 
   add_index "stocks", ["symbol"], :name => "index_stocks_on_symbol"

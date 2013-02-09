@@ -1,6 +1,6 @@
 class Stock < ActiveRecord::Base
 
-  module Series
+  module NseSeries
     EQUITY = 'EQ'
     INDEX = 'I'
   end

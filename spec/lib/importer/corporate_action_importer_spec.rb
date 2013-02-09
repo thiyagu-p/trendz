@@ -10,7 +10,7 @@ describe Importer::CorporateActionImporter do
 
   describe :import do
     before :each do
-      @stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY, face_value: 10)
+      @stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, face_value: 10)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
@@ -133,7 +133,7 @@ describe Importer::CorporateActionImporter do
   end
 
   it 'should percentage conversion take into effect face value actions' do
-    @stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY, face_value: 10)
+    @stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, face_value: 10)
     @http = stub()
     Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
     @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
@@ -283,7 +283,7 @@ describe Importer::CorporateActionImporter do
   end
 
   it 'should import for TCS' do
-    stock = Stock.create!(symbol: 'TCS', series: 'EQ', face_value: 10)
+    stock = Stock.create!(symbol: 'TCS', nse_series: 'EQ', face_value: 10)
     Importer::CorporateActionImporter.new.fetch_data_for stock
     DividendAction.count.should > 30
     BonusAction.count.should > 0

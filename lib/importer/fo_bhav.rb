@@ -14,7 +14,7 @@ module Importer
 
     def process_row(columns)
       return if columns[0] == 'INSTRUMENT' or columns[10] == '0'
-      @@stock_cache[columns[1]] or @@stock_cache[columns[1]] = Stock.find_or_create_by_symbol_and_series(columns[1], (columns[0] =~ /IDX$/ ? Stock::Series::INDEX : Stock::Series::EQUITY))
+      @@stock_cache[columns[1]] or @@stock_cache[columns[1]] = Stock.find_or_create_by_symbol_and_nse_series(columns[1], (columns[0] =~ /IDX$/ ? Stock::NseSeries::INDEX : Stock::NseSeries::EQUITY))
       FoQuote.create!(:stock => @@stock_cache[columns[1]], :expiry_date => columns[2].to_date, :strike_price => columns[3], :fo_type => columns[4], :open => columns[5], :high => columns[6], :low => columns[7],
                       :close => columns[8], :traded_quantity => columns[10], :open_interest => columns[12], :change_in_open_interest => columns[13], :date => columns[14].to_date, :expiry_series => identify_expiry_series(columns[14].to_date, columns[2].to_date))
     end
