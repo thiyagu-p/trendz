@@ -1,5 +1,6 @@
 require 'mechanize'
 require 'logger'
+require 'csv'
 
 module Importer
   module Bse

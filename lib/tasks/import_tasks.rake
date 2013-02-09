@@ -17,4 +17,8 @@ namespace :data do
     Importer::Nse::CorporateResultImporter.new.import
   end
 
+  desc 'import bse data'
+  task sync_bse: :environment do
+    Importer::Bse::StockMaster.new.import
+  end
 end
