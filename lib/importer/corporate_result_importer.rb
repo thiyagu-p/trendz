@@ -3,7 +3,7 @@ module Importer
     include NseConnection
 
     def import
-      Stock.all(order: :symbol, conditions: "nse_series <> 'I'").each { |stock| delay.fetch_data_for(stock) }
+      Stock.all(order: :symbol, conditions: "nse_active").each { |stock| delay.fetch_data_for(stock) }
     end
 
     def fetch_data_for(stock)
