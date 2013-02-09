@@ -4,11 +4,7 @@ describe Importer::CorporateActionImporter do
 
   describe :import_all do
     it 'should encode symbol' do
-      stock = Stock.create(symbol: 'M&M', series: Stock::Series::EQUITY)
-      @http = stub()
-      Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-      @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}M%26M", Importer::NseConnection.user_agent).returns(stub(:class => Net::HTTPNotFound))
-      Importer::CorporateActionImporter.new.fetch_data_for stock
+      Importer::CorporateActionImporter.url('M&M').should == '/corporates/datafiles/CA_M%26M_MORE_THAN_24_MONTHS.csv'
     end
   end
 
@@ -17,7 +13,7 @@ describe Importer::CorporateActionImporter do
       @stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY, face_value: 10)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-      @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
+      @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
       Importer::CorporateActionImporter.new.fetch_data_for @stock1
     end
 
@@ -41,7 +37,7 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing dividend' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
+        @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
         expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(DividendAction, :count).by(0)
       end
 
@@ -72,7 +68,7 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing bonus' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
+        @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
         expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
       end
     end
@@ -87,7 +83,7 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing split action' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
+        @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
         expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
       end
     end
@@ -125,7 +121,7 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing ignored actions' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
+        @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
         expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
       end
     end
@@ -140,7 +136,7 @@ describe Importer::CorporateActionImporter do
     @stock1 = Stock.create(symbol: 'RELIANCE', series: Stock::Series::EQUITY, face_value: 10)
     @http = stub()
     Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-    @http.expects(:request_get).with("#{Importer::CorporateActionImporter::URL_PATH}#{@stock1.symbol}", Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
+    @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
     FaceValueAction.create!(stock: @stock1, ex_date: Date.parse('01/07/2012'), from: 1, to: 10)
     Importer::CorporateActionImporter.new.fetch_data_for @stock1
     dividend = DividendAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2012')
@@ -149,17 +145,17 @@ describe Importer::CorporateActionImporter do
 
   describe :ex_date do
     it 'should use ex_date if exist' do
-      data = {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR AND DIVIDEND RS.8.50 PER SHARE", exDt: "31-May-2012", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"}
+      data = '"RELIANCE","RIL","-","EQ","10","A","31-May-2012","-","08-Jul-2005","19-Jul-2005","-","-"'.split(',')
       Importer::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('31/05/2012')
     end
 
     it 'should use record_date if ex_date missing' do
-      data = {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR AND DIVIDEND RS.8.50 PER SHARE", exDt: "-", recordDt: "02-Jun-2012", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"}
+      data = '"RELIANCE","RIL","-","EQ","10","A","-","02-Jun-2012","08-Jul-2005","19-Jul-2005","-","-"'.split(',')
       Importer::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('01/06/2012')
     end
 
     it 'should use BC Start date if exdate and record date missing' do
-      data = {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR AND DIVIDEND RS.8.50 PER SHARE", exDt: "-", recordDt: "-", bcStartDt: "02-Jun-2012", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"}
+      data = '"RELIANCE","RIL","-","EQ","10","A","-", "-", "02-Jun-2012","19-Jul-2005","-","-"'.split(',')
       Importer::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('01/06/2012')
     end
   end
@@ -287,23 +283,24 @@ describe Importer::CorporateActionImporter do
   end
 
   it 'should import for TCS' do
-    stock = Stock.create!(symbol: 'TCS', series: 'e')
+    stock = Stock.create!(symbol: 'TCS', series: 'EQ', face_value: 10)
     Importer::CorporateActionImporter.new.fetch_data_for stock
-    DividendAction.count.should > 0
+    DividendAction.count.should > 30
+    BonusAction.count.should > 0
   end
+
 end
 
 def corporate_action_json
   <<EOF
-  {success: true, results: 10, rows: [
-      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR AND DIVIDEND RS.8.50 PER SHARE", exDt: "31-May-2012", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
-      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ANNUAL GENERAL MEETING AND DIVIDEND 90%", exDt: "31-May-2011", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
-      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "INTERIM DIVIDEND 90% AND FINAL DIVIDEND 100% AND SPECIAL DIVIDEND 120%", exDt: "31-May-2010", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
-      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "INTERIM DIVIDEND 10% AND FINAL DIVIDEND 10%", exDt: "31-May-2009", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
-      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "BONUS 2:3", exDt: "01-June-2008", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
-      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "FV SPLIT RS.10 TO RS.2", exDt: "01-Jun-2007", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
-      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "ERROR1 AND ERROR2", exDt: "01-Jun-2004", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"},
-      {sym: "RELIANCE", ser: "EQ", Ind: "-", face: "10", sub: "CONSOLIDATION RE1 TO RS10", exDt: "01-Jun-2005", recordDt: "-", bcStartDt: "14-May-2005", bcEndDt: "21-May-2005", ndStartDt: "-", comp: "Reliance Industries Limited", isin: "INE002A01018", ndEndDt: "-"}
-  ]}
+"Symbol","Company","Industry","Series","Face Value(Rs.)","Purpose","Ex-Date","Record Date","BC Start Date","BC End Date","No Delivery Start Date","No Delivery End Date"
+"RELIANCE","Reliance Industries Limited","-","EQ","10","ERROR AND DIVIDEND RS.8.50 PER SHARE","31-May-2012","-","08-Jul-2005","19-Jul-2005","-","-"
+"RELIANCE","Reliance Industries Limited","-","EQ","10","ANNUAL GENERAL MEETING AND DIVIDEND 90%","31-May-2011","-","08-Jul-2005","19-Jul-2005","-","-"
+"RELIANCE","Reliance Industries Limited","-","EQ","10","INTERIM DIVIDEND 90% AND FINAL DIVIDEND 100% AND SPECIAL DIVIDEND 120%","31-May-2010","-","08-Jul-2005","19-Jul-2005","-","-"
+"RELIANCE","Reliance Industries Limited","-","EQ","10","INTERIM DIVIDEND 10% AND FINAL DIVIDEND 10%","31-May-2009","-","08-Jul-2005","19-Jul-2005","-","-"
+"RELIANCE","Reliance Industries Limited","-","EQ","10","BONUS 2:3","01-Jun-2008","-","01-Jun-2008","19-Jul-2005","-","-"
+"RELIANCE","Reliance Industries Limited","-","EQ","10","FV SPLIT RS.10 TO RS.2","01-Jun-2007","-","08-Jul-2005","19-Jul-2005","-","-"
+"RELIANCE","Reliance Industries Limited","-","EQ","10","ERROR1 AND ERROR2","01-Jun-2004","-","08-Jul-2005","19-Jul-2005","-","-"
+"RELIANCE","Reliance Industries Limited","-","EQ","10","CONSOLIDATION RE1 TO RS10","01-Jun-2005","-","08-Jul-2005","19-Jul-2005","-","-"
 EOF
 end

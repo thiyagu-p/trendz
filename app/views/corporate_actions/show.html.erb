@@ -1,16 +1,57 @@
 <%= render 'select_options' %>
 <h3><%= @stock.symbol %></h3>
-<table>
-  <tr>
-    <th width="7%">Date</th>
-    <th>Raw Data</th>
-    <th>Parsed Data</th>
-  </tr>
-  <% @corporate_actions.each do |corporate_action| %>
+<div>
+  <div class="dividend">
+    <table>
       <tr>
-        <td><%= corporate_action.ex_date %></td>
-        <td><%= corporate_action.raw_data %></td>
-        <td><%= corporate_action.parsed_data %></td>
+        <th colspan="3">Dividends</th>
       </tr>
-  <% end %>
-</table>
+      <% @dividend_actions.each do |dividend| %>
+          <tr>
+            <td><%= dividend.ex_date %></td>
+            <td><%= dividend.percentage %></td>
+            <td><%= dividend.nature %></td>
+          </tr>
+      <% end %>
+    </table>
+  </div>
+  <div class="bonus">
+    <table>
+      <tr>
+        <th colspan="2">Bonus</th>
+      </tr>
+      <% @bonus_actions.each do |bonus| %>
+          <tr>
+            <td><%= bonus.ex_date %></td>
+            <td><%= "#{bonus.bonus_qty} for #{bonus.holding_qty}" %></td>
+          </tr>
+      <% end %>
+    </table>
+  </div>
+  <div class="split">
+    <table>
+      <tr>
+        <th colspan="2">Face Value Changes</th>
+      </tr>
+      <% @face_value_actions.each do |split| %>
+          <tr>
+            <td><%= split.ex_date %></td>
+            <td><%= "#{split.from} to #{split.to}" %></td>
+          </tr>
+      <% end %>
+    </table>
+  </div>
+  <div class="error">
+    <table>
+      <tr>
+        <th colspan="2">Action Errors</th>
+      </tr>
+      <% @action_errors.each do |error| %>
+          <tr>
+            <td><%= error.ex_date %></td>
+            <td><%= error.partial_data %></td>
+          </tr>
+      <% end %>
+    </table>
+  </div>
+</div>

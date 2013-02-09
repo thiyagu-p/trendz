@@ -8,7 +8,10 @@ class CorporateActionsController < ApplicationController
 
   def show
     @stock = Stock.find_by_symbol(params[:id])
-    @corporate_actions = CorporateAction.order('ex_date desc').find_all_by_stock_id(@stock.id)
+    @dividend_actions = DividendAction.where("stock_id = ?", @stock.id).order('ex_date desc')
+    @bonus_actions = BonusAction.where("stock_id = ?", @stock.id).order('ex_date desc')
+    @face_value_actions = FaceValueAction.where("stock_id = ?", @stock.id).order('ex_date desc')
+    @action_errors = CorporateActionError.where("stock_id = ?", @stock.id).order('ex_date desc')
   end
 
   private

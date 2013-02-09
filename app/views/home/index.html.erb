@@ -2,7 +2,7 @@
   <table>
     <tr>
       <th>Symbol</th>
-      <th>Quantity</th>
+      <th>Qty</th>
       <th>Holding Days</th>
       <th>Purchase Price</th>
       <th>Current Price</th>
@@ -36,33 +36,89 @@
     <% end %>
   </table>
 </div>
-<div id="company_actions">
-  <table>
-    <tr>
-      <td>Symbol</td>
-      <td>Date</td>
-      <td>Action</td>
-    </tr>
-    <% actions_by_date = @corporate_actions.group_by(&:ex_date) %>
-    <% actions_by_date.each do |date, actions| %>
-        <% actions.each_with_index do |corporate_action, index| %>
-            <tr>
-              <% if index == 0 %>
-              <td rowspan="<%=actions.count%>"><%= corporate_action.ex_date %></td>
-              <% end %>
-              <td><%= display_stock_symbol corporate_action.stock.symbol %></td>
-              <td>
-                <% corporate_action.parsed_data.each do |action| %>
-                    <% if action["type"] == 'divident' %>
-                    <span class="<%= (action["current_percentage"] || 0) > 3 ? 'green' : 'gray' %>">D: <%= display_price action["current_percentage"] %>
-                      %</span>
-                    <% else %>
-                        <%= action %>
-                    <% end %>
+<div class="company_actions">
+  <div class="dividend">
+    <table>
+      <tr>
+        <th colspan="3">Dividends</th>
+      </tr>
+      <% actions_by_date = @dividend_actions.group_by(&:ex_date) %>
+      <% actions_by_date.each do |date, actions| %>
+          <% actions.each_with_index do |dividend, index| %>
+              <tr>
+                <% if index == 0 %>
+                    <td rowspan="<%= actions.count %>"><%= date %></td>
                 <% end %>
-              </td>
-            </tr>
-        <% end %>
-    <% end %>
-  </table>
+                <td><%= display_stock_symbol dividend.stock.symbol %></td>
+                <td>
+                  <span class="<%= (dividend.current_percentage) > 3 ? 'green' : 'gray' %>"><%= display_price dividend.current_percentage %> </span>
+                </td>
+              </tr>
+          <% end %>
+      <% end %>
+    </table>
+  </div>
+  <div class="bonus">
+    <table>
+      <tr>
+        <th colspan="3">Bonus</th>
+      </tr>
+      <% actions_by_date = @bonus_actions.group_by(&:ex_date) %>
+      <% actions_by_date.each do |date, actions| %>
+          <% actions.each_with_index do |bonus, index| %>
+              <tr>
+                <% if index == 0 %>
+                    <td rowspan="<%= actions.count %>"><%= date %></td>
+                <% end %>
+                <td><%= display_stock_symbol bonus.stock.symbol %></td>
+                <td>
+                  <span><%= "#{bonus.bonus_qty} for #{bonus.holding_qty}" %> </span>
+                </td>
+              </tr>
+          <% end %>
+      <% end %>
+    </table>
+  </div>
+  <div class="split">
+    <table>
+      <tr>
+        <th colspan="3">Face Value Changes</th>
+      </tr>
+      <% actions_by_date = @face_value_actions.group_by(&:ex_date) %>
+      <% actions_by_date.each do |date, actions| %>
+          <% actions.each_with_index do |split, index| %>
+              <tr>
+                <% if index == 0 %>
+                    <td rowspan="<%= actions.count %>"><%= date %></td>
+                <% end %>
+                <td><%= display_stock_symbol split.stock.symbol %></td>
+                <td>
+                  <span><%= "#{split.from} to #{split.to}" %> </span>
+                </td>
+              </tr>
+          <% end %>
+      <% end %>
+    </table>
+  </div>
+  <div class="error">
+    <table>
+      <tr>
+        <th colspan="3">Action Errors</th>
+      </tr>
+      <% actions_by_date = @action_errors.group_by(&:ex_date) %>
+      <% actions_by_date.each do |date, actions| %>
+          <% actions.each_with_index do |error, index| %>
+              <tr>
+                <% if index == 0 %>
+                    <td rowspan="<%= actions.count %>"><%= date %></td>
+                <% end %>
+                <td><%= display_stock_symbol error.stock.symbol %></td>
+                <td>
+                  <span><%= error.partial_data %> </span>
+                </td>
+              </tr>
+          <% end %>
+      <% end %>
+    </table>
+  </div>
 </div>

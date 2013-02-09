@@ -1,20 +1,25 @@
+require 'csv'
+
 module Importer
   class CorporateActionImporter
     include NseConnection
-    URL_PATH = '/corporates/corpInfo/equities/getCorpActions.jsp?symbol='
 
+    def self.url symbol
+      "/corporates/datafiles/CA_#{CGI.escape(symbol)}_MORE_THAN_24_MONTHS.csv"
+    end
     def import
       Stock.all(order: :symbol, conditions: "series <> 'I'").each { |stock| delay.fetch_data_for(stock) }
     end
 
     def fetch_data_for(stock)
       begin
-        response = get("#{URL_PATH}#{CGI.escape(stock.symbol)}")
+        response = get(CorporateActionImporter.url stock.symbol)
         unless response.class == Net::HTTPNotFound
           data = response.body
-          eval(data)[:rows].each do |row|
-            action_data = row[:sub]
-            ex_date = find_ex_date(row)
+          CSV.parse(data, {headers: true}) do |row|
+            columns = row.fields
+            action_data = columns[5].gsub('"', '').strip
+            ex_date = find_ex_date(columns)
             persist_actions(action_data, parse_action(action_data), ex_date, stock)
           end
         end
@@ -23,9 +28,13 @@ module Importer
       end
     end
 
-    def find_ex_date(row)
-      ex_date_str = row[:exDt]
-      record_date_str = row[:recordDt] != '-' ? row[:recordDt] : row[:bcStartDt]
+    def find_ex_date(columns)
+      [6,7,8].each do |index|
+        columns[index].gsub!('"', ' ') unless columns[index].nil?
+        columns[index].strip! unless columns[index].nil?
+      end
+      ex_date_str = columns[6]
+      record_date_str = (columns[7] == '-' ? columns[8] : columns[7])
       ex_date_str != '-' ? Date.parse(ex_date_str) : Date.parse(record_date_str) - 1
     end
 

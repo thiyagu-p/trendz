@@ -88,11 +88,35 @@ table, table td, table th {
     margin: 10px;
 }
 
-#company_actions {
-    height: 400px;
+.company_actions {
+    float: right;
+    margin-right: 10px;
+    text-align: center;
+}
+
+.company_actions td, .company_actions th {
+    text-align: center;
+}
+
+.company_actions th {
+    background-color: #cccccc;
+}
+
+.company_actions table {
+    width: 300px;
+}
+
+.dividend {
+    height: 300px;
     overflow: scroll;
     overflow-style: scrollbar;
-    float: right;
+}
+
+.bonus, .split {
+    height: 100px;
+    margin-top: 15px;
+    overflow: scroll;
+    overflow-style: scrollbar;
 }
 
 #holdings {
