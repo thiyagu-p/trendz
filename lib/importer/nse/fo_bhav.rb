@@ -3,8 +3,9 @@ require 'csv'
 
 
 module Importer
+module Nse
   class FoBhav
-    include NseConnection, BhavHandler
+    include Connection, BhavHandler
     model FoQuote
     sub_path 'DERIVATIVES'
     file_name_prefix 'fo'
@@ -39,4 +40,5 @@ module Importer
     end
 
   end
+end
 end

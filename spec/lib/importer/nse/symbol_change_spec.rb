@@ -1,12 +1,12 @@
 require 'spec_helper'
 
-describe Importer::SymbolChange do
+describe Importer::Nse::SymbolChange do
   before(:each) do
     @http = stub()
     Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-    @importer = Importer::SymbolChange.new
+    @importer = Importer::Nse::SymbolChange.new
     response = stub(:body => response_data )
-    @http.expects(:request_get).with('/content/equities/symbolchange.csv', Importer::NseConnection.user_agent).returns(response)
+    @http.expects(:request_get).with('/content/equities/symbolchange.csv', Importer::Nse::Connection.user_agent).returns(response)
   end
 
   describe 'Symbol changes for non existing new symbols' do

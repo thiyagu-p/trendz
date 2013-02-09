@@ -1,10 +1,10 @@
 require 'spec_helper'
 require 'csv'
 
-describe Importer::FoBhav do
+describe Importer::Nse::FoBhav do
 
   before :all do
-    @importer = Importer::FoBhav.new
+    @importer = Importer::Nse::FoBhav.new
     @stock = Stock.create(symbol: 'BANKNIFTY', nse_series: Stock::NseSeries::INDEX)
   end
 

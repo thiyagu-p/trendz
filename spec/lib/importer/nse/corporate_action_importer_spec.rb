@@ -1,10 +1,10 @@
 require "spec_helper"
 
-describe Importer::CorporateActionImporter do
+describe Importer::Nse::CorporateActionImporter do
 
   describe :import_all do
     it 'should encode symbol' do
-      Importer::CorporateActionImporter.url('M&M').should == '/corporates/datafiles/CA_M%26M_MORE_THAN_24_MONTHS.csv'
+      Importer::Nse::CorporateActionImporter.url('M&M').should == '/corporates/datafiles/CA_M%26M_MORE_THAN_24_MONTHS.csv'
     end
   end
 
@@ -13,8 +13,8 @@ describe Importer::CorporateActionImporter do
       @stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, face_value: 10)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-      @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
-      Importer::CorporateActionImporter.new.fetch_data_for @stock1
+      @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.url(@stock1.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))
+      Importer::Nse::CorporateActionImporter.new.fetch_data_for @stock1
     end
 
     describe :dividend do
@@ -37,8 +37,8 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing dividend' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
-        expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(DividendAction, :count).by(0)
+        @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.url(@stock1.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))
+        expect { Importer::Nse::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(DividendAction, :count).by(0)
       end
 
       it 'should handle other type of dividend' do
@@ -68,8 +68,8 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing bonus' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
-        expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
+        @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.url(@stock1.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))
+        expect { Importer::Nse::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
       end
     end
 
@@ -83,8 +83,8 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing split action' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
-        expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
+        @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.url(@stock1.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))
+        expect { Importer::Nse::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
       end
     end
 
@@ -121,8 +121,8 @@ describe Importer::CorporateActionImporter do
 
       it 'should skip existing ignored actions' do
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-        @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
-        expect { Importer::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
+        @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.url(@stock1.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))
+        expect { Importer::Nse::CorporateActionImporter.new.fetch_data_for @stock1 }.to change(BonusAction, :count).by(0)
       end
     end
 
@@ -136,9 +136,9 @@ describe Importer::CorporateActionImporter do
     @stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, face_value: 10)
     @http = stub()
     Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-    @http.expects(:request_get).with(Importer::CorporateActionImporter.url(@stock1.symbol), Importer::NseConnection.user_agent).returns(stub(body: corporate_action_json))
+    @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.url(@stock1.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))
     FaceValueAction.create!(stock: @stock1, ex_date: Date.parse('01/07/2012'), from: 1, to: 10)
-    Importer::CorporateActionImporter.new.fetch_data_for @stock1
+    Importer::Nse::CorporateActionImporter.new.fetch_data_for @stock1
     dividend = DividendAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2012')
     dividend.percentage.to_f.should == 850
   end
@@ -146,22 +146,22 @@ describe Importer::CorporateActionImporter do
   describe :ex_date do
     it 'should use ex_date if exist' do
       data = '"RELIANCE","RIL","-","EQ","10","A","31-May-2012","-","08-Jul-2005","19-Jul-2005","-","-"'.split(',')
-      Importer::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('31/05/2012')
+      Importer::Nse::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('31/05/2012')
     end
 
     it 'should use record_date if ex_date missing' do
       data = '"RELIANCE","RIL","-","EQ","10","A","-","02-Jun-2012","08-Jul-2005","19-Jul-2005","-","-"'.split(',')
-      Importer::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('01/06/2012')
+      Importer::Nse::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('01/06/2012')
     end
 
     it 'should use BC Start date if exdate and record date missing' do
       data = '"RELIANCE","RIL","-","EQ","10","A","-", "-", "02-Jun-2012","19-Jul-2005","-","-"'.split(',')
-      Importer::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('01/06/2012')
+      Importer::Nse::CorporateActionImporter.new.find_ex_date(data).should == Date.parse('01/06/2012')
     end
   end
   describe :parse_action do
     it 'should parse value divident' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('DIVIDEND RS 1.80 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '1.80'}
       importer.parse_action('DIVIDEND RS1.80 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '1.80'}
       importer.parse_action('DIVIDEND RS 10 PER SHARE').first.should == {type: :dividend, :nature => :DIVIDEND, value: '10'}
@@ -173,23 +173,23 @@ describe Importer::CorporateActionImporter do
       importer.parse_action('Div.-Re.1/- Per Share').first.should == {type: :dividend, :nature => :DIVIDEND, value: '1'}
     end
     it 'should ignore nil divident' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('DIVIDEND-NIL').first.should == {type: :ignore, data: 'DIVIDEND-NIL'}
     end
     it 'should parse percentage divident' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('DIVIDEND-120%').first.should == {type: :dividend, :nature => :DIVIDEND, percentage: '120'}
       importer.parse_action('DIVIDEND - 17.50%').first.should == {type: :dividend, :nature => :DIVIDEND, percentage: '17.50'}
     end
     it 'should parse combined value dividents' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('DIV-FIN RS.1.5+INT RS.2.1PURPOSE REVISED').should == [{type: :dividend, :nature => :FINAL, value: '1.5'}, {type: :dividend, :nature => :INTERIM, value: '2.1'}]
       importer.parse_action('DIVIDEND - FINAL RS 22 + SPECIAL RS 10').should == [{type: :dividend, :nature => :FINAL, value: '22'}, {type: :dividend, :nature => :SPECIAL, value: '10'}]
       importer.parse_action('DIV-FIN RE0.25+SPL RE0.35').should == [{type: :dividend, :nature => :FINAL, value: '0.25'}, {type: :dividend, :nature => :SPECIAL, value: '0.35'}]
       importer.parse_action('DIV-RS10+GLD JUB-RS12.1').should == [{type: :dividend, :nature => :DIVIDEND, value: '10'}, {type: :dividend, :nature => :UNKNOWN, value: '12.1'}]
     end
     it 'should parse combined percentage dividents' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('DIV-50% + SPL DIV-60%').should == [{type: :dividend, :nature => :DIVIDEND, percentage: '50'}, {type: :dividend, :nature => :SPECIAL, percentage: '60'}]
       importer.parse_action('DIV.-FIN.75%+SPL.25%').should == [{type: :dividend, :nature => :FINAL, percentage: '75'}, {type: :dividend, :nature => :SPECIAL, percentage: '25'}]
       importer.parse_action('DIV-(FIN-100%+SP-30%)').should == [{type: :dividend, :nature => :FINAL, percentage: '100'}, {type: :dividend, :nature => :SPECIAL, percentage: '30'}]
@@ -197,7 +197,7 @@ describe Importer::CorporateActionImporter do
     end
 
     it 'should parse split' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('FV SPLIT RS.10/- TO RS.1/').should == [{type: :split, from: '10', to: '1'}]
       importer.parse_action('FV SPLIT RS 10 TO RS 1').should == [{type: :split, from: '10', to: '1'}]
       importer.parse_action('FV SPLIT RS.10 TO RS.5').should == [{type: :split, from: '10', to: '5'}]
@@ -206,21 +206,21 @@ describe Importer::CorporateActionImporter do
     end
 
     it 'should parse consolidation' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('CONSOLIDATION RE1 TO RS10').should == [{type: :consolidation, from: '1', to: '10'}]
       importer.parse_action('CONSOLIDATION RE.1/- TO RS.10/-').should == [{type: :consolidation, from: '1', to: '10'}]
       importer.parse_action('Consolidation Re1 To Rs10').should == [{type: :consolidation, from: '1', to: '10'}]
     end
 
     it 'should parse bonus' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('BONUS 2:1').should == [{type: :bonus, bonus: '2', holding: '1'}]
       importer.parse_action('BON-2:1').should == [{type: :bonus, bonus: '2', holding: '1'}]
       importer.parse_action('BONUS28:100').should == [{type: :bonus, bonus: '28', holding: '100'}]
     end
 
     it 'should handle multiple actions split by AND' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('BONUS 22:1 AND FACE VALUE SPLIT FROM RS.10/- TO RE.1/').should ==
           [{type: :bonus, bonus: '22', holding: '1'}, {type: :split, from: '10', to: '1'}]
       importer.parse_action('Bonus 1:1 And Face Value Split From Rs.10/- To Rs.5/-').should ==
@@ -236,7 +236,7 @@ describe Importer::CorporateActionImporter do
     end
 
     it 'should handle multiple actions split by / and AND' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('BONUS 22:1 / FINAL DIVIDEND RS 0.60  AND SPECIAL DIVIDEND RS 1.40 PER SHARE.').should ==
           [{type: :bonus, bonus: '22', holding: '1'}, {type: :dividend, :nature => :FINAL, value: '0.60'}, {type: :dividend, :nature => :SPECIAL, value: '1.40'}]
       importer.parse_action('BONUS 22:1 AND FINAL DIVIDEND RS 0.60  + SPECIAL DIVIDEND RS 1.40 PER SHARE.').should ==
@@ -246,20 +246,20 @@ describe Importer::CorporateActionImporter do
     end
 
     it 'should not split if / is immediately after number' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('DIVIDEND-RS.16/ PER SHARE').should == [{type: :dividend, :nature => :DIVIDEND, value: '16'}]
       importer.parse_action('AGM/DIVIDEND-RS.5/ PER SH').should == [{type: :ignore, data: 'AGM'}, {type: :dividend, :nature => :DIVIDEND, value: '5'}]
     end
 
     it 'should ignore debenture, rights' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('BONUS DEBENTURES 1:1').should == [{:type => :ignore, :data => "BONUS DEBENTURES 1:1"}]
       importer.parse_action('RGTS-EQ 29:100@PREM RS135').should == [{:type => :ignore, :data => "RGTS-EQ 29:100@PREM RS135"}]
       importer.parse_action('RH2:9@PRM215').should == [{:type => :ignore, :data => "RH2:9@PRM215"}]
     end
 
     it 'should ignore noises' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('ARNGMNT').should == [{:type => :ignore, :data => "ARNGMNT"}]
       importer.parse_action('-').should == [{:type => :ignore, :data => "-"}]
       importer.parse_action('ELEC.').should == [{:type => :ignore, :data => "ELEC."}]
@@ -275,7 +275,7 @@ describe Importer::CorporateActionImporter do
     end
 
     it 'should ignore line separator' do
-      importer = Importer::CorporateActionImporter.new
+      importer = Importer::Nse::CorporateActionImporter.new
       importer.parse_action('BONUS 2:1\n').should == [{type: :bonus, bonus: '2', holding: '1'}]
       importer.parse_action('BONUS 2:1//RGTS').should == [{type: :bonus, bonus: '2', holding: '1'}, {:type => :ignore, :data => "RGTS"}]
     end
@@ -284,7 +284,7 @@ describe Importer::CorporateActionImporter do
 
   it 'should import for TCS' do
     stock = Stock.create!(symbol: 'TCS', nse_series: 'EQ', face_value: 10)
-    Importer::CorporateActionImporter.new.fetch_data_for stock
+    Importer::Nse::CorporateActionImporter.new.fetch_data_for stock
     DividendAction.count.should > 30
     BonusAction.count.should > 0
   end

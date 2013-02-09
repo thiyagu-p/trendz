@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Importer::NiftyLiveImporter do
+describe Importer::Nse::NiftyLiveImporter do
   describe 'UT' do
     before :each do
       @http = stub()
@@ -12,9 +12,9 @@ describe Importer::NiftyLiveImporter do
 
       it "should not import if bhav is not imported yet for the day" do
         json_data = '{"data":[{"timeVal":"Sep 14, 2011 16:01:17","indexName":"S&P CNX NIFTY","previousClose":"5,012.55","open":"5,062.35","high":"5,091.45","low":"4,967.45","last":"5,075.70","percChange":"1.26","indexOrder":"0.00"}]}'
-        @http.expects(:request_get).with('/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json', Importer::NseConnection.user_agent).returns(stub(:body => json_data))
+        @http.expects(:request_get).with('/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json', Importer::Nse::Connection.user_agent).returns(stub(:body => json_data))
         @date = Date.parse('14/09/2011')
-        Importer::NiftyLiveImporter.new.import
+        Importer::Nse::NiftyLiveImporter.new.import
         EqQuote.find_by_stock_id_and_date(@stock.id, @date).should be_nil
       end
 
@@ -23,13 +23,13 @@ describe Importer::NiftyLiveImporter do
     describe 'Import Success' do
 
       before :each do
-        @http.expects(:request_get).with('/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json', Importer::NseConnection.user_agent).returns(stub(:body => json_data))
+        @http.expects(:request_get).with('/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json', Importer::Nse::Connection.user_agent).returns(stub(:body => json_data))
         @date = Date.parse('15/09/2011')
         set_bhav_imported @date
       end
 
       it "should import" do
-        Importer::NiftyLiveImporter.new.import
+        Importer::Nse::NiftyLiveImporter.new.import
         quote = EqQuote.find_by_stock_id_and_date(@stock.id, @date)
         quote.open.should == 5062.35
         quote.high.should == 5091.45
@@ -43,7 +43,7 @@ describe Importer::NiftyLiveImporter do
       it "should update if quote already present" do
         EqQuote.create(stock: @stock, date: @date)
 
-        Importer::NiftyLiveImporter.new.import
+        Importer::Nse::NiftyLiveImporter.new.import
         quotes = EqQuote.find_all_by_stock_id_and_date(@stock.id, @date)
         quotes.size.should == 1
         quotes.first.close.to_f.should == 5075.70
@@ -55,7 +55,7 @@ describe Importer::NiftyLiveImporter do
     it "should import" do
       EqQuote.stubs(:find_by_date).returns(EqQuote.new)
       stock = Stock.create(symbol: 'NIFTY')
-      Importer::NiftyLiveImporter.new.import
+      Importer::Nse::NiftyLiveImporter.new.import
       quotes = EqQuote.find_all_by_stock_id(stock.id)
       quotes.size.should == 1
       quotes.first.close.should_not eq(0)
