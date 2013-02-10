@@ -8,6 +8,8 @@ namespace :data do
     Importer::Nse::YahooData.new.import
     Importer::MarketActivityImporter.new.import
     Importer::Nse::NiftyLiveImporter.new.import
+    Importer::Bse::StockMaster.new.import
+    Importer::Bse::EquityBhav.new.import
   end
 
   desc "import corporate action and results"
@@ -20,5 +22,6 @@ namespace :data do
   desc 'import bse data'
   task sync_bse: :environment do
     Importer::Bse::StockMaster.new.import
+    Importer::Bse::EquityBhav.new.import
   end
 end

@@ -11,30 +11,13 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130209063528) do
-
-  create_table "ba", :id => false, :force => true do |t|
-    t.integer "id"
-    t.integer "stock_id"
-    t.date    "ex_date"
-    t.integer "holding_qty"
-    t.integer "bonus_qty"
-  end
+ActiveRecord::Schema.define(:version => 20130210060757) do
 
   create_table "bonus_actions", :force => true do |t|
     t.integer "stock_id"
     t.date    "ex_date"
     t.integer "holding_qty"
     t.integer "bonus_qty"
-  end
-
-  create_table "ca_e", :id => false, :force => true do |t|
-    t.integer "id"
-    t.integer "stock_id"
-    t.date    "ex_date"
-    t.boolean "is_ignored"
-    t.string  "full_data"
-    t.string  "partial_data"
   end
 
   create_table "corporate_action_errors", :force => true do |t|
@@ -63,14 +46,6 @@ ActiveRecord::Schema.define(:version => 20130209063528) do
     t.decimal  "eps",                      :precision => 12, :scale => 2
     t.datetime "created_at"
     t.datetime "updated_at"
-  end
-
-  create_table "da", :id => false, :force => true do |t|
-    t.integer "id"
-    t.integer "stock_id"
-    t.date    "ex_date"
-    t.decimal "percentage",               :precision => 6, :scale => 2
-    t.string  "nature",     :limit => 10
   end
 
   create_table "delayed_jobs", :force => true do |t|
@@ -168,12 +143,11 @@ ActiveRecord::Schema.define(:version => 20130209063528) do
 
   add_index "fo_quotes", ["stock_id"], :name => "index_fo_quotes_on_stock_id"
 
-  create_table "fva", :id => false, :force => true do |t|
-    t.integer "id"
-    t.integer "stock_id"
-    t.date    "ex_date"
-    t.integer "from"
-    t.integer "to"
+  create_table "import_statuses", :force => true do |t|
+    t.string  "source"
+    t.date    "data_upto"
+    t.date    "last_run"
+    t.boolean "succeeded"
   end
 
   create_table "market_activities", :force => true do |t|
