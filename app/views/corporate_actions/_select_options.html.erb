@@ -6,7 +6,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
         $("input#stockcode").autocomplete({
-            source:[<%= @stocks.collect!{ |s| "'#{s.symbol}'" }.join(',') %>],
+            source:[<%=raw @stocks.collect!{ |s| "'#{s.symbol}'" }.join(',') %>],
             select:function (event, ui) {
                 var stock_id = ui.item.value;
                 $(location).attr('href', '/corporate_actions/' + stock_id);

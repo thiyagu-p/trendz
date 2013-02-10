@@ -15,6 +15,6 @@
 
 <div id="chart"></div>
 <script type="text/javascript">
-    new OHLC({data: <%=raw @quotes.to_json(except: [:id, :stock_id]) %>, chartId: "#chart", eps_data: <%=raw @results.to_json(only: [:quarter_end, :eps], methods: :quarter_start),  %>});
+    new OHLC({data: <%=raw @quotes.to_json(except: [:id, :stock_id]) %>, chartId: "#chart", eps_data: <%=raw @results.to_json(only: [:quarter_end, :eps], methods: :quarter_start)  %>});
 </script>
 
