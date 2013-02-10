@@ -41,23 +41,4 @@ FactoryGirl.define do
     quantity 10
   end
 
-  factory :corporate_action do
-    stock
-  end
-
-  factory :corporate_action_divident, parent: :corporate_action do
-    parsed_data [{type: :divident, divident: "1", value: "12"}].to_json
-  end
-
-  factory :corporate_action_ignore, parent: :corporate_action do
-    parsed_data [{type: :ignore, data: "AGM"}].to_json
-  end
-
-  factory :corporate_action_bonus, parent: :corporate_action do
-    ignore do
-      holding 1
-      bonus 2
-    end
-    parsed_data {[{type: :bonus, bonus: bonus, holding: holding}].to_json}
-  end
 end

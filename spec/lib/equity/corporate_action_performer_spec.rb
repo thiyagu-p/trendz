@@ -14,13 +14,13 @@ describe Equity::CorporateActionPerformer do
 
     it 'should allocate bonus for specific stock' do
       create(:buy_equity_transaction, @params.merge(date: @exdate - 1))
-      Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 1, bonus: 1)
+      Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 1, bonus_qty: 1))
       EquityTransaction.count.should == 2
     end
 
     it 'should allocate bonus for based on ratio of bonus and holding stock' do
       create(:buy_equity_transaction, @params.merge(date: @exdate - 1))
-      Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 5, bonus: 2)
+      Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 2))
       bonus_transaction = EquityTransaction.find_by_stock_id_and_date(@stock.id, @exdate)
       bonus_transaction.quantity.should == 100 / 5 * 2
     end
@@ -31,7 +31,7 @@ describe Equity::CorporateActionPerformer do
       new_trading_account = TradingAccount.create
       create(:buy_equity_transaction, @params.merge(date: @exdate - 1, quantity: 200, trading_account: new_trading_account))
 
-      Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 5, bonus: 3)
+      Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3))
 
       EquityTransaction.find_by_stock_id_and_date_and_trading_account_id(@stock.id, @exdate, @trading_account.id).quantity.should == 100 / 5 * 3
       EquityTransaction.find_by_stock_id_and_date_and_trading_account_id(@stock.id, @exdate, new_trading_account.id).quantity.should == 200 / 5 * 3
@@ -42,7 +42,7 @@ describe Equity::CorporateActionPerformer do
       new_portfolio = Portfolio.create
       create(:buy_equity_transaction, @params.merge(date: @exdate - 1, quantity: 200, portfolio: new_portfolio))
 
-      Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 5, bonus: 3)
+      Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3))
 
       EquityTransaction.find_by_stock_id_and_date_and_portfolio_id(@stock.id, @exdate, @portfolio.id).quantity.should == 100 / 5 * 3
       EquityTransaction.find_by_stock_id_and_date_and_portfolio_id(@stock.id, @exdate, new_portfolio.id).quantity.should == 200 / 5 * 3
@@ -52,7 +52,7 @@ describe Equity::CorporateActionPerformer do
       create(:buy_equity_transaction, @params.merge(date: @exdate))
 
       expect {
-        Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 5, bonus: 3)
+        Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3))
       }.to_not change { EquityTransaction.count }
     end
 
@@ -60,7 +60,7 @@ describe Equity::CorporateActionPerformer do
       create(:buy_equity_transaction, @params.merge(date: @exdate + 1))
 
       expect {
-        Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 5, bonus: 3)
+        Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3))
       }.to_not change { EquityTransaction.count }
 
     end
@@ -70,7 +70,7 @@ describe Equity::CorporateActionPerformer do
       create(:sell_equity_transaction, @params.merge(date: @exdate - 1))
 
       expect {
-        Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 5, bonus: 3)
+        Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3))
       }.to_not change { EquityTransaction.count }
 
     end
@@ -78,7 +78,7 @@ describe Equity::CorporateActionPerformer do
     it 'should have 0 price and brokerage' do
       create(:buy_equity_transaction, @params.merge(date: @exdate - 1))
 
-      Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 5, bonus: 3)
+      Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3))
 
       bonus_transaction = EquityTransaction.find_by_stock_id_and_date(@stock.id, @exdate)
       bonus_transaction.price.should be_zero
@@ -88,7 +88,7 @@ describe Equity::CorporateActionPerformer do
     it 'should have rounded quantity' do
       create(:buy_equity_transaction, @params.merge(date: @exdate - 1))
 
-      Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 15, bonus: 1)
+      Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 15, bonus_qty: 1))
 
       bonus_transaction = EquityTransaction.find_by_stock_id_and_date(@stock.id, @exdate)
       bonus_transaction.quantity.should == 6
@@ -96,7 +96,7 @@ describe Equity::CorporateActionPerformer do
 
     it 'should not create bonus transaction if quantity is zero' do
       create(:buy_equity_transaction, @params.merge(date: @exdate - 1))
-      expect { Equity::CorporateActionPerformer.apply(create :corporate_action_bonus, stock: @stock, ex_date: @exdate, holding: 200, bonus: 3) }.to_not change { EquityTransaction.count }
+      expect { Equity::CorporateActionPerformer.apply(BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 200, bonus_qty: 3)) }.to_not change { EquityTransaction.count }
     end
 
   end
