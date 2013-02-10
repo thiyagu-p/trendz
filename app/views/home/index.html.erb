@@ -6,34 +6,60 @@
       <th>Holding Days</th>
       <th>Purchase Price</th>
       <th>Current Price</th>
-      <th>P/L</th>
+      <th>YTD : P/L</th>
       <% @equity_holding.first.equity_transaction.stock.performance.returns.each do |days, value| %>
           <th><%= days %></th>
       <% end %>
     </tr>
     <%
+       total_ytd_pl = 0
+       total_cost = 0
        @equity_holding.each do |holding|
          stock = holding.equity_transaction.stock
          latest_price = stock.latest_quote.close
          purchase_price = holding.equity_transaction.price
+         start_price = holding.equity_transaction.date < @year_beginning ?
+                 EqQuote.find_by_stock_id_and_date(stock.id, @year_beginning).close : purchase_price
+
     %>
         <tr>
           <td><%= display_stock_symbol stock.symbol %></td>
           <td><%= holding.quantity %></td>
-          <td><%= Date.today - holding.equity_transaction.date %></td>
+          <td><%= (Date.today - holding.equity_transaction.date).round(0) %></td>
           <td><%= purchase_price %></td>
           <td>
             <%= latest_price %>
-            (<%= raw display_returns((latest_price - purchase_price)/purchase_price * 100) %>)
           </td>
           <td>
-            <%= holding.quantity * (latest_price - purchase_price) %>
+            <%
+               pl = holding.quantity * (latest_price - start_price)
+               total_ytd_pl += pl
+               total_cost += holding.quantity * start_price
+            %>
+            <%= pl %>
+            (<%= raw display_returns((latest_price - start_price)/start_price * 100) %>)
           </td>
           <% stock.performance.returns.each do |days, value| %>
               <td><%= raw display_returns(value) %></td>
           <% end %>
         </tr>
     <% end %>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td class='highlight'>
+        <%= total_ytd_pl %>
+        (<%= (total_ytd_pl/total_cost * 100).round(2) %>)
+      </td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
   </table>
 </div>
 <div class="company_actions">

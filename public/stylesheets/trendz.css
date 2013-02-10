@@ -227,3 +227,9 @@ path {
     margin: 3px 20px 3px 20px;
     color: #ED7E7E;
 }
+
+.highlight {
+    font-weight: bold;
+    font-size: larger;
+    color: #ff9f00;
+}
