@@ -6,11 +6,17 @@ module Importer
       include Connection
 
       def import
-        Rails.logger.info "Importing Stock Master"
-        file_path = "/content/equities/EQUITY_L.csv"
-        response = get(file_path)
-        Rails.logger.error "Importing stock master failed url might have change #{file_path}" and return if response.class == Net::HTTPNotFound
-        parse_csv(response.body)
+        begin
+          Rails.logger.info "Importing Stock Master"
+          file_path = "/content/equities/EQUITY_L.csv"
+          response = get(file_path)
+          Rails.logger.error "Importing stock master failed url might have change #{file_path}" and return if response.class == Net::HTTPNotFound
+          parse_csv(response.body)
+          ImportStatus.completed_upto_today ImportStatus::Source::NSE_STOCK_MASTER
+        rescue => e
+          Rails.logger.error e.inspect
+          ImportStatus.failed ImportStatus::Source::NSE_STOCK_MASTER
+        end
       end
 
       private

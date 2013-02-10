@@ -6,9 +6,15 @@ module Importer
   module Bse
     class StockMaster
       def import
-        agent = Mechanize.new
-        csv = fetch_stock_list_csv(agent, fetch_first_page(agent, fetch_landing_page(agent)))
-        process_csv(csv.content)
+        begin
+          agent = Mechanize.new
+          csv = fetch_stock_list_csv(agent, fetch_first_page(agent, fetch_landing_page(agent)))
+          process_csv(csv.content)
+          ImportStatus.completed_upto_today(ImportStatus::Source::BSE_STOCKMASTER)
+        rescue => e
+          Rails.logger.error "#{e.inspect}"
+          ImportStatus.failed(ImportStatus::Source::BSE_STOCKMASTER)
+        end
       end
 
       private

@@ -147,7 +147,7 @@ ActiveRecord::Schema.define(:version => 20130210060757) do
     t.string  "source"
     t.date    "data_upto"
     t.date    "last_run"
-    t.boolean "succeeded"
+    t.boolean "completed"
   end
 
   create_table "market_activities", :force => true do |t|

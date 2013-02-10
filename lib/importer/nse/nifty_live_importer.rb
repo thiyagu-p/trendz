@@ -4,9 +4,13 @@ module Importer
       include Connection
 
       def import
-        response = get('/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json')
-        return if response.class == Net::HTTPNotFound
-        parse(response.body)
+        begin
+          response = get('/live_market/dynaContent/live_watch/stock_watch/liveIndexWatchData.json')
+          return if response.class == Net::HTTPNotFound
+          parse(response.body)
+        rescue => e
+          Rails.logger.error e.inspect
+        end
       end
 
       private

@@ -8,14 +8,18 @@ module Importer
     SEBI_URL = URI.parse('http://www.sebi.gov.in/sebiweb/investment/FIITrendsNew.jsp')
 
     def import
-      start_date = ((MarketActivity.maximum('date') or Date.parse('31/12/2009')) + 1.day)
-      today = Date.today
-      while(start_date.beginning_of_month < today.beginning_of_month)
-        start_date = start_date.end_of_month
-        load_data_for_month_upto(start_date)
-        start_date = start_date + 1
+      begin
+        start_date = ((MarketActivity.maximum('date') or Date.parse('31/12/2009')) + 1.day)
+        today = Date.today
+        while(start_date.beginning_of_month < today.beginning_of_month)
+          start_date = start_date.end_of_month
+          load_data_for_month_upto(start_date)
+          start_date = start_date + 1
+        end
+        load_data_for_month_upto(today)
+      rescue => e
+        Rails.logger.error e.inspect
       end
-      load_data_for_month_upto(today)
     end
 
     private

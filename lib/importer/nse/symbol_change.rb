@@ -5,6 +5,23 @@ module Importer
     class SymbolChange
       include Connection
 
+      BASE_PATH = "/content/equities/symbolchange.csv"
+
+      def import
+        begin
+          Rails.logger.info "Importing symbol changes"
+          response = get(BASE_PATH)
+          Rails.logger.error "Importing symbol changes failed url might have change #{BASE_PATH}" and return if response.class == Net::HTTPNotFound
+          parse_csv(response.body)
+          ImportStatus.completed_upto_today(ImportStatus::Source::NSE_SYMBOL_CHANGE)
+        rescue => e
+          Rails.logger.error "#{e.inspect}"
+          ImportStatus.failed(ImportStatus::Source::NSE_SYMBOL_CHANGE)
+        end
+      end
+
+      private
+
       def parse_csv(data)
         symbol_changes = []
         header = true
@@ -32,16 +49,6 @@ module Importer
         new_stock.delete
         (from_date .. Date.today).each { |date| MovingAverageCalculator.update(date, stock) }
       end
-
-
-      def import
-        Rails.logger.info "Importing symbol changes"
-        file_path = "/content/equities/symbolchange.csv"
-        response = get(file_path)
-        Rails.logger.error "Importing symbol changes failed url might have change #{file_path}" and return if response.class == Net::HTTPNotFound
-        parse_csv(response.body)
-      end
-
     end
   end
 end

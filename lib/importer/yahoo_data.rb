@@ -5,12 +5,18 @@ module Importer
     STARTDATE = '31/12/2010'
 
     def import
-      stocks = Stock.all(:conditions => 'yahoo_code is not null')
-      stocks.each do |stock|
-        path = construct_sub_path(stock)
-        response = connection(BASEURL).request_get(path)
-        next if response.class == Net::HTTPNotFound
-        process_data(response, stock)
+      begin
+        stocks = Stock.all(:conditions => 'yahoo_code is not null')
+        stocks.each do |stock|
+          path = construct_sub_path(stock)
+          response = connection(BASEURL).request_get(path)
+          next if response.class == Net::HTTPNotFound
+          process_data(response, stock)
+        end
+        ImportStatus.completed_upto_today ImportStatus::Source::YAHOO_QUOTES
+      rescue => e
+        Rails.logger.error e.inspect
+        ImportStatus.failed ImportStatus::Source::YAHOO_QUOTES
       end
     end
 
@@ -22,7 +28,7 @@ module Importer
         date = Date.parse(row[0])
         quote = EqQuote.find_or_create_by_stock_id_and_date(stock.id, date)
         quote.update_attributes(open: row[1], high: row[2], low: row[3],
-                       close: row[4], traded_quantity: row[5])
+                                close: row[4], traded_quantity: row[5])
         quote.save!
         MovingAverageCalculator.update(date, stock)
       end

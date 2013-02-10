@@ -26,7 +26,7 @@ describe Importer::Nse::EquityBhav do
     it 'should import starting from next day of last available' do
       @http = stub()
       Net::HTTP.expects(:new).with(BSE_URL).returns(@http)
-      @import_status = ImportStatus.find_or_create_by_source(ImportStatus::Source::BSEBHAV)
+      @import_status = ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_BHAV)
 
       @import_status.update_attributes! data_upto: Date.parse('1/2/2010')
       Date.stubs(:today).returns(Date.parse('4/2/2010'))
@@ -60,19 +60,19 @@ describe Importer::Nse::EquityBhav do
     end
 
     it 'should update import status on successful completion of import' do
-      ImportStatus.create!(source: ImportStatus::Source::BSEBHAV)
+      ImportStatus.create!(source: ImportStatus::Source::BSE_BHAV)
       Zip::ZipFile.stubs(:open)
       date = Date.parse('1/1/2013')
       @importer.send(:parse_bhav_file, '', '', date)
-      ImportStatus.find_or_create_by_source(ImportStatus::Source::BSEBHAV).data_upto.should == date
+      ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_BHAV).data_upto.should == date
     end
 
     it 'should update import status on successful completion of import' do
       old_date = Date.parse('31/12/2012')
-      ImportStatus.create!(source: ImportStatus::Source::BSEBHAV, data_upto: old_date)
+      ImportStatus.create!(source: ImportStatus::Source::BSE_BHAV, data_upto: old_date)
       Zip::ZipFile.stubs(:open).raises(Zip::ZipError.new)
       @importer.send(:parse_bhav_file, '', '', Date.parse('1/1/2013'))
-      ImportStatus.find_by_source(ImportStatus::Source::BSEBHAV).data_upto.should == old_date
+      ImportStatus.find_by_source(ImportStatus::Source::BSE_BHAV).data_upto.should == old_date
     end
   end
 end

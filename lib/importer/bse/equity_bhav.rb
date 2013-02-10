@@ -6,13 +6,16 @@ module Importer
       BASE_URL = '/download/BhavCopy/Equity/'
 
       def import
-        import_status = ImportStatus.find_by_source(ImportStatus::Source::BSEBHAV)
-        import_status.update_attributes! last_run: Date.today, succeded: false
+        begin
+          import_status = ImportStatus.find_by_source(ImportStatus::Source::BSE_BHAV)
 
-        start_date = import_status.data_upto + 1
-        (start_date .. Date.today).each { |date| import_for(date) }
-
-        import_status.update_attributes! succeded: true
+          start_date = import_status.data_upto + 1
+          (start_date .. Date.today).each { |date| import_for(date) }
+          ImportStatus.completed(ImportStatus::Source::BSE_BHAV)
+        rescue => e
+          Rails.logger.error "#{e.inspect}"
+          ImportStatus.failed(ImportStatus::Source::BSE_BHAV)
+        end
       end
 
       private
@@ -36,17 +39,13 @@ module Importer
       end
 
       def parse_bhav_file(file_name, zip_file_name, date)
-        begin
-          Stock.transaction do
-            Zip::ZipFile.open("data/#{zip_file_name}") do |zipfile|
-              CSV.parse(zipfile.file.read(file_name), {headers: true}) do |row|
-                process_row(row, date)
-              end
+        Stock.transaction do
+          Zip::ZipFile.open("data/#{zip_file_name}") do |zipfile|
+            CSV.parse(zipfile.file.read(file_name), {headers: true}) do |row|
+              process_row(row, date)
             end
-            ImportStatus.find_by_source(ImportStatus::Source::BSEBHAV).update_attributes! data_upto: date
           end
-        rescue Zip::ZipError => e
-          p e
+          ImportStatus.find_by_source(ImportStatus::Source::BSE_BHAV).update_attributes! data_upto: date
         end
       end
 

@@ -4,7 +4,13 @@ module Importer
       include Connection
 
       def import
-        Stock.all(order: :symbol, conditions: "nse_active").each { |stock| delay.fetch_data_for(stock) }
+        begin
+          Stock.all(order: :symbol, conditions: "nse_active").each { |stock| delay.fetch_data_for(stock) }
+          ImportStatus.completed_upto_today ImportStatus::Source::NSE_CORPORATE_ACTION
+        rescue => e
+          Rails.logger.error e.inspect
+          ImportStatus.failed ImportStatus::Source::NSE_CORPORATE_ACTION
+        end
       end
 
       def fetch_data_for(stock)

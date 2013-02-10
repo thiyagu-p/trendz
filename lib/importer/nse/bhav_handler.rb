@@ -35,33 +35,46 @@ module Importer
         end
       end
 
-      def parse_bhav_file(file_name, zip_file_name)
-        begin
-          Stock.transaction do
-            Zip::ZipFile.open("data/#{zip_file_name}") do |zipfile|
-              CSV.parse(zipfile.file.read(file_name)) do |columns|
-                process_row(columns) if columns.count > 1
-              end
+      def parse_bhav_file(file_name, zip_file_name, date)
+        Stock.transaction do
+          Zip::ZipFile.open("data/#{zip_file_name}") do |zipfile|
+            CSV.parse(zipfile.file.read(file_name)) do |columns|
+              process_row(columns) if columns.count > 1
             end
           end
-        rescue Zip::ZipError => e
-          p e
+          ImportStatus.find_by_source(status_source).update_attributes! data_upto: date
         end
+      end
+
+      def status_source
+        "ImportStatus::Source::NSE_#{sub_path}_BHAV".constantize
       end
 
       def import
         start_date = (model.maximum('date') or Date.parse(startdate)) + 1
-        (start_date .. Date.today).each do |date|
-          Rails.logger.info "processing #{sub_path} bhav for #{date}"
-          month = date.strftime("%b").upcase
-          file_name = "#{file_name_prefix}#{date.strftime("%d")}#{month}#{date.year}bhav.csv"
-          zip_file_name = "#{file_name}.zip"
-          file_path = "/content/historical/#{sub_path}/#{date.year}/#{month}/#{zip_file_name}"
-          response = get(file_path)
-          next if response.class == Net::HTTPNotFound
-          open("data/#{zip_file_name}", 'wb') { |file| file << response.body }
-          parse_bhav_file(file_name, zip_file_name)
+        begin
+          (start_date .. Date.today).each do |date|
+            Rails.logger.info "processing #{sub_path} bhav for #{date}"
+            file_name, file_path, zip_file_name = file_names(date)
+            response = get(file_path)
+            unless response.class == Net::HTTPNotFound
+              open("data/#{zip_file_name}", 'wb') { |file| file << response.body }
+              parse_bhav_file(file_name, zip_file_name, date)
+            end
+          end
+          ImportStatus.completed(status_source)
+        rescue => e
+          Rails.logger.error "Error importing NSE #{sub_path} bhav #{e.inspect}"
+          ImportStatus.failed(status_source)
         end
+      end
+
+      def file_names(date)
+        month = date.strftime("%b").upcase
+        file_name = "#{file_name_prefix}#{date.strftime("%d")}#{month}#{date.year}bhav.csv"
+        zip_file_name = "#{file_name}.zip"
+        file_path = "/content/historical/#{sub_path}/#{date.year}/#{month}/#{zip_file_name}"
+        return file_name, file_path, zip_file_name
       end
 
       def self.included(base)

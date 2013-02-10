@@ -1,22 +1,28 @@
 <%= content_tag(:table) do %>
     <%= content_tag(:tr) do %>
-        <%= content_tag(:td, "Equity : ") %>
-        <%= content_tag(:td, "#{@eq_date}") %>
+        <%= content_tag(:th, '') %>
+        <%= content_tag(:th, 'Data upto') %>
+        <%= content_tag(:th, 'Last run') %>
+        <%= content_tag(:th, 'Completed?') %>
     <% end %>
-    <%= content_tag(:tr) do %>
-        <%= content_tag(:td, "F&0 : ") %>
-        <%= content_tag(:td, "#{@fo_date}") %>
-    <% end %>
-    <%= content_tag(:tr) do %>
-        <%= content_tag(:td, "Index : ") %>
-        <%= content_tag(:td, "#{@index_date}") %>
+    <% ImportStatus.all.each do |status| %>
+        <%= content_tag(:tr) do %>
+            <%= content_tag(:td, status.source.humanize) %>
+            <%= content_tag(:td, status.data_upto) %>
+            <%= content_tag(:td, status.last_run) %>
+            <%= content_tag(:td, status.completed, class: status.completed ? 'green' : 'red') %>
+        <% end %>
     <% end %>
     <%= content_tag(:tr) do %>
         <%= content_tag(:td, "Market Activity (EQ) : ") %>
         <%= content_tag(:td, "#{@market_activity_eq}") %>
+        <%= content_tag(:td, '') %>
+        <%= content_tag(:td, '') %>
     <% end %>
     <%= content_tag(:tr) do %>
         <%= content_tag(:td, "Market Activity (FO) : ") %>
         <%= content_tag(:td, "#{@market_activity_fo}") %>
+        <%= content_tag(:td, '') %>
+        <%= content_tag(:td, '') %>
     <% end %>
 <% end %>
