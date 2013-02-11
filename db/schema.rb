@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130210060757) do
+ActiveRecord::Schema.define(:version => 20130211065708) do
 
   create_table "bonus_actions", :force => true do |t|
     t.integer "stock_id"
@@ -217,6 +217,30 @@ ActiveRecord::Schema.define(:version => 20130210060757) do
     t.datetime "updated_at"
   end
 
+  add_foreign_key "bonus_actions", "stocks", :name => "bonus_actions_stock_id_fk"
+
+  add_foreign_key "corporate_action_errors", "stocks", :name => "corporate_action_errors_stock_id_fk"
+
+  add_foreign_key "corporate_results", "stocks", :name => "corporate_results_stock_id_fk"
+
+  add_foreign_key "dividend_actions", "stocks", :name => "dividend_actions_stock_id_fk"
+
   add_foreign_key "eq_quotes", "stocks", :name => "eq_quotes_stock_id_fk"
+
+  add_foreign_key "equity_holdings", "equity_transactions", :name => "equity_holdings_equity_transaction_id_fk"
+
+  add_foreign_key "equity_trades", "equity_transactions", :name => "equity_trades_buy_transaction_id_fk", :column => "buy_transaction_id"
+  add_foreign_key "equity_trades", "equity_transactions", :name => "equity_trades_sell_transaction_id_fk", :column => "sell_transaction_id"
+
+  add_foreign_key "equity_transactions", "portfolios", :name => "equity_transactions_portfolio_id_fk"
+  add_foreign_key "equity_transactions", "stocks", :name => "equity_transactions_stock_id_fk"
+  add_foreign_key "equity_transactions", "trading_accounts", :name => "equity_transactions_trading_account_id_fk"
+
+  add_foreign_key "face_value_actions", "stocks", :name => "face_value_actions_stock_id_fk"
+
+  add_foreign_key "fo_quotes", "stocks", :name => "fo_quotes_stock_id_fk"
+
+  add_foreign_key "stocks_watchlists", "stocks", :name => "stocks_watchlists_stock_id_fk"
+  add_foreign_key "stocks_watchlists", "watchlists", :name => "stocks_watchlists_watchlist_id_fk"
 
 end

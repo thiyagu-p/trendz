@@ -12,16 +12,15 @@ namespace :data do
     Importer::Bse::EquityBhav.new.import
   end
 
-  desc "import corporate action and results"
-  task :corp_details => :environment do
+  desc "import corporate action"
+  task :corp_action => :environment do
     Importer::Nse::StockMaster.new.import
     Importer::Nse::CorporateActionImporter.new.import
-    Importer::Nse::CorporateResultImporter.new.import
   end
 
-  desc 'import bse data'
-  task sync_bse: :environment do
-    Importer::Bse::StockMaster.new.import
-    Importer::Bse::EquityBhav.new.import
+  desc "import corporate results"
+  task :corp_results => :environment do
+    Importer::Nse::StockMaster.new.import
+    Importer::Nse::CorporateActionImporter.new.import
   end
 end

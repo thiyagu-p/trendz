@@ -46,6 +46,13 @@ module Importer
         return unless new_stock
         EqQuote.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
         FoQuote.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
+        BonusAction.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
+        DividendAction.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
+        FaceValueAction.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
+        CorporateActionError.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
+        CorporateResult.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
+        EquityTransaction.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
+        ActiveRecord::Base.connection.execute "update stocks_watchlists set stock_id = #{stock.id} where stock_id = #{new_stock.id}"
         new_stock.delete
         (from_date .. Date.today).each { |date| MovingAverageCalculator.update(date, stock) }
       end
