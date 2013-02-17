@@ -7,7 +7,7 @@ class EquityHolding < ActiveRecord::Base
                                     trading_account_id: transaction.trading_account_id,
                                     stock_id: transaction.stock_id,
                                     delivery: transaction.delivery?,
-                                    action: transaction.action == EquityTransaction::BUY ? EquityTransaction::SELL : EquityTransaction::BUY}).
+                                    type: transaction.type == EquityTransaction::BUY ? EquityTransaction::SELL : EquityTransaction::BUY}).
         where("date #{date_condition transaction} '#{transaction.date}'").
         order("date asc").readonly(false)
   end
@@ -22,7 +22,7 @@ class EquityHolding < ActiveRecord::Base
 
   private
   def self.date_condition(transaction)
-    transaction.action == EquityTransaction::SELL ? '<=' : '='
+    transaction.type == EquityTransaction::SELL ? '<=' : '='
   end
 
 end

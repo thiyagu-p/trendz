@@ -1,7 +1,7 @@
 <div id="error_message" class="red"></div>
 <%= form_for(EquityTransaction.new) do |f| %>
     <span>
-      <%= f.select :action, [[EquityTransaction::BUY.camelcase, EquityTransaction::BUY], [EquityTransaction::SELL.camelcase, EquityTransaction::SELL]] %>
+      <%= f.select :type, [[EquityTransaction::BUY.camelcase, EquityTransaction::BUY], [EquityTransaction::SELL.camelcase, EquityTransaction::SELL]] %>
     </span>
     <span>
       <%= f.label :date %>
@@ -49,14 +49,15 @@
         $("#equity_transaction_price").numeric({negative: false });
         $("#equity_transaction_quantity").numeric({ decimal: false, negative: false });
         $("#equity_transaction_brokerage").numeric({negative: false });
-        $("#equity_transaction_submit").click(function(event){
+        $("#new_equity_transaction .actions input").click(function(event){
+
             var form=$("#new_equity_transaction"), url = form.attr('action'), data = form.serialize();
             $.ajax({
                 url: url,
                 data: data,
                 type: 'POST',
                 dataType: 'text',
-                success: function(response) {location.reload()},
+                success: function(response) {location.reload();},
                 error: function(response){$("#error_message").text(response.responseText);}
             });
             event.preventDefault();

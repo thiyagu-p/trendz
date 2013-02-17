@@ -5,7 +5,7 @@ module Equity
 
       holdings = EquityHolding.tradeable_match(new_transaction)
 
-      if new_transaction.buy?
+      if new_transaction.instance_of? EquityBuy
         handle_buy(holdings, new_transaction)
       else
         handle_sell(holdings, new_transaction)
@@ -20,15 +20,15 @@ module Equity
         holding = holdings.shift
         buy, sell = [holding.equity_transaction, new_transaction]
         if holding.quantity == quantity_to_match
-          EquityTrade.create(buy_transaction_id: buy.id, sell_transaction_id: sell.id, quantity: quantity_to_match)
+          EquityTrade.create(equity_buy: buy, equity_sell: sell, quantity: quantity_to_match)
           holding.destroy
           quantity_to_match = 0
         elsif holding.quantity > quantity_to_match
-          EquityTrade.create(buy_transaction_id: buy.id, sell_transaction_id: sell.id, quantity: quantity_to_match)
+          EquityTrade.create(equity_buy: buy, equity_sell: sell, quantity: quantity_to_match)
           holding.update_attributes!(quantity: (holding.quantity - quantity_to_match))
           quantity_to_match = 0
         elsif holding.quantity < quantity_to_match
-          EquityTrade.create(buy_transaction_id: buy.id, sell_transaction_id: sell.id, quantity: holding.quantity)
+          EquityTrade.create(equity_buy: buy, equity_sell: sell, quantity: holding.quantity)
           quantity_to_match -= holding.quantity
           holding.destroy
         end
@@ -44,15 +44,15 @@ module Equity
         holding = holdings.shift
         buy, sell = [new_transaction, holding.equity_transaction]
         if -holding.quantity == quantity_to_match
-          EquityTrade.create(buy_transaction_id: buy.id, sell_transaction_id: sell.id, quantity: quantity_to_match)
+          EquityTrade.create(equity_buy: buy, equity_sell: sell, quantity: quantity_to_match)
           holding.destroy
           quantity_to_match = 0
         elsif (-holding.quantity) > quantity_to_match
-          EquityTrade.create(buy_transaction_id: buy.id, sell_transaction_id: sell.id, quantity: quantity_to_match)
+          EquityTrade.create(equity_buy: buy, equity_sell: sell, quantity: quantity_to_match)
           holding.update_attributes!(quantity: holding.quantity + quantity_to_match)
           quantity_to_match = 0
         elsif (-holding.quantity) < quantity_to_match
-          EquityTrade.create(buy_transaction_id: buy.id, sell_transaction_id: sell.id, quantity: -holding.quantity)
+          EquityTrade.create(equity_buy: buy, equity_sell: sell, quantity: -holding.quantity)
           quantity_to_match += holding.quantity
           holding.destroy
         end

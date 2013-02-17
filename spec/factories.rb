@@ -28,12 +28,24 @@ FactoryGirl.define do
     delivery false
   end
 
-  factory :buy_equity_transaction, parent: :equity_transaction do
-    action 'buy'
+  factory :equity_buy do
+    trading_account
+    portfolio
+    stock
+    price 1
+    quantity 1
+    date Date.today
+    delivery false
   end
 
-  factory :sell_equity_transaction, parent: :equity_transaction do
-    action 'sell'
+  factory :equity_sell do
+    trading_account
+    portfolio
+    stock
+    price 1
+    quantity 1
+    date Date.today
+    delivery false
   end
 
   factory :equity_holding do

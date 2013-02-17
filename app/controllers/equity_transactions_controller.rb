@@ -1,6 +1,6 @@
 class EquityTransactionsController < ApplicationController
   def index
-    @transactions = EquityTransaction.all
+    @transactions = EquityTransaction.includes([:stock, :portfolio, :trading_account]).all
     @consolidated_holdings = EquityHolding.delivery.consolidated
   end
 
@@ -9,7 +9,8 @@ class EquityTransactionsController < ApplicationController
   end
 
   def create
-    @equity_transaction = EquityTransaction.new(params[:equity_transaction])
+    action = params[:equity_transaction].delete 'type'
+    @equity_transaction = action == EquityTransaction::BUY ? EquityBuy.new(params[:equity_transaction]) : EquitySell.new(params[:equity_transaction])
     if @equity_transaction.save
       head :ok
     else

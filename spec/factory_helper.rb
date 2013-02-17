@@ -4,12 +4,9 @@ class FactoryHelper
     quantity = params[:quantity] || 10
     transaction_params = params[:transaction]
 
-    if quantity >= 0
-      transaction_params = transaction_params.merge(quantity: quantity, action: EquityTransaction::BUY)
-    else
-      transaction_params = transaction_params.merge(quantity: -quantity, action: EquityTransaction::SELL)
-    end
+    transaction = quantity >= 0 ? FactoryGirl.create(:equity_buy, transaction_params.merge(quantity: quantity)) :
+        FactoryGirl.create(:equity_sell, transaction_params.merge(quantity: -quantity))
 
-    FactoryGirl.create(:equity_holding, quantity: quantity, equity_transaction: FactoryGirl.create(:equity_transaction, transaction_params))
+    FactoryGirl.create(:equity_holding, quantity: quantity, equity_transaction: transaction)
   end
 end

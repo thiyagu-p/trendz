@@ -38,7 +38,7 @@
     </thead>
     <% @transactions.each do |transaction| %>
         <tr>
-          <td><%= transaction.action.camelcase %></td>
+          <td><%= transaction.type.camelcase %></td>
           <td><%= transaction.date %></td>
           <td><%= display_stock_symbol transaction.stock.symbol %></td>
           <td><%= display_price transaction.price %></td>

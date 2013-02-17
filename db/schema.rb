@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130211065708) do
+ActiveRecord::Schema.define(:version => 20130214163058) do
 
   create_table "bonus_actions", :force => true do |t|
     t.integer "stock_id"
@@ -97,15 +97,15 @@ ActiveRecord::Schema.define(:version => 20130211065708) do
   end
 
   create_table "equity_trades", :force => true do |t|
-    t.integer  "buy_transaction_id",  :null => false
-    t.integer  "sell_transaction_id", :null => false
-    t.integer  "quantity",            :null => false
+    t.integer  "equity_buy_id",  :null => false
+    t.integer  "equity_sell_id", :null => false
+    t.integer  "quantity",       :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
   create_table "equity_transactions", :force => true do |t|
-    t.string   "action"
+    t.string   "type"
     t.integer  "quantity"
     t.date     "date"
     t.decimal  "price"
@@ -183,19 +183,21 @@ ActiveRecord::Schema.define(:version => 20130211065708) do
   end
 
   create_table "stocks", :force => true do |t|
-    t.string  "symbol"
-    t.string  "nse_series"
-    t.date    "date"
-    t.string  "yahoo_code", :limit => 15
-    t.integer "face_value",               :default => 10
-    t.string  "name"
-    t.string  "isin",       :limit => 12
-    t.integer "bse_code"
-    t.string  "bse_symbol", :limit => 15
-    t.string  "bse_group",  :limit => 3
-    t.boolean "bse_active",               :default => false
-    t.boolean "nse_active",               :default => false
-    t.string  "industry"
+    t.string   "symbol"
+    t.string   "nse_series"
+    t.date     "date"
+    t.string   "yahoo_code", :limit => 15
+    t.integer  "face_value",               :default => 10
+    t.string   "name"
+    t.string   "isin",       :limit => 12
+    t.integer  "bse_code"
+    t.string   "bse_symbol", :limit => 15
+    t.string   "bse_group",  :limit => 3
+    t.boolean  "bse_active",               :default => false
+    t.boolean  "nse_active",               :default => false
+    t.string   "industry"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "stocks", ["symbol"], :name => "index_stocks_on_symbol"
@@ -229,8 +231,8 @@ ActiveRecord::Schema.define(:version => 20130211065708) do
 
   add_foreign_key "equity_holdings", "equity_transactions", :name => "equity_holdings_equity_transaction_id_fk"
 
-  add_foreign_key "equity_trades", "equity_transactions", :name => "equity_trades_buy_transaction_id_fk", :column => "buy_transaction_id"
-  add_foreign_key "equity_trades", "equity_transactions", :name => "equity_trades_sell_transaction_id_fk", :column => "sell_transaction_id"
+  add_foreign_key "equity_trades", "equity_transactions", :name => "equity_trades_buy_transaction_id_fk", :column => "equity_buy_id"
+  add_foreign_key "equity_trades", "equity_transactions", :name => "equity_trades_sell_transaction_id_fk", :column => "equity_sell_id"
 
   add_foreign_key "equity_transactions", "portfolios", :name => "equity_transactions_portfolio_id_fk"
   add_foreign_key "equity_transactions", "stocks", :name => "equity_transactions_stock_id_fk"
