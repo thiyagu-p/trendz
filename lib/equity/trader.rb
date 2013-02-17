@@ -2,13 +2,14 @@ module Equity
   class Trader
 
     def self.handle_new_transaction(new_transaction)
+      EquityTransaction.transaction do
+        holdings = EquityHolding.tradeable_match(new_transaction)
 
-      holdings = EquityHolding.tradeable_match(new_transaction)
-
-      if new_transaction.instance_of? EquityBuy
-        handle_buy(holdings, new_transaction)
-      else
-        handle_sell(holdings, new_transaction)
+        if new_transaction.instance_of? EquityBuy
+          handle_buy(holdings, new_transaction)
+        else
+          handle_sell(holdings, new_transaction)
+        end
       end
     end
 
