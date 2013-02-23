@@ -4,8 +4,8 @@ class MarketActivity < ActiveRecord::Base
     fii_buy_equity - fii_sell_equity
   end
 
-  def debit_fii
-    fii_buy_debit - fii_sell_debit
+  def equity_dii
+    dii_buy_equity - dii_sell_equity
   end
 
   def fo_index_fii

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130214163058) do
+ActiveRecord::Schema.define(:version => 20130217161604) do
 
   create_table "bonus_actions", :force => true do |t|
     t.integer "stock_id"
@@ -170,8 +170,8 @@ ActiveRecord::Schema.define(:version => 20130214163058) do
     t.decimal "fii_stock_futures_oi_value", :precision => 14, :scale => 2
     t.decimal "fii_stock_options_oi",       :precision => 14, :scale => 2
     t.decimal "fii_stock_options_oi_value", :precision => 14, :scale => 2
-    t.decimal "fii_buy_debit",              :precision => 14, :scale => 2
-    t.decimal "fii_sell_debit",             :precision => 14, :scale => 2
+    t.decimal "dii_buy_equity",             :precision => 14, :scale => 2
+    t.decimal "dii_sell_equity",            :precision => 14, :scale => 2
   end
 
   add_index "market_activities", ["date"], :name => "index_market_activities_on_date"
