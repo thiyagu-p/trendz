@@ -20,49 +20,49 @@ describe Importer::Bse::StockMaster do
   #  ongc.bse_group.should == 'A'
   #  ongc.bse_active.should be_true
   #end
-  #
+
   #500285	SPICEJET	SPICEJET LTD.	Active	B 	10	INE285B01017	Airlines
 
-  #it 'should import stock' do
-  #  @importer.send(:process_csv, data)
-  #  Stock.count.should == 2
-  #end
-  #
-  #it 'should create missing stock with Bse Symbol as Symbol' do
-  #  @importer.send(:process_csv, data)
-  #  stock = Stock.find_by_symbol 'ASSAMCO.BO'
-  #  stock.bse_code.should == 500024
-  #  stock.bse_symbol.should == 'ASSAMCO'
-  #  stock.name.should == 'Assam Company (India) Limited'
-  #  stock.face_value.should ==  1
-  #  stock.isin.should ==  'INE442A01024'
-  #  stock.industry.should == 'Tea &amp; Coffee'
-  #  stock.bse_active.should be_true
-  #end
-  #
-  #it 'should update listing status' do
-  #  @importer.send(:process_csv, data)
-  #  Stock.find_by_symbol('ASSAMCO.BO').bse_active.should be_true
-  #  Stock.find_by_symbol('ATULLTD.BO').bse_active.should be_false
-  #
-  #end
-  #
-  #it 'should update existing stock' do
-  #   Stock.create!(symbol: 'ASSAMCO.NS', isin: 'INE442A01024')
-  #   @importer.send(:process_csv, data)
-  #   stock = Stock.find_by_symbol 'ASSAMCO.NS'
-  #   stock.bse_code.should == 500024
-  #   stock.bse_symbol.should == 'ASSAMCO'
-  #end
-  #
-  #it 'should skip stocks without isin' do
-  #  @importer.send(:process_csv, data)
-  #  Stock.find_by_symbol('NOISIN.BO').should be_nil
-  #end
+  it 'should import stock' do
+    @importer.send(:process_csv, bse_csv_content)
+    Stock.count.should == 2
+  end
+
+  it 'should create missing stock with Bse Symbol as Symbol' do
+    @importer.send(:process_csv, bse_csv_content)
+    stock = Stock.find_by_symbol 'ASSAMCO.BO'
+    stock.bse_code.should == 500024
+    stock.bse_symbol.should == 'ASSAMCO'
+    stock.name.should == 'Assam Company (India) Limited'
+    stock.face_value.should ==  1
+    stock.isin.should ==  'INE442A01024'
+    stock.industry.should == 'Tea &amp; Coffee'
+    stock.bse_active.should be_true
+  end
+
+  it 'should update listing status' do
+    @importer.send(:process_csv, bse_csv_content)
+    Stock.find_by_symbol('ASSAMCO.BO').bse_active.should be_true
+    Stock.find_by_symbol('ATULLTD.BO').bse_active.should be_false
+
+  end
+
+  it 'should update existing stock' do
+     Stock.create!(symbol: 'ASSAMCO.NS', isin: 'INE442A01024')
+     @importer.send(:process_csv, bse_csv_content)
+     stock = Stock.find_by_symbol 'ASSAMCO.NS'
+     stock.bse_code.should == 500024
+     stock.bse_symbol.should == 'ASSAMCO'
+  end
+
+  it 'should skip stocks without isin' do
+    @importer.send(:process_csv, bse_csv_content)
+    Stock.find_by_symbol('NOISIN.BO').should be_nil
+  end
 
 end
 
-def data
+def bse_csv_content
 <<EOF
 Scrip Code,Scrip Id,Scrip Name,Status,Group,Face Value,ISIN No,Industry,Instrument
 500024,ASSAMCO,Assam Company (India) Limited,Active,B ,1.00,INE442A01024,Tea &amp; Coffee,Equity
