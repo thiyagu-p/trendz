@@ -27,12 +27,10 @@ module Importer
         end_date = Date.today.strftime('%d-%m-%Y')
         return unless start_date <= end_date
         url = "/products/dynaContent/equities/equities/eq_fiidii_archives.jsp?category=all&check=new&fromDate=#{start_date}&toDate=#{end_date}"
-        p url
         Rails.logger.info "Processing Equity market activity @ #{url}"
         response = get(url)
         csv_url = find_csv_url(response.body)
         return unless csv_url
-        p csv_url
         csv_content = get(csv_url).body
         CSV.parse(csv_content) do |row|
           next unless row[0] =~ /FII|DII/

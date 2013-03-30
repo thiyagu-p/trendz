@@ -6,6 +6,7 @@ describe Importer::Nse::EquityBhav do
   describe 'processing dates' do
     before(:each) do
       @http = stub()
+      ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_EQUITIES_BHAV)
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @importer = Importer::Nse::EquityBhav.new
     end
@@ -30,9 +31,10 @@ describe Importer::Nse::EquityBhav do
 
   describe 'processing bhav file content' do
 
-    before(:all) do
+    before(:each) do
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
+      ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_EQUITIES_BHAV)
       @importer = Importer::Nse::EquityBhav.new
       EqQuote.expects(:maximum).returns(Date.parse('23/6/2011'))
       Date.stubs(:today).returns(Date.parse('24/6/2011'))

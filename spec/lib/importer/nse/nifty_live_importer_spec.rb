@@ -52,7 +52,7 @@ describe Importer::Nse::NiftyLiveImporter do
   end
 
   describe 'FT' do
-    it "should import" do
+    it "should import", ft: true  do
       EqQuote.stubs(:find_by_date).returns(EqQuote.new)
       stock = Stock.create(symbol: 'NIFTY')
       Importer::Nse::NiftyLiveImporter.new.import

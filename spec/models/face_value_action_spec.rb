@@ -3,10 +3,10 @@ require 'spec_helper'
 describe FaceValueAction do
 
   it 'should calculate conversion ration' do
-    FaceValueAction.new(from: 1, to: 10).conversion_ration.should == 10
-    FaceValueAction.new(from: 10, to: 2).conversion_ration.should == 0.2
-    FaceValueAction.new(from: 10, to: 5).conversion_ration.should == 0.5
-    FaceValueAction.new(from: 3, to: 1).conversion_ration.should == 0.33
+    FaceValueAction.new(from: 1, to: 10).send(:conversion_ration).should == 10
+    FaceValueAction.new(from: 10, to: 2).send(:conversion_ration).should == 0.2
+    FaceValueAction.new(from: 10, to: 5).send(:conversion_ration).should == 0.5
+    FaceValueAction.new(from: 3, to: 1).send(:conversion_ration).should == 0.33
   end
 
   describe :apply do
@@ -31,6 +31,21 @@ describe FaceValueAction do
       transaction.quantity.to_f.should == @params[:quantity] * face_value_change_ratio
     end
 
+    it 'should set applied' do
+      create(:equity_buy, @params.merge(date: @exdate - 1))
+      (action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)).apply
+
+      action.applied?.should be_true
+    end
+
+    it 'should not re-apply' do
+      create(:equity_buy, @params.merge(date: @exdate - 1))
+      (action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)).apply
+      action.apply
+      transaction = EquityTransaction.first
+      transaction.price.to_f.should == @params[:price] * action.to.to_f / action.from.to_f
+    end
+
     describe :partial_sale do
 
       before :each do
@@ -41,7 +56,6 @@ describe FaceValueAction do
       end
 
       it 'should separate sold and holding into separate transaction' do
-
         expect { @action.apply }.to change { EquityTransaction.count }.by(1)
       end
 
@@ -50,7 +64,7 @@ describe FaceValueAction do
 
         sold_transaction = EquityBuy.find(@buy.id)
         sold_transaction.price.should == @params[:price]
-        sold_transaction.quantity.should == @sell.quantity
+        sold_transaction.quantity.should == 49 #@sell.quantity
         sold_transaction.brokerage.should == 200.0/100.0*@sell.quantity
         sold_transaction.portfolio.should == @params[:portfolio]
         sold_transaction.trading_account.should == @params[:trading_account]
@@ -62,8 +76,8 @@ describe FaceValueAction do
         @action.apply
 
         new_transaction = EquityBuy.where('id <> ?', @buy.id).first
-        new_transaction.price.should == @params[:price] * @action.conversion_ration
-        new_transaction.quantity.should == ((100 - @sell.quantity) / @action.conversion_ration).round(2)
+        new_transaction.price.should == @params[:price] * @action.send(:conversion_ration)
+        new_transaction.quantity.should == 255 #((100 - @sell.quantity) / @action.send(:conversion_ration)).round(2)
         new_transaction.brokerage.to_f.should == 200.0/100.0*(100 - @sell.quantity)
         new_transaction.portfolio.should == @params[:portfolio]
         new_transaction.trading_account.should == @params[:trading_account]

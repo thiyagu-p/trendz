@@ -32,7 +32,7 @@ describe Equity::Trader do
         sell = create(:equity_sell, @params[:transaction].merge(quantity: buy.quantity - 10))
         expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(1)
 
-        EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == sell.quantity
+        EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == sell.quantity
         EquityHolding.find_by_equity_transaction_id(buy.id).quantity.should == (buy.quantity - sell.quantity)
       end
 
@@ -50,7 +50,7 @@ describe Equity::Trader do
         expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(2)
 
         [buy1, buy2].each { |buy|
-          EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == buy.quantity
+          EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == buy.quantity
         }
 
         EquityHolding.count.should == 0
@@ -61,7 +61,7 @@ describe Equity::Trader do
         sell = create(:equity_sell, @params[:transaction].merge(quantity: buy.quantity + 10))
         expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(1)
 
-        EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == buy.quantity
+        EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == buy.quantity
         EquityHolding.find_by_equity_transaction_id(buy.id).should be_nil
         EquityHolding.find_by_equity_transaction_id(sell.id).quantity.should == (buy.quantity - sell.quantity)
       end
@@ -71,12 +71,12 @@ describe Equity::Trader do
 
         sell = create(:equity_sell, @params[:transaction].merge(quantity: buy.quantity / 2))
         expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(1)
-        EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == sell.quantity
+        EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == sell.quantity
         EquityHolding.find_by_equity_transaction_id(buy.id).quantity.should == buy.quantity - sell.quantity
 
         sell = create(:equity_sell, @params[:transaction].merge(quantity: buy.quantity / 2))
         expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(1)
-        EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == sell.quantity
+        EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == sell.quantity
         EquityHolding.find_by_equity_transaction_id(buy.id).should be_nil
       end
     end
@@ -92,7 +92,7 @@ describe Equity::Trader do
         buy = create(:equity_buy, @params[:transaction].merge(quantity: sell.quantity - 10))
         expect { Equity::Trader.handle_new_transaction(buy) }.to change(EquityTrade, :count).by(1)
 
-        EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == buy.quantity
+        EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == buy.quantity
         EquityHolding.find_by_equity_transaction_id(sell.id).quantity.should == -(sell.quantity - buy.quantity)
       end
 
@@ -110,7 +110,7 @@ describe Equity::Trader do
         expect { Equity::Trader.handle_new_transaction(buy) }.to change(EquityTrade, :count).by(2)
 
         [sell1, sell2].each { |sell|
-          EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == sell.quantity
+          EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == sell.quantity
         }
 
         EquityHolding.count.should == 0
@@ -121,7 +121,7 @@ describe Equity::Trader do
         buy = create(:equity_buy, @params[:transaction].merge(quantity: sell.quantity + 10))
         expect { Equity::Trader.handle_new_transaction(buy) }.to change(EquityTrade, :count).by(1)
 
-        EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == sell.quantity
+        EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == sell.quantity
         EquityHolding.find_by_equity_transaction_id(sell.id).should be_nil
         EquityHolding.find_by_equity_transaction_id(buy.id).quantity.should == (buy.quantity - sell.quantity)
       end
@@ -131,12 +131,12 @@ describe Equity::Trader do
 
         buy = create(:equity_buy, @params[:transaction].merge(quantity: sell.quantity / 2))
         expect { Equity::Trader.handle_new_transaction(buy) }.to change(EquityTrade, :count).by(1)
-        EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == buy.quantity
+        EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == buy.quantity
         EquityHolding.find_by_equity_transaction_id(sell.id).quantity.should == buy.quantity - sell.quantity
 
         buy = create(:equity_buy, @params[:transaction].merge(quantity: sell.quantity / 2))
         expect { Equity::Trader.handle_new_transaction(buy) }.to change(EquityTrade, :count).by(1)
-        EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == buy.quantity
+        EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == buy.quantity
         EquityHolding.find_by_equity_transaction_id(sell.id).should be_nil
       end
     end
@@ -147,13 +147,13 @@ describe Equity::Trader do
     buy = FactoryHelper.create_equity_holding(@params.merge(quantity: 20)).equity_transaction
     sell = create(:equity_sell, @params[:transaction].merge(quantity: 10))
     expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(1)
-    EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == sell.quantity
+    EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == sell.quantity
     EquityHolding.find_by_equity_transaction_id(buy.id).quantity.should == 10
 
     #Holding 10, Sell 5
     sell = create(:equity_sell, @params[:transaction].merge(quantity: 5))
     expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(1)
-    EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == sell.quantity
+    EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == sell.quantity
     EquityHolding.find_by_equity_transaction_id(buy.id).quantity.should == 5
 
     #Holding 5,  buy 10
@@ -166,15 +166,15 @@ describe Equity::Trader do
     expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(2)
     EquityHolding.find_by_equity_transaction_id(buy.id).should be_nil
     EquityHolding.find_by_equity_transaction_id(buy2.id).quantity.should == 5
-    EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy.id, sell.id).quantity.should == 5
-    EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy2.id, sell.id).quantity.should == 5
+    EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == 5
+    EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy2.id, sell.id).quantity.should == 5
 
     #Holding 5,  sell 10
     sell1 = create(:equity_sell, @params[:transaction].merge(quantity: 10))
     expect { Equity::Trader.handle_new_transaction(sell1) }.to change(EquityTrade, :count).by(1)
     EquityHolding.find_by_equity_transaction_id(buy2.id).should be_nil
     EquityHolding.find_by_equity_transaction_id(sell1.id).quantity.should == -5
-    EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy2.id, sell1.id).quantity.should == 5
+    EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy2.id, sell1.id).quantity.should == 5
 
     #Holding -5,  sell 10
     sell2 = create(:equity_sell, @params[:transaction].merge(quantity: 10))
@@ -187,8 +187,8 @@ describe Equity::Trader do
     expect { Equity::Trader.handle_new_transaction(buy3) }.to change(EquityTrade, :count).by(2)
     EquityHolding.find_by_equity_transaction_id(sell1.id).should be_nil
     EquityHolding.find_by_equity_transaction_id(sell2.id).should be_nil
-    EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy3.id, sell1.id).quantity.should == 5
-    EquityTrade.find_by_buy_transaction_id_and_sell_transaction_id(buy3.id, sell2.id).quantity.should == 10
+    EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy3.id, sell1.id).quantity.should == 5
+    EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy3.id, sell2.id).quantity.should == 10
 
   end
 

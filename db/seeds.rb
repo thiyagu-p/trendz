@@ -1,7 +1,9 @@
-# This file should contain all the record creation needed to seed the database with its default values.
-# The data can then be loaded with the rake db:seed (or created alongside the db with db:setup).
-#
-# Examples:
-#
-#   cities = City.create([{ :name => 'Chicago' }, { :name => 'Copenhagen' }])
-#   Mayor.create(:name => 'Daley', :city => cities.first)
+ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_BHAV).update_attributes!(data_upto: '31/12/2011')
+ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_STOCKMASTER)
+ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_SYMBOL_CHANGE)
+ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_EQUITIES_BHAV).update_attributes!(data_upto: EqQuote.maximum(:date))
+ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_DERIVATIVES_BHAV).update_attributes!(data_upto: FoQuote.maximum(:date))
+ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_CORPORATE_ACTION)
+ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_CORPORATE_RESULT)
+ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_STOCK_MASTER)
+ImportStatus.find_or_create_by_source(ImportStatus::Source::YAHOO_QUOTES)

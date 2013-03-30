@@ -3,10 +3,11 @@ require 'csv'
 
 describe Importer::YahooData do
 
-  before(:all) do
+  before(:each) do
     @http = stub()
     Net::HTTP.expects(:new).with(Importer::YahooData::BASEURL).returns(@http)
     @importer = Importer::YahooData.new
+    ImportStatus.find_or_create_by_source(ImportStatus::Source::YAHOO_QUOTES)
   end
 
   it "should import quotes for all stocks which has yahoo code set" do

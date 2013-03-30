@@ -6,28 +6,27 @@ describe EquityTransaction do
     @portfolio = Portfolio.create
     @stock = Stock.create
     @hash = {price: 1, quantity: 1, trading_account: @trading_account, portfolio: @portfolio, stock: @stock,
-             action: EquityTransaction::BUY, date: Date.today}
+             date: Date.today}
   end
 
   describe "validation" do
     it "should validate presence of mandatory attributes" do
       [:price, :stock, :trading_account, :portfolio, :date].each do |attribute|
-        EquityTransaction.new(@hash.except(attribute)).should_not be_valid
-        EquityTransaction.new(@hash).should be_valid
+        EquityBuy.new(@hash.except(attribute)).should_not be_valid
+        EquitySell.new(@hash.except(attribute)).should_not be_valid
       end
     end
 
     it "should validate quantity greater than 0" do
-      EquityTransaction.new(@hash.except(:quantity)).should_not be_valid
-      EquityTransaction.new(@hash.merge(quantity: 0)).should_not be_valid
-      EquityTransaction.new(@hash).should be_valid
+      EquityBuy.new(@hash.except(:quantity)).should_not be_valid
+      EquityBuy.new(@hash.merge(quantity: 0)).should_not be_valid
+      EquitySell.new(@hash.merge(quantity: 0)).should_not be_valid
     end
 
     it "should allow only buy/sell action" do
-      EquityTransaction.new(@hash.except(:action)).should_not be_valid
-      EquityTransaction.new(@hash.merge(action: 'some')).should_not be_valid
-      EquityTransaction.new(@hash.merge(action: EquityTransaction::BUY)).should be_valid
-      EquityTransaction.new(@hash.merge(action: EquityTransaction::SELL)).should be_valid
+      EquityTransaction.new(@hash.merge(type: EquityTransaction::BUY)).should_not be_valid
+      EquityBuy.new(@hash).should be_valid
+      EquitySell.new(@hash).should be_valid
     end
   end
 

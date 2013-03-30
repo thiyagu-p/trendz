@@ -282,7 +282,7 @@ describe Importer::Nse::CorporateActionImporter do
 
   end
 
-  it 'should import for TCS' do
+  it 'should import for TCS', ft: true do
     stock = Stock.create!(symbol: 'TCS', nse_series: 'EQ', face_value: 10)
     Importer::Nse::CorporateActionImporter.new.fetch_data_for stock
     DividendAction.count.should > 30

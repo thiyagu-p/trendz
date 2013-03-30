@@ -4,6 +4,7 @@ describe Importer::Nse::SymbolChange do
   before(:each) do
     @http = stub()
     Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
+    ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_SYMBOL_CHANGE)
     @importer = Importer::Nse::SymbolChange.new
     response = stub(:body => response_data )
     @http.expects(:request_get).with('/content/equities/symbolchange.csv', Importer::Nse::Connection.user_agent).returns(response)

@@ -21,7 +21,7 @@ describe "EqQuotes" do
       end
       factor = 0.25
       EqQuote.apply_factor(@stock, factor, ex_date)
-      EqQuote.all.each do |quote|
+      EqQuote.where(stock_id: @stock.id).all.each do |quote|
         quote.open.should == 100.0 * factor
         quote.high.should == 1000.0 * factor
         quote.low.should == 10.0 * factor
@@ -48,7 +48,7 @@ describe "EqQuotes" do
 
       EqQuote.apply_factor(@stock, factor, ex_date)
 
-      EqQuote.all.each do |quote|
+      EqQuote.where(stock_id: @stock.id).all.each do |quote|
         quote.open.should == 100.0
         quote.high.should == 1000.0
         quote.low.should == 10.0
@@ -57,5 +57,33 @@ describe "EqQuotes" do
         quote.traded_quantity.should == 5000.0
       end
     end
+
+    it 'should handle no quotes scenario' do
+      EqQuote.apply_factor(@stock, 1, Date.today)
+    end
+
+    it 'should apply factor only on specified stock' do
+      ex_date = Date.parse('20130111')
+
+      stock_b = Stock.create! symbol: 'B'
+      quote_for_b = EqQuote.create!(stock: stock_b, open: 100, high: 1000, low: 10, close: 200, previous_close: 300,
+                      mov_avg_10d: 400, mov_avg_50d: 500, mov_avg_200d: 600, traded_quantity: 5000, date: ex_date - 1)
+
+      EqQuote.apply_factor(@stock, 0.25, ex_date)
+
+      quote = EqQuote.where(stock_id: stock_b.id).first
+
+      quote.open.to_f.should == 100.0
+      quote.high.should == 1000.0
+      quote.low.should == 10.0
+      quote.close.should == 200.0
+      quote.previous_close.should == 300.0
+      quote.mov_avg_10d.should == 400.0
+      quote.mov_avg_50d.should == 500.0
+      quote.mov_avg_200d.should == 600.0
+      quote.traded_quantity.should == 5000.0
+
+    end
+
   end
 end

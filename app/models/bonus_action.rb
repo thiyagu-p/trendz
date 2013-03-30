@@ -2,7 +2,12 @@ class BonusAction < ActiveRecord::Base
   belongs_to :stock
 
   def apply
-    apply_on_portfolio
+    return if applied?
+    self.transaction do
+      apply_on_portfolio
+      self.applied = true
+      save!
+    end
   end
 
   private

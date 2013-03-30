@@ -8,7 +8,7 @@ describe EquityTransactionsController do
       @portfolio = Portfolio.create
       @stock = Stock.create
       @hash = {price: 1, quantity: 1, trading_account_id: @trading_account.id, portfolio_id: @portfolio.id, stock_id: @stock.id,
-               action: EquityTransaction::BUY, date: Date.today}
+               type: EquityTransaction::BUY, date: Date.today}
     end
 
     it "should create transaction" do

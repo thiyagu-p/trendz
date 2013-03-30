@@ -25,7 +25,7 @@ module Importer
           stock = Stock.find_or_create_by_isin(isin)
           stock.update_attributes!(bse_code: bse_code, bse_symbol: bse_symbol,
                                    bse_active: status_string == 'Active',
-                                   bse_group: bse_group, industry: industry)
+                                   bse_group: bse_group.strip, industry: industry)
           if stock.symbol.nil?
             stock.update_attributes! symbol: bse_symbol+".BO", name: company_name, face_value: face_value
           end

@@ -53,4 +53,21 @@ FactoryGirl.define do
     quantity 10
   end
 
+  factory :bonus_action do
+    stock
+    holding_qty 1
+    bonus_qty 1
+    applied false
+    ex_date Date.today
+  end
+
+  factory :face_value_action do
+    stock
+    from 10
+    to 5
+    applied false
+    ex_date Date.today
+  end
+
+
 end

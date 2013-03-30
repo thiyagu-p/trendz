@@ -11,13 +11,14 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130217161604) do
+ActiveRecord::Schema.define(:version => 20130223172540) do
 
   create_table "bonus_actions", :force => true do |t|
     t.integer "stock_id"
     t.date    "ex_date"
     t.integer "holding_qty"
     t.integer "bonus_qty"
+    t.boolean "applied",     :default => false, :null => false
   end
 
   create_table "corporate_action_errors", :force => true do |t|
@@ -28,15 +29,6 @@ ActiveRecord::Schema.define(:version => 20130217161604) do
     t.string  "partial_data"
   end
 
-  create_table "corporate_actions", :force => true do |t|
-    t.integer  "stock_id"
-    t.date     "ex_date"
-    t.string   "parsed_data"
-    t.string   "raw_data"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
   create_table "corporate_results", :force => true do |t|
     t.integer  "stock_id"
     t.date     "quarter_end"
@@ -44,8 +36,8 @@ ActiveRecord::Schema.define(:version => 20130217161604) do
     t.decimal  "net_p_and_l",              :precision => 12, :scale => 2
     t.decimal  "eps_before_extraordinary", :precision => 12, :scale => 2
     t.decimal  "eps",                      :precision => 12, :scale => 2
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",                                              :null => false
+    t.datetime "updated_at",                                              :null => false
   end
 
   create_table "delayed_jobs", :force => true do |t|
@@ -58,8 +50,8 @@ ActiveRecord::Schema.define(:version => 20130217161604) do
     t.datetime "failed_at"
     t.string   "locked_by"
     t.string   "queue"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",                :null => false
+    t.datetime "updated_at",                :null => false
   end
 
   add_index "delayed_jobs", ["priority", "run_at"], :name => "delayed_jobs_priority"
@@ -69,6 +61,7 @@ ActiveRecord::Schema.define(:version => 20130217161604) do
     t.date    "ex_date"
     t.decimal "percentage",               :precision => 6, :scale => 2
     t.string  "nature",     :limit => 10
+    t.boolean "applied",                                                :default => false, :null => false
   end
 
   create_table "eq_quotes", :force => true do |t|
@@ -86,22 +79,22 @@ ActiveRecord::Schema.define(:version => 20130217161604) do
   end
 
   add_index "eq_quotes", ["date"], :name => "index_eq_quotes_on_date"
-  add_index "eq_quotes", ["stock_id", "date"], :name => "eq_quotes_stock_id_date"
+  add_index "eq_quotes", ["stock_id", "date"], :name => "index_eq_quotes_on_stock_id_and_date"
   add_index "eq_quotes", ["stock_id"], :name => "index_eq_quotes_on_stock_id"
 
   create_table "equity_holdings", :force => true do |t|
     t.integer  "equity_transaction_id", :null => false
     t.integer  "quantity",              :null => false
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",            :null => false
+    t.datetime "updated_at",            :null => false
   end
 
   create_table "equity_trades", :force => true do |t|
     t.integer  "equity_buy_id",  :null => false
     t.integer  "equity_sell_id", :null => false
     t.integer  "quantity",       :null => false
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",     :null => false
+    t.datetime "updated_at",     :null => false
   end
 
   create_table "equity_transactions", :force => true do |t|
@@ -113,8 +106,8 @@ ActiveRecord::Schema.define(:version => 20130217161604) do
     t.integer  "trading_account_id"
     t.integer  "portfolio_id"
     t.integer  "stock_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",                           :null => false
+    t.datetime "updated_at",                           :null => false
     t.boolean  "delivery",           :default => true
   end
 
@@ -123,6 +116,7 @@ ActiveRecord::Schema.define(:version => 20130217161604) do
     t.date    "ex_date"
     t.integer "from"
     t.integer "to"
+    t.boolean "applied",  :default => false, :null => false
   end
 
   create_table "fo_quotes", :force => true do |t|
@@ -178,8 +172,8 @@ ActiveRecord::Schema.define(:version => 20130217161604) do
 
   create_table "portfolios", :force => true do |t|
     t.string   "name"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
   end
 
   create_table "stocks", :force => true do |t|
@@ -209,14 +203,14 @@ ActiveRecord::Schema.define(:version => 20130217161604) do
 
   create_table "trading_accounts", :force => true do |t|
     t.string   "name"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
   end
 
   create_table "watchlists", :force => true do |t|
     t.string   "name"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
   end
 
   add_foreign_key "bonus_actions", "stocks", :name => "bonus_actions_stock_id_fk"

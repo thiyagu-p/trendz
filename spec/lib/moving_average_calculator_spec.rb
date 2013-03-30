@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe MovingAverageCalculator do
 
-  before(:all) do
+  before(:each) do
     @stock = Stock.create!(:symbol => 'MyStock')
     @start_date = Date.parse('1/1/2010')
     250.times do |index|

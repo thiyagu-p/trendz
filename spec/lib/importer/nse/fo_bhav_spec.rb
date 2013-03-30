@@ -3,7 +3,7 @@ require 'csv'
 
 describe Importer::Nse::FoBhav do
 
-  before :all do
+  before :each do
     @importer = Importer::Nse::FoBhav.new
     @stock = Stock.create(symbol: 'BANKNIFTY', nse_series: Stock::NseSeries::INDEX)
   end

@@ -1,9 +1,10 @@
 require 'spec_helper'
 require 'zip/zipfilesystem'
 
-describe Importer::Nse::EquityBhav do
+describe Importer::Bse::EquityBhav do
   describe 'FT' do
-    it 'should import' do
+    it 'should import', ft: true do
+      ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_BHAV)
       stock = Stock.create! symbol: 'SPICEJET', bse_code: 500285
       date = Date.parse('07/02/2013')
       Importer::Bse::EquityBhav.new.send(:import_for, date)
@@ -20,14 +21,13 @@ describe Importer::Nse::EquityBhav do
 
   describe 'UT' do
     before(:each) do
+      @import_status = ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_BHAV)
       @importer = Importer::Bse::EquityBhav.new
     end
 
     it 'should import starting from next day of last available' do
       @http = stub()
       Net::HTTP.expects(:new).with(BSE_URL).returns(@http)
-      @import_status = ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_BHAV)
-
       @import_status.update_attributes! data_upto: Date.parse('1/2/2010')
       Date.stubs(:today).returns(Date.parse('4/2/2010'))
       @http.expects(:request_get).with('/download/BhavCopy/Equity/eq020210_csv.zip').returns(stub(:class => Net::HTTPNotFound))
@@ -60,18 +60,17 @@ describe Importer::Nse::EquityBhav do
     end
 
     it 'should update import status on successful completion of import' do
-      ImportStatus.create!(source: ImportStatus::Source::BSE_BHAV)
       Zip::ZipFile.stubs(:open)
       date = Date.parse('1/1/2013')
       @importer.send(:parse_bhav_file, '', '', date)
-      ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_BHAV).data_upto.should == date
+      ImportStatus.find_by_source(ImportStatus::Source::BSE_BHAV).data_upto.should == date
     end
 
-    it 'should update import status on successful completion of import' do
+    it 'should retain old date of data_upto on failure of import' do
       old_date = Date.parse('31/12/2012')
-      ImportStatus.create!(source: ImportStatus::Source::BSE_BHAV, data_upto: old_date)
+      @import_status.update_attributes!(data_upto: old_date)
       Zip::ZipFile.stubs(:open).raises(Zip::ZipError.new)
-      @importer.send(:parse_bhav_file, '', '', Date.parse('1/1/2013'))
+      expect {@importer.send(:parse_bhav_file, '', '', Date.parse('1/1/2013'))}.to raise_error
       ImportStatus.find_by_source(ImportStatus::Source::BSE_BHAV).data_upto.should == old_date
     end
   end
