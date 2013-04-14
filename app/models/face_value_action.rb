@@ -15,6 +15,7 @@ class FaceValueAction < ActiveRecord::Base
 
   def apply_on_eq_quotes
     EqQuote.apply_factor self.stock, conversion_ration, ex_date
+    FoQuote.apply_factor self.stock, conversion_ration, ex_date
   end
 
   def conversion_ration

@@ -15,8 +15,8 @@ class BonusAction < ActiveRecord::Base
 
   def apply_on_transaction
     factor = self.holding_qty.to_f / (self.holding_qty + self.bonus_qty).to_f
-    EqQuote.apply_factor(self.stock, factor, self.ex_date)
-    FoQuote.apply_factor(self.stock, factor, self.ex_date)
+    EqQuote.apply_factor self.stock, factor, ex_date
+    FoQuote.apply_factor self.stock, factor, ex_date
   end
 
   def apply_on_portfolio
