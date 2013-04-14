@@ -9,6 +9,20 @@ FactoryGirl.define do
     open_interest 15.2
   end
 
+  factory :eq_quote do
+    stock
+    date Date.today
+    open 10
+    high 20
+    low 5
+    close 12
+    previous_close 8
+    traded_quantity 1000
+    mov_avg_10d 10
+    mov_avg_50d 50
+    mov_avg_200d 200
+  end
+
   factory :trading_account do
     name 'Account'
   end

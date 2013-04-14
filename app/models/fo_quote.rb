@@ -8,7 +8,19 @@ class FoQuote < ActiveRecord::Base
     UNKNOWN = 'unknown'
   end
 
+  FUTURES = 'XX'
+  PUT = 'PE'
+  CALL = 'CE'
+
   def future?
-    fo_type == 'XX'
+    fo_type == FUTURES
   end
+
+  def self.apply_factor(stock, factor, ex_date)
+    fields = [:open, :high, :low, :close, :traded_quantity].collect do |field|
+      " #{field} = #{field} * #{factor}"
+    end
+    self.update_all("#{fields.join(',')} where stock_id = #{stock.id} and date < '#{ex_date}' and fo_type = '#{FUTURES}'")
+  end
+
 end

@@ -5,12 +5,20 @@ class BonusAction < ActiveRecord::Base
     return if applied?
     self.transaction do
       apply_on_portfolio
+      apply_on_transaction
       self.applied = true
       save!
     end
   end
 
   private
+
+  def apply_on_transaction
+    factor = self.holding_qty.to_f / (self.holding_qty + self.bonus_qty).to_f
+    EqQuote.apply_factor(self.stock, factor, self.ex_date)
+    FoQuote.apply_factor(self.stock, factor, self.ex_date)
+  end
+
   def apply_on_portfolio
     TradingAccount.all.each do |trading_account|
       Portfolio.all.each do |portfolio|
