@@ -43,10 +43,12 @@ module Importer
 
       private
       def save_to_temp_file(path)
-        response = get(path).body
-        file_path = File.join('data', File.basename(path))
-        open(file_path, "wb") { |file| file.write response }
-        file_path
+        response = get(path)
+        unless response.class == Net::HTTPNotFound
+          file_path = File.join('data', File.basename(path))
+          open(file_path, "wb") { |file| file.write response.body }
+          file_path
+        end
       end
 
       def import_and_save_data_for(date)
@@ -54,18 +56,23 @@ module Importer
         Rails.logger.info "Processing F&O market data - #{date} : #{xls_path}"
         market_activity = MarketActivity.find_by_date(date)
         if market_activity
-          excel = Roo::Excel.new(save_to_temp_file(xls_path))
-          excel.default_sheet = excel.sheets.first
-          4.upto(7) do |row|
-            next unless excel.cell(row, 'A') =~ /INDEX|STOCK/
-            row_downcase_gsub = excel.cell(row, 'A').downcase!.gsub!(' ', '_')
-            market_activity.update_attribute("fii_#{row_downcase_gsub}_buy", excel.cell(row, 'C'))
-            market_activity.update_attribute("fii_#{row_downcase_gsub}_sell", excel.cell(row, 'E'))
-            market_activity.update_attribute("fii_#{row_downcase_gsub}_oi", excel.cell(row, 'F'))
-            market_activity.update_attribute("fii_#{row_downcase_gsub}_oi_value", excel.cell(row, 'G'))
-          end
-          market_activity.save!
+          temp_file = save_to_temp_file(xls_path)
+          parse_and_save_data(market_activity, temp_file) if temp_file
         end
+      end
+
+      def parse_and_save_data(market_activity, temp_file)
+        excel = Roo::Excel.new(temp_file)
+        excel.default_sheet = excel.sheets.first
+        4.upto(7) do |row|
+          next unless excel.cell(row, 'A') =~ /INDEX|STOCK/
+          row_downcase_gsub = excel.cell(row, 'A').downcase!.gsub!(' ', '_')
+          market_activity.update_attribute("fii_#{row_downcase_gsub}_buy", excel.cell(row, 'C'))
+          market_activity.update_attribute("fii_#{row_downcase_gsub}_sell", excel.cell(row, 'E'))
+          market_activity.update_attribute("fii_#{row_downcase_gsub}_oi", excel.cell(row, 'F'))
+          market_activity.update_attribute("fii_#{row_downcase_gsub}_oi_value", excel.cell(row, 'G'))
+        end
+        market_activity.save!
       end
 
       def find_csv_url(content)

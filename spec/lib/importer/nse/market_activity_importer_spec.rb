@@ -3,7 +3,7 @@ require 'zip/zipfilesystem'
 
 describe Importer::Nse::MarketActivityImporter do
 
-  describe 'FT' do
+  describe 'FT', ft: true do
 
     before :each do
       @importer = Importer::Nse::MarketActivityImporter.new
@@ -39,6 +39,19 @@ describe Importer::Nse::MarketActivityImporter do
       @market_activity.fii_stock_options_sell.to_f.should == 385.40
       @market_activity.fii_stock_options_oi.to_f.should == 47980
       @market_activity.fii_stock_options_oi_value.to_f.should == 1158.08
+    end
+  end
+
+  describe 'UT' do
+    it 'should skip missing file' do
+      @importer = Importer::Nse::MarketActivityImporter.new
+      date = Date.parse('9/9/2011')
+      MarketActivity.expects(:maximum).returns(date)
+      MarketActivity.create(date: date)
+      Date.stubs(:today).returns(date)
+      @importer.expects(:get).returns(stub(:class => Net::HTTPNotFound))
+
+      lambda {@importer.import_fo_data}.should_not raise_error
     end
   end
 end

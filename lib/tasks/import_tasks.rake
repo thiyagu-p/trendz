@@ -6,7 +6,7 @@ namespace :data do
     Importer::Nse::EquityBhav.new.import
     Importer::Nse::FoBhav.new.import
     Importer::Nse::YahooData.new.import
-    Importer::MarketActivityImporter.new.import
+    Importer::Nse::MarketActivityImporter.new.import
     Importer::Nse::NiftyLiveImporter.new.import
     Importer::Bse::StockMaster.new.import
     Importer::Bse::EquityBhav.new.import
