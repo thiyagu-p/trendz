@@ -33,4 +33,5 @@ Trendz::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
   config.active_record.observers = []
+  #config.active_record.observers = [:equity_buy_observer, :equity_sell_observer]
 end

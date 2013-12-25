@@ -8,7 +8,7 @@ describe StockPerformance do
 
     stock_performance = StockPerformance.new(stock)
 
-    stock_performance.returns['1 Week'].to_f.should == (366.0 - 359.0) / 359.0 * 100.0
+    stock_performance.returns['7 Days'].to_f.should == (366.0 - 359.0) / 359.0 * 100.0
 
   end
 

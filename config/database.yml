@@ -16,7 +16,7 @@ test:
 production:
   host: localhost
   adapter: postgresql
-  database: trendz
+  database: trendz_prod
   timeout: 5000
   username: postgres
   password: 

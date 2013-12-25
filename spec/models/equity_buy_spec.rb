@@ -126,7 +126,7 @@ describe EquityBuy do
       conversion_factor = 0.2
       buy.apply_face_value_change(conversion_factor, @date + 1)
       buy.price.should == 120 * conversion_factor
-      buy.quantity.should == 80 * conversion_factor
+      buy.quantity.should == 80 / conversion_factor
     end
 
     it 'should split holding vs sold into separate transaction' do

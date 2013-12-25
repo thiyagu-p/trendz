@@ -5,7 +5,7 @@ class FaceValueAction < ActiveRecord::Base
     return if applied?
     self.transaction do
       apply_on_portfolio
-      apply_on_eq_quotes
+      apply_on_quotes
       self.applied = true
       save!
     end
@@ -13,7 +13,7 @@ class FaceValueAction < ActiveRecord::Base
 
   private
 
-  def apply_on_eq_quotes
+  def apply_on_quotes
     EqQuote.apply_factor self.stock, conversion_ration, ex_date
     FoQuote.apply_factor self.stock, conversion_ration, ex_date
   end

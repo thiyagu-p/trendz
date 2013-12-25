@@ -12,7 +12,7 @@ module Importer
       def import
 
         begin
-          Stock.all(order: :symbol, conditions: "nse_active").each { |stock| delay.fetch_data_for(stock) }
+          Stock.all(order: :symbol, conditions: "nse_active").each { |stock| fetch_data_for(stock) }
           ImportStatus.completed_upto_today ImportStatus::Source::NSE_CORPORATE_ACTION
         rescue => e
           Rails.logger.error e.inspect

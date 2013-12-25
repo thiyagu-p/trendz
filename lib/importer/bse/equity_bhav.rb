@@ -24,7 +24,7 @@ module Importer
         Rails.logger.info "processing bse bhav for #{date}"
         file_name, file_path, zip_file_name = file_names(date)
         response = connection(BSE_URL).request_get(file_path)
-        unless response.class == Net::HTTPNotFound
+        if response.class == Net::HTTPOK
           open("data/#{zip_file_name}", 'wb') { |file| file << response.body }
           parse_bhav_file(file_name, zip_file_name, date)
         end
@@ -32,7 +32,7 @@ module Importer
 
       def file_names(date)
         date_str = date.strftime("%d%m%y")
-        file_name = "EQ#{date_str}.CSV"
+        file_name = date == Date.parse('26/06/2013') ? 'eq260613_csv.CSV' : "EQ#{date_str}.CSV"
         zip_file_name = "eq#{date_str}_csv.zip"
         file_path = "#{BASE_URL}#{zip_file_name}"
         return file_name, file_path, zip_file_name

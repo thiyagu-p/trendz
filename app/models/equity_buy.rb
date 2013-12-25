@@ -29,9 +29,10 @@ class EquityBuy < EquityTransaction
 
   #TODO remove record_date, use ex_date
   def apply_face_value_change(conversion_ration, record_date)
+    #EQUITYHOLDING SHOULD BE UPDATED :(
     if self.holding_qty.nil? || self.quantity == self.holding_qty
       self.price = self.price * conversion_ration
-      self.quantity = self.quantity * conversion_ration
+      self.quantity = self.quantity / conversion_ration
       save!
     else
       EquityBuy.transaction do

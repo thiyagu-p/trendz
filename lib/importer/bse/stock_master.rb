@@ -27,7 +27,7 @@ module Importer
                                    bse_active: status_string == 'Active',
                                    bse_group: bse_group.strip, industry: industry)
           if stock.symbol.nil?
-            stock.update_attributes! symbol: bse_symbol+".BO", name: company_name, face_value: face_value
+            stock.update_attributes! symbol: bse_symbol+"_BO", name: company_name, face_value: face_value
           end
         end
       end

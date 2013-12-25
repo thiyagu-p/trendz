@@ -27,8 +27,8 @@ describe FaceValueAction do
 
         EquityTransaction.count.should == 1
         transaction = EquityTransaction.first
-        face_value_change_ratio = action.to.to_f / action.from.to_f
-        transaction.price.to_f.should == @params[:price] * face_value_change_ratio
+        face_value_change_ratio = action.from.to_f / action.to.to_f
+        transaction.price.to_f.should == @params[:price] / face_value_change_ratio
         transaction.quantity.to_f.should == @params[:quantity] * face_value_change_ratio
       end
 

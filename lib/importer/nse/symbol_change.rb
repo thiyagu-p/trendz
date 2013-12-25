@@ -10,14 +10,18 @@ module Importer
       def import
         begin
           Rails.logger.info "Importing symbol changes"
-          response = get(BASE_PATH)
-          Rails.logger.error "Importing symbol changes failed url might have change #{BASE_PATH}" and return if response.class == Net::HTTPNotFound
-          parse_csv(response.body)
+          apply_changes import_data
           ImportStatus.completed_upto_today(ImportStatus::Source::NSE_SYMBOL_CHANGE)
         rescue => e
           Rails.logger.error "#{e.inspect}"
           ImportStatus.failed(ImportStatus::Source::NSE_SYMBOL_CHANGE)
         end
+      end
+
+      def import_data
+        response = get(BASE_PATH)
+        raise IOError "Importing symbol changes failed, url might have change #{BASE_PATH}" if response.class == Net::HTTPNotFound
+        parse_csv(response.body)
       end
 
       private
@@ -31,6 +35,9 @@ module Importer
           symbol_changes << {:date => line[3].to_date, :symbol => line[1], :new_symbol => line[2]}
         end
         symbol_changes.sort! { |a, b| a[:date] <=> b[:date] }
+      end
+
+      def apply_changes(symbol_changes)
         Stock.transaction do
           symbol_changes.each do |hash|
             stock = Stock.find_by_symbol(hash[:symbol])

@@ -6,7 +6,7 @@ class EqQuote < ActiveRecord::Base
       " #{field} = #{field} * #{factor}"
     end
     EqQuote.update_all("#{fields.join(',')} where stock_id = #{stock.id} and date < '#{ex_date}'")
-    max_date = EqQuote.maximum(:date)
+    max_date = EqQuote.where("stock_id = #{stock.id} and date >= '#{ex_date}' and date <= '#{ex_date + 1.year}'").maximum(:date)
     (ex_date .. max_date).each { |date| MovingAverageCalculator.update(date, stock)}  if max_date
   end
 end

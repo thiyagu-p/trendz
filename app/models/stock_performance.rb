@@ -4,18 +4,17 @@ class StockPerformance
     @stock = stock
   end
 
+  PERIOD = [1, 7, 30, 90, 365]
+
   def returns
     latest_quote = EqQuote.find_by_stock_id(@stock.id, order: 'date desc', limit: 1)
     return {} unless latest_quote
     max_date = latest_quote.date
 
-    {
-        '1 Day' => return_percentage(find_earliest_quote(@stock.id, max_date - 1), latest_quote),
-        '1 Week' => return_percentage(find_earliest_quote(@stock.id, max_date - 7), latest_quote),
-        '1 Month' => return_percentage(find_earliest_quote(@stock.id, max_date - 1.month), latest_quote),
-        '90 Days' => return_percentage(find_earliest_quote(@stock.id, max_date - 90), latest_quote),
-        '1 Year' => return_percentage(find_earliest_quote(@stock.id, max_date - 365), latest_quote)
-    }
+    PERIOD.inject({}) do |hash, days|
+      hash["#{days} Days"] = return_percentage(find_earliest_quote(@stock.id, max_date - days), latest_quote)
+      hash
+    end
   end
 
   private

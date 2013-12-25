@@ -30,7 +30,7 @@ describe Importer::Bse::StockMaster do
 
   it 'should create missing stock with Bse Symbol as Symbol' do
     @importer.send(:process_csv, bse_csv_content)
-    stock = Stock.find_by_symbol 'ASSAMCO.BO'
+    stock = Stock.find_by_symbol 'ASSAMCO_BO'
     stock.bse_code.should == 500024
     stock.bse_symbol.should == 'ASSAMCO'
     stock.name.should == 'Assam Company (India) Limited'
@@ -42,15 +42,15 @@ describe Importer::Bse::StockMaster do
 
   it 'should update listing status' do
     @importer.send(:process_csv, bse_csv_content)
-    Stock.find_by_symbol('ASSAMCO.BO').bse_active.should be_true
-    Stock.find_by_symbol('ATULLTD.BO').bse_active.should be_false
+    Stock.find_by_symbol('ASSAMCO_BO').bse_active.should be_true
+    Stock.find_by_symbol('ATULLTD_BO').bse_active.should be_false
 
   end
 
   it 'should update existing stock' do
-     Stock.create!(symbol: 'ASSAMCO.NS', isin: 'INE442A01024')
+     Stock.create!(symbol: 'ASSAMCO_NS', isin: 'INE442A01024')
      @importer.send(:process_csv, bse_csv_content)
-     stock = Stock.find_by_symbol 'ASSAMCO.NS'
+     stock = Stock.find_by_symbol 'ASSAMCO_NS'
      stock.bse_code.should == 500024
      stock.bse_symbol.should == 'ASSAMCO'
   end
