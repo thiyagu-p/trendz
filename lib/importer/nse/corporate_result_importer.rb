@@ -23,7 +23,7 @@ module Importer
             quarter_ends = extract_quarter_ends(tables[0])
             financial_data = extract_financial_data(tables[1])
             quarter_ends.each_with_index do |quarter, index|
-              corporate_result = CorporateResult.find_or_create_by_stock_id_and_quarter_end(stock.id, quarter)
+              corporate_result = CorporateResult.find_or_create_by(stock_id: stock.id, quarter_end: quarter)
               corporate_result.update_attributes! financial_data[index]
             end
           end

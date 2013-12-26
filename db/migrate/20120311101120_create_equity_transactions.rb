@@ -4,8 +4,8 @@ class CreateEquityTransactions < ActiveRecord::Migration
       t.string :action, length: 5
       t.integer :quantity
       t.date :date
-      t.decimal :price
-      t.decimal :brokerage
+      t.decimal :price, precision: 7, scale: 2
+      t.decimal :brokerage, precision: 7, scale: 2
       t.references :trading_account
       t.references :portfolio
       t.references :stock

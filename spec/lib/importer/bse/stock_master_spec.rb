@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Importer::Bse::StockMaster do
 
   before :each do
-    ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_STOCKMASTER)
+    ImportStatus.find_or_create_by(source: ImportStatus::Source::BSE_STOCKMASTER)
     @importer =  Importer::Bse::StockMaster.new
   end
 

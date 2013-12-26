@@ -23,7 +23,7 @@ module Importer
       def parse_csv(data)
         CSV.parse(data, {headers: true}) do |row|
           symbol, name, series, date_of_listing, paid_up_value, market_lot, isin, face_value = row.fields
-          stock = Stock.find_by_isin(isin) || Stock.find_or_create_by_symbol(symbol)
+          stock = Stock.find_by(isin: isin) || Stock.find_or_create_by(symbol: symbol)
           stock.update_attributes!(symbol: symbol, name: name, face_value: face_value, isin: isin, nse_series: series, nse_active: true)
         end
       end

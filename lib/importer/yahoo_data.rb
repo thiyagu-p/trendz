@@ -6,7 +6,7 @@ module Importer
 
     def import
       begin
-        stocks = Stock.all(:conditions => 'yahoo_code is not null')
+        stocks = Stock.where('yahoo_code is not null').to_a
         stocks.each do |stock|
           path = construct_sub_path(stock)
           response = connection(BASEURL).request_get(path)
@@ -26,7 +26,7 @@ module Importer
       data_rows.reverse.each do |row|
         next if row[0] == 'Date'
         date = Date.parse(row[0])
-        quote = EqQuote.find_or_create_by_stock_id_and_date(stock.id, date)
+        quote = EqQuote.find_or_create_by(stock_id: stock.id, date: date)
         quote.update_attributes(open: row[1], high: row[2], low: row[3],
                                 close: row[4], traded_quantity: row[5])
         quote.save!
@@ -36,7 +36,7 @@ module Importer
 
     def construct_sub_path(stock)
       today = Date.today
-      start_date = (EqQuote.maximum(:date, :conditions => "stock_id = #{stock.id} and traded_quantity is not null") or Date.parse(STARTDATE)) + 1
+      start_date = (EqQuote.where("stock_id = #{stock.id} and traded_quantity is not null").maximum(:date) or Date.parse(STARTDATE)) + 1
       params_hash = {s: CGI.escape(stock.yahoo_code),
                      a: start_date.month - 1, b: start_date.day, c: start_date.year,
                      d: today.month - 1, e: today.day, f: today.year,

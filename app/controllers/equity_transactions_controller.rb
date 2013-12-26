@@ -10,7 +10,7 @@ class EquityTransactionsController < ApplicationController
 
   def create
     action = params[:equity_transaction].delete 'type'
-    @equity_transaction = action == EquityTransaction::BUY ? EquityBuy.new(params[:equity_transaction]) : EquitySell.new(params[:equity_transaction])
+    @equity_transaction = action == EquityTransaction::BUY ? EquityBuy.new(equity_params) : EquitySell.new(equity_params)
     if @equity_transaction.save
       head :ok
     else
@@ -18,4 +18,10 @@ class EquityTransactionsController < ApplicationController
       render status: :unprocessable_entity, json: @equity_transaction.errors
     end
   end
+
+  private
+  def equity_params
+    params.require(:equity_transaction).permit(:quantity, :date, :price, :brokerage, :trading_account_id, :portfolio_id, :stock_id, :delivery)
+  end
+
 end

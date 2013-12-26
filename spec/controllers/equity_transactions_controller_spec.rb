@@ -7,7 +7,7 @@ describe EquityTransactionsController do
       @trading_account = TradingAccount.create
       @portfolio = Portfolio.create
       @stock = Stock.create
-      @hash = {price: 1, quantity: 1, trading_account_id: @trading_account.id, portfolio_id: @portfolio.id, stock_id: @stock.id,
+      @hash = {price: BigDecimal.new("1.1"), quantity: 2, trading_account_id: @trading_account.id, portfolio_id: @portfolio.id, stock_id: @stock.id,
                type: EquityTransaction::BUY, date: Date.today}
     end
 
@@ -28,8 +28,7 @@ describe EquityTransactionsController do
     end
 
     it "should handle error" do
-      post :create, :equity_transaction => {}
-      response.status == :unprocessable_entity
+      expect{post :create, :equity_transaction => {}}.to raise_error(ActionController::ParameterMissing)
     end
   end
 end

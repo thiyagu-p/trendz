@@ -4,7 +4,7 @@ describe "EqQuotes" do
 
   it "should not exists without stock" do
     lambda { EqQuote.create!(:stock_id => 0) }.should raise_exception(ActiveRecord::InvalidForeignKey)
-    EqQuote.find_by_stock_id(0).should be_nil
+    EqQuote.find_by(stock_id: 0).should be_nil
   end
 
   describe :apply_factor do
@@ -21,7 +21,7 @@ describe "EqQuotes" do
       end
       factor = 0.25
       EqQuote.apply_factor(@stock, factor, ex_date)
-      EqQuote.where(stock_id: @stock.id).all.each do |quote|
+      EqQuote.where(stock_id: @stock.id).to_a.each do |quote|
         quote.open.should == 100.0 * factor
         quote.high.should == 1000.0 * factor
         quote.low.should == 10.0 * factor
@@ -48,7 +48,7 @@ describe "EqQuotes" do
 
       EqQuote.apply_factor(@stock, factor, ex_date)
 
-      EqQuote.where(stock_id: @stock.id).all.each do |quote|
+      EqQuote.where(stock_id: @stock.id).to_a.each do |quote|
         quote.open.should == 100.0
         quote.high.should == 1000.0
         quote.low.should == 10.0

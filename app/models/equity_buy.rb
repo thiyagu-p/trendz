@@ -11,7 +11,7 @@ class EquityBuy < EquityTransaction
   end
 
   def self.find_holdings_on stock, record_date, trading_account, portfolio
-    buys = where(stock_id: stock).where("date <= '#{record_date}'").where(trading_account_id: trading_account).where(portfolio_id: portfolio).all
+    buys = where(stock_id: stock).where("date <= '#{record_date}'").where(trading_account_id: trading_account).where(portfolio_id: portfolio).load
     trades = EquityBuy.find_by_sql "select buy.id, sum(trade.quantity) as sold_qty FROM equity_transactions buy join equity_trades trade on trade.equity_buy_id = buy.id join equity_transactions sell on sell.id = trade.equity_sell_id where buy.stock_id = #{stock.id} and buy.date <= '#{record_date}' and sell.date <= '#{record_date}' group by buy.id"
     sold_quantities = trades.inject({}) {|hash, trade| hash[trade.id] = trade.sold_qty.to_f; hash}
     holdings = []
@@ -37,7 +37,11 @@ class EquityBuy < EquityTransaction
     else
       EquityBuy.transaction do
         original_quantity = self.quantity
-        new_transaction = EquityBuy.new.initialize_dup(self)
+        new_transaction = EquityBuy.new
+        new_transaction.date = self.date
+        new_transaction.trading_account_id = self.trading_account_id
+        new_transaction.portfolio_id = self.portfolio_id
+        new_transaction.stock_id = self.stock_id
         new_transaction.price = self.price * conversion_ration
         new_transaction.quantity = self.holding_qty / conversion_ration
         new_transaction.brokerage = self.brokerage / original_quantity * self.holding_qty

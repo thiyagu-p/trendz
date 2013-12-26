@@ -4,7 +4,7 @@ require 'zip/zipfilesystem'
 describe Importer::Bse::EquityBhav do
   describe 'FT' do
     it 'should import', ft: true do
-      ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_BHAV)
+      ImportStatus.find_or_create_by(source: ImportStatus::Source::BSE_BHAV)
       stock = Stock.create! symbol: 'SPICEJET', bse_code: 500285
       date = Date.parse('07/02/2013')
       Importer::Bse::EquityBhav.new.send(:import_for, date)
@@ -21,7 +21,7 @@ describe Importer::Bse::EquityBhav do
 
   describe 'UT' do
     before(:each) do
-      @import_status = ImportStatus.find_or_create_by_source(ImportStatus::Source::BSE_BHAV)
+      @import_status = ImportStatus.find_or_create_by(source: ImportStatus::Source::BSE_BHAV)
       @importer = Importer::Bse::EquityBhav.new
     end
 

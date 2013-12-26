@@ -1,5 +1,5 @@
 class ImportStatus < ActiveRecord::Base
-  attr_accessible :data_upto, :completed, :last_run, :source
+  #attr_accessible :data_upto, :completed, :last_run, :source
 
   module Source
     BSE_BHAV = 'bse_bhav'

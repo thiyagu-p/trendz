@@ -7,7 +7,7 @@ class StockPerformance
   PERIOD = [1, 7, 30, 90, 365]
 
   def returns
-    latest_quote = EqQuote.find_by_stock_id(@stock.id, order: 'date desc', limit: 1)
+    latest_quote = EqQuote.order('date desc').limit(1).find_by(stock_id: @stock.id)
     return {} unless latest_quote
     max_date = latest_quote.date
 
@@ -20,7 +20,7 @@ class StockPerformance
   private
 
   def find_earliest_quote(stock_id, date)
-    EqQuote.find_by_stock_id(stock_id, order: :date, conditions: "date >='#{date}'")
+    EqQuote.order(:date).where("date >='#{date}'").find_by(stock_id: stock_id)
   end
 
   def return_percentage(start_quote, end_quote)

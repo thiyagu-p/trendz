@@ -32,6 +32,7 @@ module Importer
         csv_url = find_csv_url(response.body)
         return unless csv_url
         csv_content = get(csv_url).body
+        p csv_content
         CSV.parse(csv_content) do |row|
           next unless row[0] =~ /FII|DII/
           market_activity = MarketActivity.find_or_create_by_date(Date.parse(row[1]))

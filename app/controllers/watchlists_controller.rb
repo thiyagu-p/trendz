@@ -18,7 +18,8 @@ class WatchlistsController < ApplicationController
   end
 
   def create
-    @watchlist = Watchlist.new(params[:watchlist])
+    @watchlist = Watchlist.new(watchlist_params)
+    @watchlist.stock_ids = params[:watchlist][:stock_ids]
       if @watchlist.save
         redirect_to(@watchlist, :notice => 'Watchlist was successfully created.')
       else
@@ -28,7 +29,8 @@ class WatchlistsController < ApplicationController
 
   def update
     @watchlist = Watchlist.find(params[:id])
-      if @watchlist.update_attributes(params[:watchlist])
+    @watchlist.stock_ids = params[:watchlist][:stock_ids]
+      if @watchlist.update_attributes(watchlist_params)
         redirect_to(@watchlist, :notice => 'Watchlist was successfully updated.')
       else
         render :action => "edit"
@@ -39,5 +41,10 @@ class WatchlistsController < ApplicationController
     @watchlist = Watchlist.find(params[:id])
     @watchlist.destroy
     redirect_to action: :index
+  end
+
+  private
+  def watchlist_params
+    params.require(:watchlist).permit(:name);
   end
 end

@@ -115,7 +115,7 @@ describe Importer::Nse::CorporateActionImporter do
       end
 
       it 'should import and save multiple unknown actions' do
-        corporate_action_errors = CorporateActionError.find_all_by_stock_id_and_ex_date @stock1.id, Date.parse('01/06/2004')
+        corporate_action_errors = CorporateActionError.where(stock_id: @stock1.id, ex_date: Date.parse('01/06/2004')).to_a
         corporate_action_errors.count.should == 2
       end
 

@@ -4,7 +4,7 @@ describe Importer::Nse::SymbolChange do
   before(:each) do
     @http = stub()
     Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-    ImportStatus.find_or_create_by_source(ImportStatus::Source::NSE_SYMBOL_CHANGE)
+    ImportStatus.find_or_create_by(source: ImportStatus::Source::NSE_SYMBOL_CHANGE)
     @importer = Importer::Nse::SymbolChange.new
     response = stub(:body => response_data )
     @http.expects(:request_get).with('/content/equities/symbolchange.csv', Importer::Nse::Connection.user_agent).returns(response)
@@ -39,13 +39,13 @@ describe Importer::Nse::SymbolChange do
     it "should have only new stock symbol" do
       @importer.import
       Stock.find_by_symbol(@old_stock.symbol).should be_nil
-      Stock.find_all_by_symbol(@new_stock.symbol).size.should == 1
+      Stock.where(symbol: @new_stock.symbol).to_a.size.should == 1
     end
 
     it "should update old stock and delete new stock" do
       @importer.import
-      Stock.find_by_symbol(@old_stock.symbol).should be_nil
-      Stock.find_by_symbol(@new_stock.symbol).id.should == @old_stock.id
+      Stock.find_by(symbol: @old_stock.symbol).should be_nil
+      Stock.find_by(symbol: @new_stock.symbol).id.should == @old_stock.id
     end
 
     it "should merge new stocks equity quotes to old stock" do
@@ -54,10 +54,10 @@ describe Importer::Nse::SymbolChange do
 
       @importer.import
 
-      EqQuote.find_all_by_stock_id(@new_stock.id).size.should == 0
-      EqQuote.find_all_by_stock_id(@old_stock.id).size.should == 2
-      EqQuote.find_by_stock_id_and_date(@old_stock.id, @yesterday).should_not be_nil
-      EqQuote.find_by_stock_id_and_date(@old_stock.id, @today).should_not be_nil
+      EqQuote.where(stock_id: @new_stock.id).to_a.size.should == 0
+      EqQuote.where(stock_id: @old_stock.id).to_a.size.should == 2
+      EqQuote.where(stock_id: @old_stock.id, date: @yesterday).should_not be_nil
+      EqQuote.where(stock_id: @old_stock.id, date: @today).should_not be_nil
     end
 
     it "should recalculate moving averages for quotes merged from new stock" do
@@ -67,7 +67,7 @@ describe Importer::Nse::SymbolChange do
 
       @importer.import
 
-      quote = EqQuote.find_by_stock_id_and_date(@old_stock.id, @today)
+      quote = EqQuote.find_by(stock_id: @old_stock.id, date: @today)
       quote.mov_avg_10d.should_not == original_moving_avg
       quote.mov_avg_50d.should_not == original_moving_avg
       quote.mov_avg_200d.should_not == original_moving_avg

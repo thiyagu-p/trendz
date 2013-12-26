@@ -30,7 +30,7 @@ describe Importer::Nse::CorporateResultImporter do
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{stock1.symbol}", Importer::Nse::Connection.user_agent).returns(stub(body: result_history_html))
       Importer::Nse::CorporateResultImporter.new.fetch_data_for stock1
-      corporate_results = CorporateResult.order(:quarter_end).all
+      corporate_results = CorporateResult.order(:quarter_end).to_a
       corporate_results.collect(&:quarter_end).should == [Date.parse('30/09/2011'),Date.parse('31/12/2011'),Date.parse('31/03/2012'),Date.parse('30/06/2012'),Date.parse('30/09/2012')]
     end
 

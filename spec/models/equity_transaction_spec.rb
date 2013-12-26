@@ -24,7 +24,7 @@ describe EquityTransaction do
     end
 
     it "should allow only buy/sell action" do
-      EquityTransaction.new(@hash.merge(type: EquityTransaction::BUY)).should_not be_valid
+      EquityTransaction.new(@hash).should_not be_valid
       EquityBuy.new(@hash).should be_valid
       EquitySell.new(@hash).should be_valid
     end

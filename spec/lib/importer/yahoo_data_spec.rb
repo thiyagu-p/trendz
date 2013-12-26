@@ -7,7 +7,7 @@ describe Importer::YahooData do
     @http = stub()
     Net::HTTP.expects(:new).with(Importer::YahooData::BASEURL).returns(@http)
     @importer = Importer::YahooData.new
-    ImportStatus.find_or_create_by_source(ImportStatus::Source::YAHOO_QUOTES)
+    ImportStatus.find_or_create_by(source: ImportStatus::Source::YAHOO_QUOTES)
   end
 
   it "should import quotes for all stocks which has yahoo code set" do
@@ -25,24 +25,24 @@ describe Importer::YahooData do
 
   it "should import quote from next day of last available date of specific stock which has open price" do
     Date.stubs(:today).returns(Date.parse('5/10/2009'))
-
     stock = Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
-    EqQuote.expects(:maximum).with(:date, :conditions => "stock_id = #{stock.id} and traded_quantity is not null").returns(Date.parse('1/1/2009'))
+    create(:eq_quote, stock: stock, date: Date.parse('1/1/2009'))
     @http.expects(:request_get).with('/table.csv?&s=%5EY1&a=0&b=2&c=2009&d=9&e=5&f=2009&g=d&ignore=.csv').returns(stub(:class => Net::HTTPNotFound))
 
     @importer.import
   end
 
   it "should update data for specific date if already present" do
-    Date.stubs(:today).returns(Date.parse('2011-08-30'))
+    Date.stubs(:today).returns(Date.parse('2011-08-31'))
     stock = Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
     date = Date.parse('2011-08-30')
-    EqQuote.create(stock_id: stock.id, date: date)
-    EqQuote.expects(:maximum).with(:date, :conditions => "stock_id = #{stock.id} and traded_quantity is not null").returns(date - 1)
-    @http.expects(:request_get).with('/table.csv?&s=%5EY1&a=7&b=30&c=2011&d=7&e=30&f=2011&g=d&ignore=.csv').returns(stub(:class => Net::HTTPOK, :body => data))
+    create(:eq_quote, stock: stock, date: date)
+    create(:eq_quote, stock: stock, date: date + 1, traded_quantity: nil)
+
+    @http.expects(:request_get).with('/table.csv?&s=%5EY1&a=7&b=31&c=2011&d=7&e=31&f=2011&g=d&ignore=.csv').returns(stub(:class => Net::HTTPOK, :body => data))
 
     @importer.import
-    quotes = EqQuote.find_all_by_stock_id_and_date(stock.id, date)
+    quotes = EqQuote.where(stock_id: stock.id, date: date).to_a
     quotes.size.should == 1
     quotes.first.open.should == 1209.76
     quotes.first.high.should == 1220.10
@@ -56,7 +56,7 @@ describe Importer::YahooData do
 
     @importer.import
 
-    EqQuote.find_all_by_stock_id(stock.id).size.should == 5
+    EqQuote.where(stock_id: stock.id).to_a.size.should == 5
     quote = EqQuote.find_by_stock_id_and_date(stock.id, Date.parse('30/8/2011'))
     quote.open.should == 1209.76
     quote.high.should == 1220.10

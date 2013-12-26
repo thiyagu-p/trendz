@@ -15,7 +15,7 @@ class EquityHolding < ActiveRecord::Base
   def self.consolidated
      self.select([:stock_id, :trading_account_id, :portfolio_id, "sum(equity_holdings.quantity) as quantity"]).joins(:equity_transaction)
      .group([:stock_id, :trading_account_id, :portfolio_id])
-     .order([:portfolio_id, :stock_id, :quantity, :trading_account_id])
+     .order('portfolio_id, stock_id, quantity, trading_account_id')
   end
 
   scope :delivery, lambda { where('delivery') }

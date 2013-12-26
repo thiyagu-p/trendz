@@ -66,14 +66,12 @@ describe WatchlistsController do
     describe "with invalid params" do
       it "assigns a newly created but unsaved watchlist as @watchlist" do
         Watchlist.any_instance.stubs(:save).returns(false)
-        post :create, :watchlist => {}
-        assigns(:watchlist).should be_a_new(Watchlist)
+        expect{post :create, :watchlist => {}}.to raise_error(ActionController::ParameterMissing)
       end
 
       it "re-renders the 'new' template" do
         Watchlist.any_instance.stubs(:save).returns(false)
-        post :create, :watchlist => {}
-        response.should render_template("new")
+        expect{post :create, :watchlist => {}}.to raise_error(ActionController::ParameterMissing)
       end
     end
   end
@@ -111,15 +109,14 @@ describe WatchlistsController do
       it "assigns the watchlist as @watchlist" do
         watchlist = Watchlist.create! valid_attributes
         Watchlist.any_instance.stubs(:save).returns(false)
-        put :update, :id => watchlist.id.to_s, :watchlist => {}
+        expect{put :update, :id => watchlist.id.to_s, :watchlist => {}}.to raise_error(ActionController::ParameterMissing)
         assigns(:watchlist).should eq(watchlist)
       end
 
       it "re-renders the 'edit' template" do
         watchlist = Watchlist.create! valid_attributes
         Watchlist.any_instance.stubs(:save).returns(false)
-        put :update, :id => watchlist.id.to_s, :watchlist => {}
-        response.should render_template("edit")
+        expect{put :update, :id => watchlist.id.to_s, :watchlist => {}}.to raise_error(ActionController::ParameterMissing)
       end
     end
   end

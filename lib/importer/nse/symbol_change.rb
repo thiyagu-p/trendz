@@ -51,14 +51,14 @@ module Importer
       def migrate_new_stock_references_and_delete(stock, new_symbol, from_date)
         new_stock = Stock.find_by_symbol(new_symbol)
         return unless new_stock
-        EqQuote.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
-        FoQuote.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
-        BonusAction.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
-        DividendAction.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
-        FaceValueAction.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
-        CorporateActionError.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
-        CorporateResult.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
-        EquityTransaction.update_all "stock_id = #{stock.id}", "stock_id = #{new_stock.id}"
+        EqQuote.where("stock_id = #{new_stock.id}").update_all("stock_id = #{stock.id}")
+        FoQuote.where("stock_id = #{new_stock.id}").update_all("stock_id = #{stock.id}")
+        BonusAction.where("stock_id = #{new_stock.id}").update_all("stock_id = #{stock.id}")
+        DividendAction.where("stock_id = #{new_stock.id}").update_all("stock_id = #{stock.id}")
+        FaceValueAction.where("stock_id = #{new_stock.id}").update_all("stock_id = #{stock.id}")
+        CorporateActionError.where("stock_id = #{new_stock.id}").update_all("stock_id = #{stock.id}")
+        CorporateResult.where("stock_id = #{new_stock.id}").update_all("stock_id = #{stock.id}")
+        EquityTransaction.where("stock_id = #{new_stock.id}").update_all("stock_id = #{stock.id}")
         ActiveRecord::Base.connection.execute "update stocks_watchlists set stock_id = #{stock.id} where stock_id = #{new_stock.id}"
         new_stock.delete
         (from_date .. Date.today).each { |date| MovingAverageCalculator.update(date, stock) }

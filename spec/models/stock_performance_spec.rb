@@ -8,7 +8,7 @@ describe StockPerformance do
 
     stock_performance = StockPerformance.new(stock)
 
-    stock_performance.returns['7 Days'].to_f.should == (366.0 - 359.0) / 359.0 * 100.0
+    expect(stock_performance.returns['7 Days']).to be_within(0.01).of((366.0 - 359.0) / 359.0 * 100.0)
 
   end
 

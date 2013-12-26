@@ -104,7 +104,7 @@ describe EquityHolding do
       create(:equity_holding, equity_transaction: buy_transaction2)
 
       consolidated_list = EquityHolding.consolidated
-      consolidated_list.all.size.should == 1
+      consolidated_list.to_a.size.should == 1
       consolidated_list.first.quantity = buy_transaction1.quantity + buy_transaction2.quantity
       consolidated_list.first.portfolio_id = params[:portfolio].id
       consolidated_list.first.trading_account_id = params[:trading_account].id
@@ -112,7 +112,7 @@ describe EquityHolding do
     end
 
     it 'should order by portfolio, symbol, quantity and trading account' do
-      EquityHolding.consolidated.order_values.should == [:portfolio_id, :stock_id, :quantity, :trading_account_id]
+      EquityHolding.consolidated.order_values.should == ['portfolio_id, stock_id, quantity, trading_account_id']
     end
 
     shared_examples_for "consolidation group" do |field|
@@ -123,7 +123,7 @@ describe EquityHolding do
         create(:equity_holding, equity_transaction: (buy_transaction3 = create(:equity_buy, params.merge(field => create(field)))))
 
         consolidated_list = EquityHolding.consolidated
-        list_of_ids = consolidated_list.collect {|holding| holding.send("#{field}_id").to_i}
+        list_of_ids = consolidated_list.to_a.collect {|holding| holding.send("#{field}_id").to_i}
         list_of_ids.should =~ [buy_transaction1.send("#{field}_id"), buy_transaction3.send("#{field}_id")]
       end
     end

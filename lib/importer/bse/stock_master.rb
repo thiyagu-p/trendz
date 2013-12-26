@@ -22,7 +22,7 @@ module Importer
         CSV.parse(data, {headers: true}) do |row|
           bse_code, bse_symbol, company_name, status_string, bse_group, face_value, isin, industry, instrument = row.fields
           next if isin.nil? or isin.length < 12
-          stock = Stock.find_or_create_by_isin(isin)
+          stock = Stock.find_or_create_by(isin: isin)
           stock.update_attributes!(bse_code: bse_code, bse_symbol: bse_symbol,
                                    bse_active: status_string == 'Active',
                                    bse_group: bse_group.strip, industry: industry)

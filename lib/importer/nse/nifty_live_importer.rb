@@ -26,7 +26,7 @@ module Importer
         return unless nifty_data["name"] =~ /S&P CNX NIFTY/ or !nifty.nil?
         date = Date.parse(nifty_data["timeVal"])
         return unless EqQuote.find_by_date date
-        quote = EqQuote.find_or_create_by_stock_id_and_date(nifty.id, date)
+        quote = EqQuote.find_or_create_by(stock_id: nifty.id, date: date)
         attr_hash = ["open", "high", "low", "close"].inject({}) { |attr_hash, value| attr_hash[value] = parse_data(nifty_data, value); attr_hash }
         quote.update_attributes!(attr_hash)
         MovingAverageCalculator.update(date, nifty)

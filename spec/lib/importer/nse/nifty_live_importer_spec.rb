@@ -30,7 +30,7 @@ describe Importer::Nse::NiftyLiveImporter do
 
       it "should import" do
         Importer::Nse::NiftyLiveImporter.new.import
-        quote = EqQuote.find_by_stock_id_and_date(@stock.id, @date)
+        quote = EqQuote.find_by(stock_id: @stock.id, date: @date)
         quote.open.should == 5062.35
         quote.high.should == 5091.45
         quote.low.should == 4967.45
@@ -44,7 +44,7 @@ describe Importer::Nse::NiftyLiveImporter do
         EqQuote.create(stock: @stock, date: @date)
 
         Importer::Nse::NiftyLiveImporter.new.import
-        quotes = EqQuote.find_all_by_stock_id_and_date(@stock.id, @date)
+        quotes = EqQuote.where(stock_id: @stock.id, date: @date).to_a
         quotes.size.should == 1
         quotes.first.close.to_f.should == 5075.70
       end
@@ -56,7 +56,7 @@ describe Importer::Nse::NiftyLiveImporter do
       EqQuote.stubs(:find_by_date).returns(EqQuote.new)
       stock = Stock.create(symbol: 'NIFTY')
       Importer::Nse::NiftyLiveImporter.new.import
-      quotes = EqQuote.find_all_by_stock_id(stock.id)
+      quotes = EqQuote.where(stock_id: stock.id).to_a
       quotes.size.should == 1
       quotes.first.close.should_not eq(0)
     end

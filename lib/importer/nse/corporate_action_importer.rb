@@ -80,15 +80,15 @@ module Importer
         actions.each do |action|
           if action[:type] == :dividend
             percentage = (action[:percentage].nil? ? (action[:value].to_f / stock.face_value_on(ex_date) * 100) : action[:percentage].to_f).round(2)
-            dividend = DividendAction.find_or_create_by_stock_id_and_ex_date_and_nature_and_percentage(stock.id, ex_date, action[:nature], percentage)
+            dividend = DividendAction.find_or_create_by(stock_id: stock.id, ex_date: ex_date, nature: action[:nature], percentage: percentage)
           elsif action[:type] == :bonus
-            bonus = BonusAction.find_or_create_by_stock_id_and_ex_date(stock.id, ex_date)
+            bonus = BonusAction.find_or_create_by(stock_id: stock.id, ex_date: ex_date)
             bonus.update_attributes!(holding_qty: action[:holding], bonus_qty: action[:bonus])
           elsif action[:type] == :split or action[:type] == :consolidation
-            split = FaceValueAction.find_or_create_by_stock_id_and_ex_date(stock.id, ex_date)
+            split = FaceValueAction.find_or_create_by(stock_id: stock.id, ex_date: ex_date)
             split.update_attributes!(from: action[:from], to: action[:to])
           else
-            corporate_action_error = CorporateActionError.find_or_create_by_stock_id_and_ex_date_and_partial_data(stock.id, ex_date, action[:data])
+            corporate_action_error = CorporateActionError.find_or_create_by(stock_id: stock.id, ex_date: ex_date, partial_data: action[:data])
             corporate_action_error.update_attributes!(full_data: action_data, partial_data: action[:data], is_ignored: (action[:type] == :ignore))
           end
         end
