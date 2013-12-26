@@ -20,17 +20,15 @@ describe BonusAction do
     it 'should set applied' do
       create(:equity_buy, @params.merge(date: @exdate - 1))
       bonus = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 1, bonus_qty: 1)
-      bonus.apply
+      expect{bonus.apply}.to change{EquityTransaction.count}.by(1)
       bonus.applied?.should be_true
-      EquityTransaction.count.should == 2
     end
 
     it 'should set skip already applied' do
       create(:equity_buy, @params.merge(date: @exdate - 1))
       bonus = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 1, bonus_qty: 1)
       bonus.apply
-      bonus.apply
-      EquityTransaction.count.should == 2
+      expect{bonus.apply}.to_not change{EquityTransaction.count}
     end
 
     it 'should allocate bonus for based on ratio of bonus and holding stock' do
