@@ -34,6 +34,7 @@ class EquityBuy < EquityTransaction
       self.price = self.price * conversion_ration
       self.quantity = self.quantity / conversion_ration
       save!
+      return self
     else
       EquityBuy.transaction do
         original_quantity = self.quantity
@@ -52,6 +53,7 @@ class EquityBuy < EquityTransaction
         self.save!
 
         EquityTrade.update_all "equity_buy_id = #{new_transaction.id} from equity_transactions as sell where equity_buy_id = #{self.id} and equity_sell_id = sell.id and sell.date > '#{record_date}'"
+        return new_transaction
       end
     end
   end

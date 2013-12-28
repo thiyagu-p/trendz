@@ -1,5 +1,7 @@
 class BonusAction < ActiveRecord::Base
   belongs_to :stock
+  has_many :bonus_transactions
+  has_many :equity_transactions, through: :bonus_transactions, source: :equity_buy
 
   def apply
     return if applied?
@@ -25,8 +27,11 @@ class BonusAction < ActiveRecord::Base
         record_date = self.ex_date - 1
         holding_qty = EquityBuy.find_holding_quantity self.stock, record_date, trading_account, portfolio
         bonus_qty = holding_qty / self.holding_qty * self.bonus_qty
-        EquityBuy.create!(stock: self.stock, date: self.ex_date, trading_account: trading_account, portfolio: portfolio,
-                          quantity: bonus_qty, price: 0, brokerage: 0) if bonus_qty > 0
+        if bonus_qty > 0
+          eq_transaction = EquityBuy.create!(stock: self.stock, date: self.ex_date, trading_account: trading_account, portfolio: portfolio,
+                            quantity: bonus_qty, price: 0, brokerage: 0)
+          self.equity_transactions << eq_transaction
+        end
       end
     end
   end

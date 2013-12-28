@@ -93,7 +93,7 @@ describe BonusAction do
 
       BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3).apply
 
-      bonus_transaction = EquityTransaction.find_by_stock_id_and_date(@stock.id, @exdate)
+      bonus_transaction = EquityTransaction.find_by(stock_id: @stock.id, date: @exdate)
       bonus_transaction.price.should be_zero
       bonus_transaction.brokerage.should be_zero
     end
@@ -103,13 +103,22 @@ describe BonusAction do
 
       BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 15, bonus_qty: 1).apply
 
-      bonus_transaction = EquityTransaction.find_by_stock_id_and_date(@stock.id, @exdate)
+      bonus_transaction = EquityTransaction.find_by(stock_id: @stock.id, date: @exdate)
       bonus_transaction.quantity.should == 6
     end
 
     it 'should not create bonus transaction if quantity is zero' do
       create(:equity_buy, @params.merge(date: @exdate - 1))
       expect { BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 200, bonus_qty: 3).apply }.to_not change { EquityTransaction.count }
+    end
+
+    it 'should create bonus transcation mapper' do
+      create(:equity_buy, @params.merge(date: @exdate - 1))
+
+      bonus = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 15, bonus_qty: 1)
+      bonus.apply
+      bonus.equity_transactions.count.should == 1
+      bonus.equity_transactions.first.quantity.should == 6
     end
 
   end

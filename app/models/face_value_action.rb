@@ -1,5 +1,7 @@
 class FaceValueAction < ActiveRecord::Base
   belongs_to :stock
+  has_many :face_value_transactions
+  has_many :equity_transactions, through: :face_value_transactions, source: :equity_buy
 
   def apply
     return if applied?
@@ -28,7 +30,7 @@ class FaceValueAction < ActiveRecord::Base
         record_date = self.ex_date - 1
         holdings = EquityBuy.find_holdings_on self.stock, record_date, trading_account, portfolio
         holdings.each do |transaction|
-          transaction.apply_face_value_change(conversion_ration, record_date)
+          self.equity_transactions << transaction.apply_face_value_change(conversion_ration, record_date)
         end
       end
     end

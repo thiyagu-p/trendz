@@ -47,6 +47,13 @@ describe FaceValueAction do
         transaction.price.to_f.should == @params[:price] * action.to.to_f / action.from.to_f
       end
 
+      it 'should create face value transaction mapping' do
+        old_transaction = create(:equity_buy, @params.merge(date: @exdate - 1))
+        (action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)).apply
+        action.apply
+        action.equity_transactions.count.should == 1
+      end
+
       describe :partial_sale do
 
         before :each do
@@ -84,6 +91,13 @@ describe FaceValueAction do
           new_transaction.trading_account.should == @params[:trading_account]
           new_transaction.stock.should == @params[:stock]
           new_transaction.delivery.should == @params[:delivery]
+        end
+
+        it 'should create face value transaction mapping to new transaction' do
+          @action.apply
+
+          new_transaction = EquityBuy.where('id <> ?', @buy.id).first
+          @action.equity_transactions.should == [new_transaction]
         end
 
         it 'should map future trade to point to new transaction' do
