@@ -160,6 +160,23 @@ describe EquityBuy do
       new_buy.date.should == buy.date
     end
 
+    it 'should return new transaction if original split becasue of partial holding' do
+      original_transaction = EquityBuy.create!(@hash)
+      holding_qty = 42
+      conversion_factor = 0.2
+      original_transaction.holding_qty = holding_qty
+
+      new_transaction = original_transaction.apply_face_value_change(conversion_factor, @date + 1)
+      new_transaction.should_not == original_transaction
+    end
+
+    it 'should return original transaction if face value applied on original' do
+      original_transaction = EquityBuy.create!(@hash)
+
+      new_transaction = original_transaction.apply_face_value_change(0.2, @date + 1)
+      new_transaction.should == original_transaction
+    end
+
     it 'should update future sales to point to holding transaction' do
       exdate = @date + 1
       buy = EquityBuy.create!(@hash)
