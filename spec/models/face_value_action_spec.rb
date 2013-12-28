@@ -17,50 +17,59 @@ describe FaceValueAction do
         @portfolio = Portfolio.create
         @stock = Stock.create
         @exdate = Date.parse('1/1/2012')
-        @params = {quantity: 100, price: 250, portfolio: @portfolio, trading_account: @trading_account, stock: @stock, delivery: true}
+        @params = {quantity: 100, price: 250, brokerage: 200, portfolio: @portfolio, trading_account: @trading_account, stock: @stock, delivery: true}
+        @action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)
       end
 
+      describe 'complete holding' do
 
-      it 'should update quantity and price based on face value impact' do
-        create(:equity_buy, @params.merge(date: @exdate - 1))
-        (action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)).apply
+        before :each do
+          Equity::Trader.handle_new_transaction(@buy = create(:equity_buy, @params.merge(date: @exdate - 1)))
+        end
 
-        EquityTransaction.count.should == 1
-        transaction = EquityTransaction.first
-        face_value_change_ratio = action.from.to_f / action.to.to_f
-        transaction.price.to_f.should == @params[:price] / face_value_change_ratio
-        transaction.quantity.to_f.should == @params[:quantity] * face_value_change_ratio
-      end
+        it 'should update quantity and price based on face value impact' do
+          @action.apply
 
-      it 'should set applied' do
-        create(:equity_buy, @params.merge(date: @exdate - 1))
-        (action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)).apply
+          EquityTransaction.count.should == 1
+          transaction = EquityTransaction.first
+          face_value_change_ratio = @action.from.to_f / @action.to.to_f
+          transaction.price.to_f.should == @params[:price] / face_value_change_ratio
+          transaction.quantity.to_f.should == @params[:quantity] * face_value_change_ratio
+        end
 
-        action.applied?.should be_true
-      end
+        it 'should set applied' do
+          @action.apply
 
-      it 'should not re-apply' do
-        create(:equity_buy, @params.merge(date: @exdate - 1))
-        (action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)).apply
-        action.apply
-        transaction = EquityTransaction.first
-        transaction.price.to_f.should == @params[:price] * action.to.to_f / action.from.to_f
-      end
+          @action.applied?.should be_true
+        end
 
-      it 'should create face value transaction mapping' do
-        old_transaction = create(:equity_buy, @params.merge(date: @exdate - 1))
-        (action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)).apply
-        action.apply
-        action.equity_transactions.count.should == 1
+        it 'should not re-apply' do
+          @action.apply
+          @action.apply
+          transaction = EquityTransaction.first
+          transaction.price.to_f.should == @params[:price] * @action.to.to_f / @action.from.to_f
+        end
+
+        it 'should create face value transaction mapping' do
+          @action.apply
+          @action.equity_transactions.should == [@buy]
+        end
+
+        it 'should update holding quantity' do
+          @action.apply
+
+          face_value_transaction = @action.equity_transactions.first
+          holding = EquityHolding.find_by(equity_transaction_id: face_value_transaction.id)
+
+          holding.quantity = face_value_transaction.quantity
+        end
       end
 
       describe :partial_sale do
 
         before :each do
-          @params = {quantity: 100, price: 250, brokerage: 200, portfolio: @portfolio, trading_account: @trading_account, stock: @stock, delivery: true}
           Equity::Trader.handle_new_transaction(@buy = create(:equity_buy, @params.merge(date: @exdate - 1)))
           Equity::Trader.handle_new_transaction(@sell = create(:equity_sell, @params.merge(date: @exdate - 1, quantity: 49)))
-          @action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)
         end
 
         it 'should separate sold and holding into separate transaction' do
@@ -111,10 +120,33 @@ describe FaceValueAction do
           EquityTrade.find_by_equity_sell_id(@sell2).equity_buy_id.should == new_transaction.id
           EquityTrade.find_by_equity_sell_id(@sell3).equity_buy_id.should == new_transaction.id
         end
+
+        it 'should update holding quantity of old and new transaction' do
+          @action.apply
+
+          sold_transaction = EquityBuy.find(@buy.id)
+          new_transaction = EquityBuy.where('id <> ?', @buy.id).first
+
+          EquityHolding.find_by(equity_transaction_id: sold_transaction.id).should be_nil
+          EquityHolding.find_by(equity_transaction_id: new_transaction.id).quantity.should == new_transaction.quantity
+        end
+
+        it 'should set holding quantity of new transaction considering future sales' do
+          Equity::Trader.handle_new_transaction(@sell2 = create(:equity_sell, @params.merge(date: @exdate, quantity: 2)))
+
+          @action.apply
+
+          new_transaction = EquityBuy.where('id <> ?', @buy.id).first
+
+          holding_qty = new_transaction.quantity - @sell2.quantity
+          EquityHolding.find_by(equity_transaction_id: new_transaction.id).quantity.should == holding_qty
+        end
+
       end
 
       it 'should ignore future buy' do
-        create(:equity_buy, @params.merge(date: @exdate))
+        Equity::Trader.handle_new_transaction(create(:equity_buy, @params.merge(date: @exdate)))
+
         FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2).apply
         EquityTransaction.count.should == 1
         transaction = EquityTransaction.first
@@ -146,7 +178,7 @@ describe FaceValueAction do
       end
 
       it 'futures' do
-        FoQuote.expects(:apply_factor).with(@stock,  @face_value_action.send(:conversion_ration), @exdate)
+        FoQuote.expects(:apply_factor).with(@stock, @face_value_action.send(:conversion_ration), @exdate)
         @face_value_action.apply
       end
     end

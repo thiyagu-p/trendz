@@ -30,7 +30,17 @@ class FaceValueAction < ActiveRecord::Base
         record_date = self.ex_date - 1
         holdings = EquityBuy.find_holdings_on self.stock, record_date, trading_account, portfolio
         holdings.each do |transaction|
-          self.equity_transactions << transaction.apply_face_value_change(conversion_ration, record_date)
+          new_transaction = transaction.apply_face_value_change(conversion_ration, record_date)
+          self.equity_transactions << new_transaction
+          holding = EquityHolding.find_by(equity_transaction_id: transaction.id)
+          if (transaction == new_transaction)
+            new_holding_qty = holding.quantity / conversion_ration
+            holding.update_attribute(:quantity, new_holding_qty)
+          else
+            sold_quantity = EquityTrade.where(equity_buy_id: new_transaction.id).sum(:quantity)
+            EquityHolding.create!(equity_transaction_id: new_transaction.id, quantity: new_transaction.quantity - sold_quantity)
+            holding.destroy
+          end
         end
       end
     end

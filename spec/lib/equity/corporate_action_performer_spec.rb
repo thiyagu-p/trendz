@@ -5,7 +5,7 @@ describe CorporateActionPerformer do
   it 'should apply all bonus actions which are not applied upto current date' do
     stock = Stock.create!
     today = Date.today
-    EquityBuy.create! stock: stock, quantity: 1, price: 10, date: today - 5, portfolio: Portfolio.create!, trading_account: TradingAccount.create!
+    FactoryHelper.create_equity_holding(transaction: {stock: stock, quantity: 1, price: 10, date: today - 5})
 
     past_action = create(:bonus_action, stock: stock, ex_date:today - 2, applied: false)
     past_action_applied = create(:bonus_action, stock: stock, ex_date:today - 1, applied: true)
@@ -28,7 +28,7 @@ describe CorporateActionPerformer do
   it 'should apply all face values actions which are not applied upto current date' do
     stock = Stock.create!
     today = Date.today
-    EquityBuy.create! stock: stock, quantity: 100, price: 10, date: today - 5, portfolio: Portfolio.create!, trading_account: TradingAccount.create!
+    FactoryHelper.create_equity_holding(transaction: {stock: stock, quantity: 100, price: 10, date: today - 5})
 
     past_action = create(:face_value_action, stock: stock, ex_date:today - 2, applied: false)
     past_action_applied = create(:face_value_action, stock: stock, ex_date:today - 1, applied: true)

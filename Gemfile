@@ -13,6 +13,6 @@ gem 'rails-observers', '~> 0.1.2'
 
 group :development, :test do
   gem "rspec-rails", "2.14.0"
-  gem 'mocha', "0.14.0"
+  gem 'mocha', "0.14.0", require: false
   gem "factory_girl_rails", "4.3.0"
 end

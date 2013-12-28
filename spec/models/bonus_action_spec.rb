@@ -121,6 +121,17 @@ describe BonusAction do
       bonus.equity_transactions.first.quantity.should == 6
     end
 
+    it 'should update holding quantity' do
+      create(:equity_buy, @params.merge(date: @exdate - 1))
+
+      bonus = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 15, bonus_qty: 1)
+      bonus.apply
+
+      bonus_transaction = bonus.equity_transactions.first
+      holding = EquityHolding.find_by(equity_transaction_id: bonus_transaction.id)
+      holding.quantity.should == bonus_transaction.quantity
+    end
+
   end
 
   context 'quotes' do

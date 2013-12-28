@@ -31,6 +31,7 @@ class BonusAction < ActiveRecord::Base
           eq_transaction = EquityBuy.create!(stock: self.stock, date: self.ex_date, trading_account: trading_account, portfolio: portfolio,
                             quantity: bonus_qty, price: 0, brokerage: 0)
           self.equity_transactions << eq_transaction
+          EquityHolding.create(equity_transaction: eq_transaction, quantity: bonus_qty)
         end
       end
     end

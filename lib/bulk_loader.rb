@@ -31,6 +31,7 @@ class BulkLoader
     transaction = action == 'Sell' ? EquitySell.new : EquityBuy.new
     transaction.update_attributes! stock: stock, date: date, quantity: quantity, price: price, brokerage: brokerage,
                                    delivery: day_trading != 'DT', portfolio: portfolio, trading_account: tranding_account
+    Equity::Trader.handle_new_transaction(transaction)
   end
 
   def import_corporate_actions symbol_changes
