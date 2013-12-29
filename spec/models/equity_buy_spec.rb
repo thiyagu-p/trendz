@@ -11,61 +11,6 @@ describe EquityBuy do
              date: @date, brokerage: 320}
   end
 
-  describe 'find_holdings_on' do
-
-    it "should find holdings of stock on a given day" do
-      buy1 = EquityBuy.create(@hash.merge(quantity: 101))
-      buy2 = EquityBuy.create(@hash.merge(quantity: 202))
-      buy3 = EquityBuy.create(@hash.merge(quantity: 303))
-      holdings = EquityBuy.find_holdings_on(@stock, @hash[:date], @trading_account, @portfolio)
-      holdings.count.should == 3
-      holdings.should =~ [buy1, buy2, buy3]
-    end
-
-    it "should handling partial holding and update holding qty" do
-      buy = EquityBuy.create(@hash.merge(quantity: 101))
-      sell = EquitySell.create(@hash.merge(quantity: 50))
-      Equity::Trader.handle_new_transaction(buy)
-      Equity::Trader.handle_new_transaction(sell)
-      holdings = EquityBuy.find_holdings_on(@stock, @hash[:date], @trading_account, @portfolio)
-      holdings.first.holding_qty.should == 51
-    end
-
-    it "should ignore future transactions while finding holdings" do
-      Equity::Trader.handle_new_transaction(buy1 = EquityBuy.create(@hash.merge(quantity: 101, date: Date.today)))
-      Equity::Trader.handle_new_transaction(buy2 = EquityBuy.create(@hash.merge(quantity: 202, date: Date.tomorrow)))
-      Equity::Trader.handle_new_transaction(sell1 = EquitySell.create(@hash.merge(quantity: 100, date: Date.tomorrow + 1)))
-      Equity::Trader.handle_new_transaction(sell2 = EquitySell.create(@hash.merge(quantity: 2, date: Date.tomorrow + 2)))
-
-      EquityBuy.find_holdings_on(@stock, Date.today, @trading_account, @portfolio).should =~ [buy1]
-      EquityBuy.find_holdings_on(@stock, Date.tomorrow, @trading_account, @portfolio).should =~ [buy1, buy2]
-      EquityBuy.find_holdings_on(@stock, Date.tomorrow + 1, @trading_account, @portfolio).should == [buy1, buy2]
-      EquityBuy.find_holdings_on(@stock, Date.tomorrow + 2, @trading_account, @portfolio).should == [buy2]
-    end
-
-    it "should ignore other stock holdings while finding holdings for a specific stock" do
-      buy1 = EquityBuy.create(@hash.merge(quantity: 101))
-      EquityBuy.create(@hash.merge(quantity: 202, stock: create(:stock)))
-      EquityBuy.find_holdings_on(@stock, Date.today, @trading_account, @portfolio).should =~ [buy1]
-    end
-
-    it "should filter by given trading account" do
-      buy1 = EquityBuy.create(@hash.merge(quantity: 101))
-      new_trading_account = create(:trading_account)
-      buy2 = EquityBuy.create(@hash.merge(quantity: 202, trading_account: new_trading_account))
-      EquityBuy.find_holdings_on(@stock, Date.today, @trading_account, @portfolio).should == [buy1]
-      EquityBuy.find_holdings_on(@stock, Date.today, new_trading_account, @portfolio).should == [buy2]
-    end
-
-    it "should filter by given portfolio account" do
-      buy1= EquityBuy.create(@hash.merge(quantity: 101))
-      new_portfolio = create(:portfolio)
-      buy2= EquityBuy.create(@hash.merge(quantity: 202, portfolio: new_portfolio))
-      EquityBuy.find_holdings_on(@stock, Date.today, @trading_account, @portfolio).should == [buy1]
-      EquityBuy.find_holdings_on(@stock, Date.today, @trading_account, new_portfolio).should == [buy2]
-    end
-  end
-
   describe 'find_holding_quantity' do
 
     it "should find holding qty of stock on a given day" do
@@ -124,75 +69,148 @@ describe EquityBuy do
     it 'should apply conversion ration on price and quantity' do
       buy = EquityBuy.create!(@hash)
       conversion_factor = 0.2
-      buy.apply_face_value_change(conversion_factor, @date + 1)
+      buy.apply_face_value_change(conversion_factor)
       buy.price.should == 120 * conversion_factor
       buy.quantity.should == 80 / conversion_factor
     end
+  end
 
-    it 'should split holding vs sold into separate transaction' do
-      buy = EquityBuy.create!(@hash)
-      buy.holding_qty = 42
-      expect {buy.apply_face_value_change(0.2, @date + 1)}.to change {EquityBuy.count}.by(1)
+  describe ".partially_sold_on?" do
+    before :each do
+      @buy = create(:equity_buy, @hash.merge(quantity: 100, date: @date - 1))
+      @sell_before = create(:equity_sell, @hash.merge(quantity: 20))
+      @sell_after = create(:equity_sell, @hash.merge(quantity: 80, date: @date + 1))
+      create(:equity_trade, equity_buy: @buy, equity_sell: @sell_before, quantity: @sell_before.quantity)
+      create(:equity_trade, equity_buy: @buy, equity_sell: @sell_after, quantity: @sell_after.quantity)
+    end
+    context 'when partially sold' do
+      it {expect(@buy.partially_sold_on?(@date)).to be true}
+    end
+    context 'when fully holding' do
+      it {expect(@buy.partially_sold_on?(@date - 1)).to be false}
+    end
+    context 'when fully sold' do
+      it {expect(@buy.partially_sold_on?(@date + 1)).to be false}
+    end
+  end
+
+  describe ".holding_on?" do
+    before :each do
+      @buy = create(:equity_buy, @hash.merge(quantity: 100, date: @date - 1))
+      @sell_before = create(:equity_sell, @hash.merge(quantity: 20))
+      @sell_after = create(:equity_sell, @hash.merge(quantity: 80, date: @date + 1))
+      create(:equity_trade, equity_buy: @buy, equity_sell: @sell_before, quantity: @sell_before.quantity)
+      create(:equity_trade, equity_buy: @buy, equity_sell: @sell_after, quantity: @sell_after.quantity)
+    end
+    context 'when partially sold' do
+      it {expect(@buy.holding_on?(@date)).to be true}
+    end
+    context 'when fully holding' do
+      it {expect(@buy.holding_on?(@date - 1)).to be true}
+    end
+    context 'when fully sold' do
+      it {expect(@buy.holding_on?(@date + 1)).to be false}
+    end
+    context 'when before purchase' do
+      it {expect(@buy.holding_on?(@date - 5)).to be false}
+    end
+  end
+
+  describe ".break_based_on_holding_on" do
+
+    context "on break" do
+      before :each do
+        @buy = create(:equity_buy, @hash.merge(quantity: 100))
+        @sell = create(:equity_sell, @hash.merge(quantity: 20))
+        create(:equity_trade, equity_buy: @buy, equity_sell: @sell, quantity: @sell.quantity)
+        @holding_qty = @buy.quantity - @sell.quantity
+      end
+      it "create a new transaction" do
+        expect{@buy.break_based_on_holding_on(@date + 1)}.to change{EquityBuy.count}.by(1)
+      end
+
+      it "new transaction quantity should be holding quantity as on date" do
+        new_transaction = @buy.break_based_on_holding_on(@date + 1)
+        expect(new_transaction.quantity).to be(@holding_qty)
+      end
+
+      it "old transaction quantity should be sold quantity as on date" do
+        @buy.break_based_on_holding_on(@date + 1)
+        expect(@buy.quantity).to be(@sell.quantity)
+      end
+
+      it "brokerage should be split based on quantity" do
+        brokerage_for_old = @buy.brokerage / @buy.quantity * (@buy.quantity - @holding_qty)
+        brokerage_for_new = @buy.brokerage / @buy.quantity * @holding_qty
+        new_transaction = @buy.break_based_on_holding_on(@date + 1)
+        expect(new_transaction.brokerage).to be_within(0.01).of(brokerage_for_new)
+        expect(@buy.brokerage).to be_within(0.01).of(brokerage_for_old)
+      end
+
+      it "except brokerage and quantity other attributes should remain same" do
+        new_transaction = @buy.break_based_on_holding_on(@date + 1)
+        ignored = ['id', 'brokerage', 'quantity', 'created_at', 'updated_at']
+        expect(new_transaction.attributes.except(*ignored)).to eq(@buy.attributes.except(*ignored))
+      end
     end
 
-    it 'should have original price, sold quantity and proportionate brokerage for sold transaction' do
-      buy = EquityBuy.create!(@hash)
-      holding_qty = 42
-      conversion_factor = 0.2
-      buy.holding_qty = holding_qty
-      buy.apply_face_value_change(conversion_factor, @date + 1)
-      buy.price.should == 120
-      buy.quantity.should == (80 - holding_qty)
-      buy.brokerage.should == 320 / 80 * (80 - holding_qty)
+    context 'on mutiple sales' do
+      before :each do
+        @buy = create(:equity_buy, @hash.merge(quantity: 100))
+        @sell_before = create(:equity_sell, @hash.merge(quantity: 5, date: @date - 1))
+        @sell_on = create(:equity_sell, @hash.merge(quantity: 6))
+        @sell_after = create(:equity_sell, @hash.merge(quantity: 21, date: @date + 1))
+        create(:equity_trade, equity_buy: @buy, equity_sell: @sell_before, quantity: @sell_before.quantity)
+        create(:equity_trade, equity_buy: @buy, equity_sell: @sell_on, quantity: @sell_on.quantity)
+        create(:equity_trade, equity_buy: @buy, equity_sell: @sell_after, quantity: @sell_after.quantity)
+      end
+
+      it 'should consider sold on or before date as sold' do
+        holding_qty = @buy.quantity - @sell_before.quantity - @sell_on.quantity
+        new_transaction = @buy.break_based_on_holding_on(@date)
+        expect(@buy.quantity).to be(@sell_before.quantity + @sell_on.quantity)
+        expect(new_transaction.quantity).to be(holding_qty)
+      end
+
+      it 'should update trades past the date to point to new transaction' do
+        new_transaction = @buy.break_based_on_holding_on(@date)
+        expect(EquityTrade.find_by(equity_sell_id: @sell_after.id).equity_buy_id).to eq(new_transaction.id)
+      end
+
+      it 'should update trades past the date to point to new transaction' do
+        new_transaction = @buy.break_based_on_holding_on(@date)
+        expect(EquityTrade.find_by(equity_sell_id: @sell_on.id).equity_buy_id).to eq(@buy.id)
+        expect(EquityTrade.find_by(equity_sell_id: @sell_before.id).equity_buy_id).to eq(@buy.id)
+      end
     end
 
-    it 'should have new price, new holding quantity and proportionate brokerage for holding transaction' do
-      buy = EquityBuy.create!(@hash)
-      holding_qty = 42
-      conversion_factor = 0.2
-      buy.holding_qty = holding_qty
-
-      buy.apply_face_value_change(conversion_factor, @date + 1)
-      new_buy = EquityBuy.where("id <> #{buy.id}").first
-      new_buy.price.should == 120.0 * conversion_factor
-      new_buy.quantity.should == (buy.holding_qty / conversion_factor).to_i
-      new_buy.brokerage.should == 320 / 80 * holding_qty
-      new_buy.date.should == buy.date
+    context 'when no sale' do
+      it 'should not create new transaction' do
+        buy = create(:equity_buy)
+        expect{buy.break_based_on_holding_on(@date)}.not_to change{EquityBuy.count}
+      end
     end
 
-    it 'should return new transaction if original split becasue of partial holding' do
-      original_transaction = EquityBuy.create!(@hash)
-      holding_qty = 42
-      conversion_factor = 0.2
-      original_transaction.holding_qty = holding_qty
-
-      new_transaction = original_transaction.apply_face_value_change(conversion_factor, @date + 1)
-      new_transaction.should_not == original_transaction
+    context 'when no holding' do
+      it 'should not create new transaction' do
+        buy = create(:equity_buy)
+        sell = create(:equity_sell)
+        create(:equity_trade, equity_buy: buy, equity_sell: sell, quantity: sell.quantity)
+        expect{buy.break_based_on_holding_on(@date)}.not_to change{EquityBuy.count}
+      end
     end
 
-    it 'should return original transaction if face value applied on original' do
-      original_transaction = EquityBuy.create!(@hash)
+    it "should consider sales associated with the buy" do
+      buy1 = create(:equity_buy, @hash)
+      buy2 = create(:equity_buy, @hash)
+      sell1 = create(:equity_sell, @hash.merge(quantity: 5))
+      sell2 = create(:equity_sell, @hash.merge(quantity: 6))
+      create(:equity_trade, equity_buy: buy1, equity_sell: sell1, quantity: sell1.quantity)
+      create(:equity_trade, equity_buy: buy2, equity_sell: sell2, quantity: sell2.quantity)
 
-      new_transaction = original_transaction.apply_face_value_change(0.2, @date + 1)
-      new_transaction.should == original_transaction
+      expect(buy1.break_based_on_holding_on(@date).quantity).to eq(@hash[:quantity] - sell1.quantity)
+      expect(buy2.break_based_on_holding_on(@date).quantity).to eq(@hash[:quantity] - sell2.quantity)
+
     end
-
-    it 'should update future sales to point to holding transaction' do
-      exdate = @date + 1
-      buy = EquityBuy.create!(@hash)
-      sell_past = create(:equity_sell, @hash.merge(date: exdate - 1, quantity: 2))
-      sell_future = create(:equity_sell, @hash.merge(date: exdate, quantity: 1))
-      trade1 = EquityTrade.create!(equity_buy: buy, equity_sell: sell_past, quantity: 2)
-      trade2 = EquityTrade.create!(equity_buy: buy, equity_sell: sell_future, quantity: 1)
-
-      buy.holding_qty = 78
-
-      buy.apply_face_value_change(0.2, @date)
-
-      new_transaction = EquityBuy.where('id <> ?', buy.id).first
-      EquityTrade.find_by_id_and_equity_sell_id(trade1.id, sell_past.id).equity_buy_id.should == buy.id
-      EquityTrade.find_by_id_and_equity_sell_id(trade2.id, sell_future.id).equity_buy_id.should == new_transaction.id
-    end
-
   end
 end

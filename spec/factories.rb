@@ -67,6 +67,12 @@ FactoryGirl.define do
     quantity 10
   end
 
+  factory :equity_trade do
+    association :equity_buy, quantity: 10
+    association :equity_sell, quantity: 10
+    quantity 10
+  end
+
   factory :bonus_action do
     stock
     holding_qty 1

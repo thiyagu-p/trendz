@@ -25,26 +25,27 @@ class FaceValueAction < ActiveRecord::Base
   end
 
   def apply_on_portfolio
-    TradingAccount.all.each do |trading_account|
-      Portfolio.all.each do |portfolio|
-        record_date = self.ex_date - 1
-        holdings = EquityBuy.find_holdings_on self.stock, record_date, trading_account, portfolio
-        holdings.each do |transaction|
-          new_transaction = transaction.apply_face_value_change(conversion_ration, record_date)
-          self.equity_transactions << new_transaction
-          holding = EquityHolding.find_by(equity_transaction_id: transaction.id)
-          if (transaction == new_transaction)
-            new_holding_qty = holding.quantity / conversion_ration
-            holding.update_attribute(:quantity, new_holding_qty)
-          else
-            sold_quantity = EquityTrade.where(equity_buy_id: new_transaction.id).sum(:quantity)
-            EquityHolding.create!(equity_transaction_id: new_transaction.id, quantity: new_transaction.quantity - sold_quantity)
-            holding.destroy
-          end
+
+    buys = EquityBuy.where(stock_id: self.stock_id).where("date < '#{ex_date}'")
+    buys.each do |buy|
+      record_date = ex_date-1
+      next unless buy.holding_on?(record_date)
+      if buy.partially_sold_on?(record_date)
+        new_transaction = buy.break_based_on_holding_on(record_date)
+        new_transaction.apply_face_value_change(conversion_ration)
+        self.equity_transactions << new_transaction
+        sold_quantity = EquityTrade.where(equity_buy_id: new_transaction.id).sum(:quantity)
+        EquityHolding.create!(equity_transaction_id: new_transaction.id, quantity: new_transaction.quantity - sold_quantity)
+        EquityHolding.find_by(equity_transaction_id: buy.id).destroy
+      else
+        buy.apply_face_value_change(conversion_ration)
+        self.equity_transactions << buy
+        holding = EquityHolding.find_by(equity_transaction_id: buy.id)
+        if holding
+          sold_quantity = EquityTrade.where(equity_buy_id: buy.id).sum(:quantity)
+          holding.update_attribute(:quantity, buy.quantity - sold_quantity)
         end
       end
     end
   end
-
-
 end

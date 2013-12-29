@@ -10,51 +10,45 @@ class EquityBuy < EquityTransaction
     total_buy_quantity - total_sell_quantity
   end
 
-  def self.find_holdings_on stock, record_date, trading_account, portfolio
-    buys = where(stock_id: stock).where("date <= '#{record_date}'").where(trading_account_id: trading_account).where(portfolio_id: portfolio).load
-    trades = EquityBuy.find_by_sql "select buy.id, sum(trade.quantity) as sold_qty FROM equity_transactions buy join equity_trades trade on trade.equity_buy_id = buy.id join equity_transactions sell on sell.id = trade.equity_sell_id where buy.stock_id = #{stock.id} and buy.date <= '#{record_date}' and sell.date <= '#{record_date}' group by buy.id"
-    sold_quantities = trades.inject({}) {|hash, trade| hash[trade.id] = trade.sold_qty.to_f; hash}
-    holdings = []
-    buys.each do |buy|
-       if (sold_qty = sold_quantities[buy.id]) && ((holding_qty = buy.quantity - sold_qty) > 0 )
-         buy.holding_qty = holding_qty
-         holdings << buy
-       elsif sold_quantities[buy.id].nil?
-         buy.holding_qty = buy.quantity
-         holdings << buy
-       end
-    end
-    holdings
+  def apply_face_value_change(conversion_ration)
+    update_attributes!(price: self.price * conversion_ration, quantity: self.quantity / conversion_ration)
   end
 
-  #TODO remove record_date, use ex_date
-  #TODO don't use holding_qty attribute, calcualte and find
-  def apply_face_value_change(conversion_ration, record_date)
-    if self.holding_qty.nil? || self.quantity == self.holding_qty
-      self.price = self.price * conversion_ration
-      self.quantity = self.quantity / conversion_ration
-      save!
-      return self
-    else
-      EquityBuy.transaction do
-        original_quantity = self.quantity
-        new_transaction = EquityBuy.new
-        new_transaction.date = self.date
-        new_transaction.trading_account_id = self.trading_account_id
-        new_transaction.portfolio_id = self.portfolio_id
-        new_transaction.stock_id = self.stock_id
-        new_transaction.price = self.price * conversion_ration
-        new_transaction.quantity = self.holding_qty / conversion_ration
-        new_transaction.brokerage = self.brokerage / original_quantity * self.holding_qty
-        new_transaction.save!
+  def partially_sold_on?(date)
+    partial_sale? sold_qty_on(date)
+  end
 
-        self.quantity -= self.holding_qty
-        self.brokerage = self.brokerage / original_quantity * self.quantity
-        self.save!
+  def holding_on?(date)
+    self.date <= (date) && self.quantity > sold_qty_on(date)
+  end
 
-        EquityTrade.update_all "equity_buy_id = #{new_transaction.id} from equity_transactions as sell where equity_buy_id = #{self.id} and equity_sell_id = sell.id and sell.date > '#{record_date}'"
-        return new_transaction
-      end
+  def break_based_on_holding_on(date)
+    sold_qty = sold_qty_on(date)
+    if partial_sale?(sold_qty)
+      holding_qty = self.quantity - sold_qty
+      new_transaction = create_transaction_with_quantity(holding_qty)
+      update_attributes!(brokerage: self.brokerage / self.quantity * sold_qty, quantity: sold_qty)
+      EquityTrade.update_all "equity_buy_id = #{new_transaction.id} from equity_transactions as sell where equity_buy_id = #{self.id} and equity_sell_id = sell.id and sell.date > '#{date}'"
+      return new_transaction
     end
   end
+
+  private
+
+  def create_transaction_with_quantity(holding_qty)
+    new_transaction = self.dup
+    new_transaction.quantity = holding_qty
+    new_transaction.brokerage = self.brokerage / self.quantity * holding_qty
+    new_transaction.save!
+    new_transaction
+  end
+
+  def partial_sale?(sold_qty)
+    sold_qty != 0 && sold_qty < self.quantity
+  end
+
+  def sold_qty_on(date)
+    EquityTrade.joins(:equity_sell).where("equity_transactions.date <= '#{date}'").where(equity_buy_id: self.id).sum(:quantity)
+  end
+
 end
