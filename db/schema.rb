@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20131228190028) do
+ActiveRecord::Schema.define(version: 20131229125559) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -28,6 +28,8 @@ ActiveRecord::Schema.define(version: 20131228190028) do
     t.integer "equity_transaction_id", null: false
     t.integer "bonus_action_id",       null: false
   end
+
+  add_index "bonus_transactions", ["bonus_action_id", "equity_transaction_id"], name: "idx_bonus_transaction", unique: true, using: :btree
 
   create_table "corporate_action_errors", force: true do |t|
     t.integer "stock_id"
@@ -71,6 +73,14 @@ ActiveRecord::Schema.define(version: 20131228190028) do
     t.string  "nature",     limit: 10
     t.boolean "applied",                                       default: false, null: false
   end
+
+  create_table "dividend_transactions", id: false, force: true do |t|
+    t.integer "equity_transaction_id",                         null: false
+    t.integer "dividend_action_id",                            null: false
+    t.decimal "value",                 precision: 7, scale: 2
+  end
+
+  add_index "dividend_transactions", ["dividend_action_id", "equity_transaction_id"], name: "idx_dividend_transaction", unique: true, using: :btree
 
   create_table "eq_quotes", force: true do |t|
     t.integer "stock_id"
@@ -131,6 +141,8 @@ ActiveRecord::Schema.define(version: 20131228190028) do
     t.integer "equity_transaction_id", null: false
     t.integer "face_value_action_id",  null: false
   end
+
+  add_index "face_value_transactions", ["face_value_action_id", "equity_transaction_id"], name: "idx_face_value_transaction", unique: true, using: :btree
 
   create_table "fo_quotes", force: true do |t|
     t.integer "stock_id"
@@ -236,6 +248,9 @@ ActiveRecord::Schema.define(version: 20131228190028) do
   add_foreign_key "corporate_results", "stocks", name: "corporate_results_stock_id_fk"
 
   add_foreign_key "dividend_actions", "stocks", name: "dividend_actions_stock_id_fk"
+
+  add_foreign_key "dividend_transactions", "dividend_actions", name: "dividend_transactions_dividend_action_id_fk"
+  add_foreign_key "dividend_transactions", "equity_transactions", name: "dividend_transactions_equity_transaction_id_fk"
 
   add_foreign_key "eq_quotes", "stocks", name: "eq_quotes_stock_id_fk"
 

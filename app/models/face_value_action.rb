@@ -8,8 +8,7 @@ class FaceValueAction < ActiveRecord::Base
     self.transaction do
       apply_on_portfolio
       apply_on_quotes
-      self.applied = true
-      save!
+      update_attribute(:applied, true)
     end
   end
 

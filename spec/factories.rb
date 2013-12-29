@@ -89,5 +89,12 @@ FactoryGirl.define do
     ex_date Date.today
   end
 
+  factory :dividend_action do
+    stock
+    percentage 10
+    applied false
+    ex_date Date.today
+  end
+
 
 end

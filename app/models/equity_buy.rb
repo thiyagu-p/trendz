@@ -19,7 +19,11 @@ class EquityBuy < EquityTransaction
   end
 
   def holding_on?(date)
-    self.date <= (date) && self.quantity > sold_qty_on(date)
+    date >= self.date && self.quantity > sold_qty_on(date)
+  end
+
+  def holding_qty_on(date)
+    date >= self.date ? self.quantity - sold_qty_on(date) : 0
   end
 
   def break_based_on_holding_on(date)

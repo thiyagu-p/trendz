@@ -116,6 +116,28 @@ describe EquityBuy do
     end
   end
 
+  describe ".holding_qty_on" do
+    before :each do
+      @buy = create(:equity_buy, @hash.merge(quantity: 100, date: @date - 1))
+      @sell_before = create(:equity_sell, @hash.merge(quantity: 20))
+      @sell_after = create(:equity_sell, @hash.merge(quantity: 80, date: @date + 1))
+      create(:equity_trade, equity_buy: @buy, equity_sell: @sell_before, quantity: @sell_before.quantity)
+      create(:equity_trade, equity_buy: @buy, equity_sell: @sell_after, quantity: @sell_after.quantity)
+    end
+    context 'when partially sold' do
+      it {expect(@buy.holding_qty_on(@date)).to eq(@buy.quantity - @sell_before.quantity)}
+    end
+    context 'when fully holding' do
+      it {expect(@buy.holding_qty_on(@date - 1)).to eq(@buy.quantity)}
+    end
+    context 'when fully sold' do
+      it {expect(@buy.holding_qty_on(@date + 1)).to be_zero}
+    end
+    context 'when before purchase' do
+      it {expect(@buy.holding_qty_on(@date - 5)).to be_zero}
+    end
+  end
+
   describe ".break_based_on_holding_on" do
 
     context "on break" do
