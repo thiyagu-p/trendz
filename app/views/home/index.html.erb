@@ -19,8 +19,9 @@
          stock = holding.equity_transaction.stock
          latest_price = stock.latest_quote.nil? ? 0 : stock.latest_quote.close
          purchase_price = holding.equity_transaction.price
-         start_price = holding.equity_transaction.date < @year_beginning ?
-                 EqQuote.find_by_stock_id_and_date(stock.id, @year_beginning).close : purchase_price
+         beginning_quote = EqQuote.find_by_stock_id_and_date(stock.id, @year_beginning)
+         start_price = holding.equity_transaction.date < @year_beginning && beginning_quote ?
+                 beginning_quote.close : purchase_price
          no_of_days_holding = (Date.today - holding.equity_transaction.date).round(0)
     %>
         <tr>
