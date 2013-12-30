@@ -6,6 +6,7 @@
       <th># Days</th>
       <th>ROI</th>
       <th>Avg Cost</th>
+      <th>Value</th>
       <th>YTD : P/L</th>
       <th>Yr start</th>
       <th>Current</th>
@@ -31,6 +32,7 @@
           <td><%= holding_summary[:average_days] %></td>
           <td><%= ((latest_price - purchase_price) / purchase_price / holding_summary[:average_days] * 365 * 100).round(1) %></td>
           <td><%= purchase_price %></td>
+          <td><%= (latest_price * holding_summary[:quantity]).round(0) %></td>
           <td>
             <%
                pl = holding_summary[:quantity] * (latest_price - start_price)
@@ -49,6 +51,7 @@
     <% end %>
     <% unless @consolidated_holdings.empty? %>
         <tr>
+          <td></td>
           <td></td>
           <td></td>
           <td></td>

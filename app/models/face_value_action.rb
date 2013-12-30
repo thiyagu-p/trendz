@@ -26,9 +26,10 @@ class FaceValueAction < ActiveRecord::Base
   def apply_on_portfolio
 
     buys = EquityBuy.where(stock_id: self.stock_id).where("date < '#{ex_date}'")
+    action_applied_ids = FaceValueTransaction.where(face_value_action_id: self.id, equity_transaction_id: buys.collect(&:id)).to_a.collect(&:equity_transaction_id)
     buys.each do |buy|
       record_date = ex_date-1
-      next unless buy.holding_on?(record_date)
+      next unless buy.holding_on?(record_date) && !action_applied_ids.include?(buy.id)
       if buy.partially_sold_on?(record_date)
         new_transaction = buy.break_based_on_holding_on(record_date)
         new_transaction.apply_face_value_change(conversion_ration)

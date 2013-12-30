@@ -24,12 +24,13 @@ ActiveRecord::Schema.define(version: 20131229125559) do
     t.boolean "applied",     default: false, null: false
   end
 
-  create_table "bonus_transactions", id: false, force: true do |t|
-    t.integer "equity_transaction_id", null: false
-    t.integer "bonus_action_id",       null: false
+  create_table "bonus_transactions", force: true do |t|
+    t.integer "source_transaction_id"
+    t.integer "bonus_id"
+    t.integer "bonus_action_id"
   end
 
-  add_index "bonus_transactions", ["bonus_action_id", "equity_transaction_id"], name: "idx_bonus_transaction", unique: true, using: :btree
+  add_index "bonus_transactions", ["bonus_action_id", "source_transaction_id"], name: "idx_unique_bonus_txn", unique: true, using: :btree
 
   create_table "corporate_action_errors", force: true do |t|
     t.integer "stock_id"
@@ -39,15 +40,6 @@ ActiveRecord::Schema.define(version: 20131229125559) do
     t.string  "partial_data"
   end
 
-  create_table "corporate_actions", force: true do |t|
-    t.integer  "stock_id"
-    t.date     "ex_date"
-    t.string   "parsed_data"
-    t.string   "raw_data"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
   create_table "corporate_results", force: true do |t|
     t.integer  "stock_id"
     t.date     "quarter_end"
@@ -55,8 +47,8 @@ ActiveRecord::Schema.define(version: 20131229125559) do
     t.decimal  "net_p_and_l",              precision: 12, scale: 2
     t.decimal  "eps_before_extraordinary", precision: 12, scale: 2
     t.decimal  "eps",                      precision: 12, scale: 2
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",                                        null: false
+    t.datetime "updated_at",                                        null: false
   end
 
   create_table "delayed_jobs", force: true do |t|
@@ -69,8 +61,8 @@ ActiveRecord::Schema.define(version: 20131229125559) do
     t.datetime "failed_at"
     t.string   "locked_by"
     t.string   "queue"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
   end
 
   add_index "delayed_jobs", ["priority", "run_at"], name: "delayed_jobs_priority", using: :btree
@@ -106,22 +98,22 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   end
 
   add_index "eq_quotes", ["date"], name: "index_eq_quotes_on_date", using: :btree
-  add_index "eq_quotes", ["stock_id", "date"], name: "eq_quotes_stock_id_date", using: :btree
+  add_index "eq_quotes", ["stock_id", "date"], name: "index_eq_quotes_on_stock_id_and_date", using: :btree
   add_index "eq_quotes", ["stock_id"], name: "index_eq_quotes_on_stock_id", using: :btree
 
   create_table "equity_holdings", force: true do |t|
     t.integer  "equity_transaction_id", null: false
     t.integer  "quantity",              null: false
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
   end
 
   create_table "equity_trades", force: true do |t|
     t.integer  "equity_buy_id",  null: false
     t.integer  "equity_sell_id", null: false
     t.integer  "quantity",       null: false
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
   end
 
   create_table "equity_transactions", force: true do |t|
@@ -133,8 +125,8 @@ ActiveRecord::Schema.define(version: 20131229125559) do
     t.integer  "trading_account_id"
     t.integer  "portfolio_id"
     t.integer  "stock_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",                        null: false
+    t.datetime "updated_at",                        null: false
     t.boolean  "delivery",           default: true
   end
 
@@ -206,51 +198,8 @@ ActiveRecord::Schema.define(version: 20131229125559) do
 
   create_table "portfolios", force: true do |t|
     t.string   "name"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  create_table "returns", id: false, force: true do |t|
-    t.integer "stock_id"
-    t.decimal "ytw"
-    t.decimal "w1"
-    t.decimal "w2"
-    t.decimal "w3"
-    t.decimal "w4"
-    t.decimal "w5"
-    t.decimal "w6"
-    t.decimal "w7"
-    t.decimal "w8"
-    t.decimal "w9"
-    t.decimal "w10"
-    t.decimal "w11"
-    t.decimal "w12"
-    t.decimal "w13"
-    t.decimal "w14"
-    t.decimal "w15"
-    t.decimal "w16"
-    t.decimal "w17"
-    t.decimal "w18"
-    t.decimal "w19"
-    t.decimal "w20"
-    t.decimal "w21"
-    t.decimal "w22"
-    t.decimal "w23"
-    t.decimal "w24"
-    t.decimal "w25"
-    t.decimal "w26"
-    t.decimal "w27"
-    t.decimal "w28"
-    t.decimal "w29"
-    t.decimal "w30"
-    t.decimal "w31"
-    t.decimal "w32"
-    t.decimal "w33"
-    t.decimal "d10"
-    t.decimal "d20"
-    t.decimal "d50"
-    t.decimal "d200"
-    t.decimal "d365"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "stocks", force: true do |t|
@@ -280,20 +229,21 @@ ActiveRecord::Schema.define(version: 20131229125559) do
 
   create_table "trading_accounts", force: true do |t|
     t.string   "name"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "watchlists", force: true do |t|
     t.string   "name"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   add_foreign_key "bonus_actions", "stocks", name: "bonus_actions_stock_id_fk"
 
   add_foreign_key "bonus_transactions", "bonus_actions", name: "bonus_transactions_bonus_action_id_fk"
-  add_foreign_key "bonus_transactions", "equity_transactions", name: "bonus_transactions_equity_transaction_id_fk"
+  add_foreign_key "bonus_transactions", "equity_transactions", name: "bonus_transactions_bonus_id_fk", column: "bonus_id", dependent: :delete
+  add_foreign_key "bonus_transactions", "equity_transactions", name: "bonus_transactions_source_transaction_id_fk", column: "source_transaction_id", dependent: :delete
 
   add_foreign_key "corporate_action_errors", "stocks", name: "corporate_action_errors_stock_id_fk"
 

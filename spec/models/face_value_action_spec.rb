@@ -45,6 +45,8 @@ describe FaceValueAction do
 
         it 'should not re-apply' do
           @action.apply
+          @action.update_attribute(:applied, false)
+
           @action.apply
           transaction = EquityTransaction.first
           transaction.price.to_f.should == @params[:price] * @action.to.to_f / @action.from.to_f

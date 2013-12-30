@@ -28,6 +28,7 @@ describe BonusAction do
       create(:equity_buy, @params.merge(date: @exdate - 1))
       bonus = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 1, bonus_qty: 1)
       bonus.apply
+      bonus.update_attribute(:applied, false)
       expect{bonus.apply}.to_not change{EquityTransaction.count}
     end
 
@@ -79,8 +80,8 @@ describe BonusAction do
     end
 
     it 'should not allocate bonus for non holding transaction on record date' do
-      create(:equity_buy, @params.merge(date: @exdate - 1))
-      create(:equity_sell, @params.merge(date: @exdate - 1))
+      Equity::Trader.handle_new_transaction(create(:equity_buy, @params.merge(date: @exdate - 1)))
+      Equity::Trader.handle_new_transaction(create(:equity_sell, @params.merge(date: @exdate - 1)))
 
       expect {
         BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3).apply
@@ -112,26 +113,27 @@ describe BonusAction do
       expect { BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 200, bonus_qty: 3).apply }.to_not change { EquityTransaction.count }
     end
 
-    it 'should create bonus transcation mapper' do
-      create(:equity_buy, @params.merge(date: @exdate - 1))
+    it 'should create bonus transcation mapping' do
+      buy = create(:equity_buy, @params.merge(date: @exdate - 1))
 
-      bonus = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 15, bonus_qty: 1)
-      bonus.apply
-      bonus.equity_transactions.count.should == 1
-      bonus.equity_transactions.first.quantity.should == 6
+      bonus_action = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 15, bonus_qty: 1)
+      bonus_action.apply
+
+      bonus = BonusTransaction.find_by(bonus_action_id: bonus_action.id)
+      expect(bonus.source_transaction_id).to eq(buy.id)
+      expect(bonus.bonus.quantity).to eq(6)
     end
 
     it 'should update holding quantity' do
       create(:equity_buy, @params.merge(date: @exdate - 1))
 
-      bonus = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 15, bonus_qty: 1)
-      bonus.apply
+      bonus_action = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 15, bonus_qty: 1)
+      bonus_action.apply
 
-      bonus_transaction = bonus.equity_transactions.first
-      holding = EquityHolding.find_by(equity_transaction_id: bonus_transaction.id)
-      holding.quantity.should == bonus_transaction.quantity
+      bonus = bonus_action.bonus.first
+      holding = EquityHolding.find_by(equity_transaction_id: bonus.id)
+      holding.quantity.should == bonus.quantity
     end
-
   end
 
   context 'quotes' do
