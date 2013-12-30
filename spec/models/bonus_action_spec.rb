@@ -114,14 +114,14 @@ describe BonusAction do
     end
 
     it 'should create bonus transcation mapping' do
-      buy = create(:equity_buy, @params.merge(date: @exdate - 1))
+      buy1 = create(:equity_buy, @params.merge(date: @exdate - 1))
+      buy2 = create(:equity_buy, @params.merge(date: @exdate - 1))
 
       bonus_action = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 15, bonus_qty: 1)
       bonus_action.apply
 
-      bonus = BonusTransaction.find_by(bonus_action_id: bonus_action.id)
-      expect(bonus.source_transaction_id).to eq(buy.id)
-      expect(bonus.bonus.quantity).to eq(6)
+      bonus_transactions = BonusTransaction.where(bonus_action_id: bonus_action.id).to_a
+      expect(bonus_transactions.collect(&:source_transaction_id)).to eq([buy1.id, buy2.id])
     end
 
     it 'should update holding quantity' do

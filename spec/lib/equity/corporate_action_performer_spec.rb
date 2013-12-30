@@ -14,7 +14,7 @@ describe 'CorporateActionPerformer' do
       today_action = create(class_name, stock: stock, ex_date: today, applied: false)
       future_action = create(class_name, stock: stock, ex_date: today + 1, applied: false)
 
-      CorporateActionPerformer.perform
+      Equity::CorporateActionPerformer.perform
 
       described_class.find(past_action.id).applied?.should be_true
       described_class.find(past_action_applied.id).applied?.should be_true
