@@ -24,7 +24,7 @@ module Importer
         Rails.logger.info "processing bse bhav for #{date}"
         file_name, file_path, zip_file_name = file_names(date)
         response = connection(BSE_URL).request_get(file_path)
-        if response.class == Net::HTTPOK
+        if response.class == Net::HTTPOK && response.body =~ /^PK/
           open("data/#{zip_file_name}", 'wb') { |file| file << response.body }
           parse_bhav_file(file_name, zip_file_name, date)
         end

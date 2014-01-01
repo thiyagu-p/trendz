@@ -17,6 +17,12 @@ describe Importer::Bse::EquityBhav do
       quote.previous_close.should == 44.40
       quote.traded_quantity.should == 2351431
     end
+
+    it 'should skip error page response instead of zip file', ft: true do
+      ImportStatus.find_or_create_by(source: ImportStatus::Source::BSE_BHAV)
+      date = Date.parse('14/12/2013')
+      expect{Importer::Bse::EquityBhav.new.send(:import_for, date)}.not_to raise_error
+    end
   end
 
   describe 'UT' do
