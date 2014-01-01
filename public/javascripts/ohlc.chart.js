@@ -43,7 +43,8 @@ function OHLC(params) {
         });
         this._xscale = d3.time.scale().domain([this.stDate, this.enDate]).range([1, this.width - this.margin]);
         this._xscale.clamp();
-        this._yscale = d3.scale.linear().domain([this._ymin, this._ymax]).range([this.height - this.margin, 0]);
+        var chart_y_margin = (this._ymin + this._ymax)/100;
+        this._yscale = d3.scale.linear().domain([this._ymin - chart_y_margin, this._ymax + chart_y_margin]).range([this.height - this.margin, 0]);
     };
 
     OHLC.prototype._createAxis = function () {
@@ -139,7 +140,7 @@ function OHLC(params) {
     };
 
     OHLC.prototype._drawCursorMarker = function (g, xy, text) {
-        var x = this.dateFormat(this._xscale.invert(xy[0])), y = this._yscale.invert(xy[1]);
+        var x = this.dateFormat(this._xscale.invert(xy[0]- this.margin)), y = this._yscale.invert(xy[1]);
         if (this.xCursor === undefined) {
             this.xCursor = this._drawLine(g, -1, -1, -1, -1, "cursor_axis");
             this.yCursor = this._drawLine(g, -1, -1, -1, -1, "cursor_axis");
