@@ -10,10 +10,10 @@ module Importer
         "/corporates/datafiles/CA_#{CGI.escape(symbol)}_MORE_THAN_24_MONTHS.csv"
       end
 
-      FORTHCOMING_URL = "/corporates/corpInfo/equities/getCorpActions.jsp?symbol=&Industry=&ExDt=All%20Forthcoming&exDt=All%20Forthcoming&recordDt=&bcstartDt=&industry=&CAType="
+      FORTHCOMING_URL = "/corporates/datafiles/ALL_FORTHCOMING.csv"
 
-      LAST_15_DAYS = "/corporates/corpInfo/equities/getCorpActions.jsp?symbol=&Industry=&ExDt=Last%2015%20Days&exDt=Last%2015%20Days&recordDt=&bcstartDt=&industry=&CAType="
-      LAST_3_MONTHS = '/corporates/corpInfo/equities/getCorpActions.jsp?symbol=&Industry=&ExDt=Last%203%20Months&exDt=Last%203%20Months&recordDt=&bcstartDt=&industry=&CAType='
+      LAST_15_DAYS = "/corporates/datafiles/CA_LAST_15_DAYS.csv"
+      LAST_3_MONTHS = '/corporates/datafiles/CA_LAST_1_MONTH.csv'
 
       def import
 
@@ -29,7 +29,8 @@ module Importer
           fetch_future
           ImportStatus.completed_upto_today ImportStatus::Source::NSE_CORPORATE_ACTION
         rescue => e
-          p "Nse::CorporateActionImporter Failed - #{e.backtrace}"
+          puts "Nse::CorporateActionImporter Failed - #{e.message}"
+          puts "#{e.backtrace}"
           ImportStatus.failed ImportStatus::Source::NSE_CORPORATE_ACTION
         end
 

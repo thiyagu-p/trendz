@@ -5,6 +5,15 @@ describe Importer::Nse::CorporateActionImporter do
     @status = ImportStatus.find_or_create_by(source: ImportStatus::Source::NSE_CORPORATE_ACTION)
   end
 
+  context 'FT', ft: true do
+    it 'import with full history', ft: true do
+      stock = Stock.create!(symbol: 'TCS', nse_series: 'EQ', face_value: 10, nse_active: true)
+      Importer::Nse::CorporateActionImporter.new.import
+      DividendAction.count.should > 30
+      BonusAction.count.should > 0
+    end
+  end
+
   describe '.more_than_24_months_url' do
     it 'should encode url' do
       Importer::Nse::CorporateActionImporter.more_than_24_months_url('M&M').should == '/corporates/datafiles/CA_M%26M_MORE_THAN_24_MONTHS.csv'
@@ -59,7 +68,7 @@ describe Importer::Nse::CorporateActionImporter do
 
     context 'parsing of data' do
       before :each do
-        @stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true )
+        @stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
         @http = stub()
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
         @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.more_than_24_months_url(@stock1.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))
@@ -326,13 +335,6 @@ describe Importer::Nse::CorporateActionImporter do
 
   end
 
-  it 'should import for TCS', ft: true do
-    stock = Stock.create!(symbol: 'TCS', nse_series: 'EQ', face_value: 10, nse_active: true)
-    Importer::Nse::CorporateActionImporter.new.import
-    DividendAction.count.should > 30
-    BonusAction.count.should > 0
-  end
-
   def corporate_action_json
     <<EOF
 "Symbol","Company","Industry","Series","Face Value(Rs.)","Purpose","Ex-Date","Record Date","BC Start Date","BC End Date","No Delivery Start Date","No Delivery End Date"
@@ -346,5 +348,6 @@ describe Importer::Nse::CorporateActionImporter do
 "RELIANCE","Reliance Industries Limited","-","EQ","10","CONSOLIDATION RE1 TO RS10","01-Jun-2005","-","08-Jul-2005","19-Jul-2005","-","-"
 EOF
   end
+
 end
 
