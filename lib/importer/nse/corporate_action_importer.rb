@@ -51,7 +51,7 @@ module Importer
       end
 
       def fetch_complete_history
-        Stock.all(order: :symbol, conditions: "nse_active").each do |stock|
+        Stock.where(nse_active: true).order(:symbol).to_a.each do |stock|
           begin
             download_data_from(CorporateActionImporter.more_than_24_months_url stock.symbol)
           rescue => e

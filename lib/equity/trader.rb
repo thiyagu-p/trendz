@@ -15,6 +15,7 @@ module Equity
     private
 
     def self.handle_sell(holdings, new_transaction)
+      CorporateActionHandler.apply_pending_upto(new_transaction.stock, new_transaction.date)
       quantity_to_match = new_transaction.quantity
       while quantity_to_match > 0 && holdings.any?
         holding = holdings.shift

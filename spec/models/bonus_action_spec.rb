@@ -17,6 +17,12 @@ describe BonusAction do
       EquityTransaction.count.should == 2
     end
 
+    it 'should not allocate bonus for non delivery stock' do
+      create(:equity_buy, @params.merge(date: @exdate - 1, delivery: false))
+      bonus = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 1, bonus_qty: 1)
+      expect{bonus.apply}.to_not change{EquityTransaction.count}
+    end
+
     it 'should set applied' do
       create(:equity_buy, @params.merge(date: @exdate - 1))
       bonus = BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 1, bonus_qty: 1)

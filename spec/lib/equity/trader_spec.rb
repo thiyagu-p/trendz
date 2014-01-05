@@ -6,7 +6,7 @@ describe Equity::Trader do
     @trading_account = TradingAccount.create
     @portfolio = Portfolio.create
     @stock = Stock.create
-    @params = {quantity: 100, transaction: {portfolio: @portfolio, trading_account: @trading_account, stock: @stock, delivery: false}}
+    @params = {quantity: 100, transaction: {portfolio: @portfolio, trading_account: @trading_account, stock: @stock, delivery: true}}
   end
 
   describe 'holding' do
@@ -25,7 +25,7 @@ describe Equity::Trader do
   end
 
   describe 'trade' do
-    describe 'sell after buy' do
+    context 'sell after buy' do
 
       it "should create trade and update holding for matched buy and sell" do
         buy = FactoryHelper.create_equity_holding(@params).equity_transaction
@@ -81,7 +81,7 @@ describe Equity::Trader do
       end
     end
 
-    describe 'buy after sell' do
+    context 'buy after sell' do
 
       before :each do
         @params.merge!(quantity: -100)
@@ -138,6 +138,20 @@ describe Equity::Trader do
         expect { Equity::Trader.handle_new_transaction(buy) }.to change(EquityTrade, :count).by(1)
         EquityTrade.find_by_equity_buy_id_and_equity_sell_id(buy.id, sell.id).quantity.should == buy.quantity
         EquityHolding.find_by_equity_transaction_id(sell.id).should be_nil
+      end
+    end
+
+    context 'corporate action betwee buy and sell date' do
+
+      it 'should apply action before sell' do
+        buy_date = Date.parse('01/02/2013')
+        buy = create(:equity_buy, @params[:transaction].merge(date: buy_date, quantity: 100))
+        Equity::Trader.handle_new_transaction(buy)
+        BonusAction.create(stock: @stock, holding_qty: 2, bonus_qty: 1, ex_date: buy_date + 1)
+        sell = create(:equity_sell, @params[:transaction].merge(date: buy_date + 2, quantity: 50))
+        Equity::Trader.handle_new_transaction(sell)
+        expect(EquityBuy.count).to eq(2)
+        expect(buy.holding_qty_on(buy_date + 3)).to eq(50)
       end
     end
   end
@@ -215,6 +229,7 @@ describe Equity::Trader do
   end
 
   it "should match buy and sell of day trade ignoring delivery trade" do
+    @params[:transaction].merge!(delivery: false)
     buy = FactoryHelper.create_equity_holding(@params).equity_transaction
     sell = create(:equity_sell, @params[:transaction].merge(quantity: buy.quantity, delivery: true))
     expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(0)

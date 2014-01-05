@@ -1,7 +1,7 @@
 class FaceValueAction < ActiveRecord::Base
   belongs_to :stock
-  has_many :face_value_transactions
-  has_many :equity_transactions, through: :face_value_transactions, source: :equity_buy
+  has_many :transactions, class_name: "FaceValueTransaction"
+  has_many :equity_transactions, through: :transactions, source: :equity_buy
 
   def apply
     return if applied?
@@ -12,20 +12,9 @@ class FaceValueAction < ActiveRecord::Base
     end
   end
 
-  private
-
-  def apply_on_quotes
-    EqQuote.apply_factor self.stock, conversion_ration, ex_date
-    FoQuote.apply_factor self.stock, conversion_ration, ex_date
-  end
-
-  def conversion_ration
-    (to.to_f/from.to_f).round(2)
-  end
-
   def apply_on_portfolio
 
-    buys = EquityBuy.where(stock_id: self.stock_id).where("date < '#{ex_date}'")
+    buys = EquityBuy.where(stock_id: self.stock_id).where("date < '#{ex_date}'").where(delivery: true)
     action_applied_ids = FaceValueTransaction.where(face_value_action_id: self.id, equity_transaction_id: buys.collect(&:id)).to_a.collect(&:equity_transaction_id)
     buys.each do |buy|
       record_date = ex_date-1
@@ -47,5 +36,16 @@ class FaceValueAction < ActiveRecord::Base
         end
       end
     end
+  end
+
+  private
+
+  def apply_on_quotes
+    EqQuote.apply_factor self.stock, conversion_ration, ex_date
+    FoQuote.apply_factor self.stock, conversion_ration, ex_date
+  end
+
+  def conversion_ration
+    (to.to_f/from.to_f).round(2)
   end
 end

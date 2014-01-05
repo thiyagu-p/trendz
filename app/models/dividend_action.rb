@@ -1,5 +1,6 @@
 class DividendAction < ActiveRecord::Base
   belongs_to :stock
+  has_many :transactions, class_name: "DividendTransaction"
 
   attr_accessor :current_percentage
 
@@ -9,6 +10,14 @@ class DividendAction < ActiveRecord::Base
 
   def apply
     return if applied?
+    apply_on_portfolio
+  end
+
+  def current_value
+    percentage / 100 * stock.face_value
+  end
+
+  def apply_on_portfolio
     self.transaction do
       update_attribute(:percentage, calculate_percentage) if percentage.nil?
       buys = EquityBuy.where(stock_id: self.stock_id).where("date < '#{ex_date}'")
@@ -17,19 +26,13 @@ class DividendAction < ActiveRecord::Base
         holding_qty = buy.holding_qty_on(record_date)
         next if holding_qty <= 0 || DividendTransaction.find_by(equity_transaction_id: buy, dividend_action_id: self.id)
         total_dividend = current_value * holding_qty
-        DividendTransaction.create!(equity_buy: buy, dividend_action: self, value: total_dividend)
+        transactions << DividendTransaction.create!(equity_buy: buy, dividend_action: self, value: total_dividend)
       end
       update_attribute(:applied, true)
     end
   end
 
-  def current_value
-    percentage / 100 * stock.face_value
-  end
-
-
   private
-
   def self.actions_with_current_percentage
     dividends = includes(:stock => :latest_quote)
     .where("ex_date >= ? and eq_quotes.date = ?", Date.today, EqQuote.maximum(:date))

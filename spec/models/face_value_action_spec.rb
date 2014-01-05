@@ -21,6 +21,13 @@ describe FaceValueAction do
         @action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)
       end
 
+      context 'non delivery stock' do
+        it 'should not apply' do
+          Equity::Trader.handle_new_transaction(@buy = create(:equity_buy, @params.merge(date: @exdate - 1, delivery: false)))
+          expect { @action.apply }.not_to change{EquityTransaction.first.quantity}
+        end
+      end
+
       describe 'complete holding' do
 
         before :each do
