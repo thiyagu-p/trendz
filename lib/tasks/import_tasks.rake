@@ -16,6 +16,8 @@ namespace :data do
   task :corp_action => :environment do
     Importer::Nse::StockMaster.new.import
     Importer::Nse::CorporateActionImporter.new.import
+    Importer::Bse::StockMaster.new.import
+    Importer::Bse::CorporateActionImporter.new.import
   end
 
   desc "import corporate results"

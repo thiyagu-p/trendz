@@ -6,36 +6,70 @@ module Importer
       include Connection
       include Importer::CorporateActionParser
 
-      def self.url symbol
+      def self.more_than_24_months_url symbol
         "/corporates/datafiles/CA_#{CGI.escape(symbol)}_MORE_THAN_24_MONTHS.csv"
       end
+
+      FORTHCOMING_URL = "/corporates/corpInfo/equities/getCorpActions.jsp?symbol=&Industry=&ExDt=All%20Forthcoming&exDt=All%20Forthcoming&recordDt=&bcstartDt=&industry=&CAType="
+
+      LAST_15_DAYS = "/corporates/corpInfo/equities/getCorpActions.jsp?symbol=&Industry=&ExDt=Last%2015%20Days&exDt=Last%2015%20Days&recordDt=&bcstartDt=&industry=&CAType="
+      LAST_3_MONTHS = '/corporates/corpInfo/equities/getCorpActions.jsp?symbol=&Industry=&ExDt=Last%203%20Months&exDt=Last%203%20Months&recordDt=&bcstartDt=&industry=&CAType='
 
       def import
 
         begin
-          Stock.all(order: :symbol, conditions: "nse_active").each { |stock| fetch_data_for(stock) }
+          status =  ImportStatus.find_by(source: ImportStatus::Source::NSE_CORPORATE_ACTION)
+
+          days_since_last_run = status.data_upto.nil? ? 1000 : Date.today - status.data_upto
+          case days_since_last_run
+            when 0..14 then fetch_last_15_days
+            when 15..89 then fetch_last_3_months
+            else fetch_complete_history
+          end
+          fetch_future
           ImportStatus.completed_upto_today ImportStatus::Source::NSE_CORPORATE_ACTION
         rescue => e
-          Rails.logger.error e.inspect
+          p "Nse::CorporateActionImporter Failed - #{e.backtrace}"
           ImportStatus.failed ImportStatus::Source::NSE_CORPORATE_ACTION
         end
 
       end
 
-      def fetch_data_for(stock)
-        begin
-          response = get(CorporateActionImporter.url stock.symbol)
-          unless response.class == Net::HTTPNotFound
-            data = response.body
-            CSV.parse(data, {headers: true}) do |row|
-              columns = row.fields
-              action_data = columns[5].gsub('"', '').strip
-              ex_date = find_ex_date(columns)
-              persist_actions(action_data, parse_action(action_data), ex_date, stock)
-            end
+      private
+
+      def fetch_last_3_months
+        download_data_from(CorporateActionImporter::LAST_3_MONTHS)
+      end
+
+      def fetch_last_15_days
+        download_data_from(CorporateActionImporter::LAST_15_DAYS)
+      end
+
+      def fetch_future
+        download_data_from(CorporateActionImporter::FORTHCOMING_URL)
+      end
+
+      def fetch_complete_history
+        Stock.all(order: :symbol, conditions: "nse_active").each do |stock|
+          begin
+            download_data_from(CorporateActionImporter.more_than_24_months_url stock.symbol)
+          rescue => e
+            p "Error importing company info for #{stock.symbol} #{e.inspect}"
           end
-        rescue => e
-          p "Error importing company info for #{stock.symbol} #{e.inspect}"
+        end
+      end
+
+      def download_data_from(url)
+        response = get(url)
+        unless response.class == Net::HTTPNotFound
+          data = response.body
+          CSV.parse(data, {headers: true}) do |row|
+            columns = row.fields
+            action_data = columns[5].gsub('"', '').strip
+            ex_date = find_ex_date(columns)
+            stock = Stock.find_by(symbol: columns[0])
+            persist_actions(action_data, parse_action(action_data), ex_date, stock) if stock
+          end
         end
       end
 
@@ -65,7 +99,7 @@ module Importer
               parsed_actions << parse_bonus(action)
             elsif action =~ /CONSOLIDATION/i
               parsed_actions << parse_consolidation(action)
-            elsif action =~ /AGM|ANNUAL|ANN|SCH|RHT|RIGHT|RIGTHS|RGTS|RH|RGHT|RIGTS|EGM|ELECTION|ELCTN|ELEC|GENERAL|CAPITAL|CAPT|REDEMPTION|DEBENTURES|REVISED|ARNGMNT|-|WARRANT|WRNT|WAR|BK\sCL|FCD|CCPS/i
+            elsif action =~ /AGM|ANNUAL|ANN|Interest|SCH|RHT|RIGHT|RIGTHS|RGTS|RH|RGHT|RIGTS|EGM|ELECTION|ELCTN|ELEC|GENERAL|CAPITAL|CAPT|REDEMPTION|DEBENTURES|REVISED|ARNGMNT|-|WARRANT|WRNT|WAR|BK\sCL|FCD|CCPS/i
               parsed_actions << {type: :ignore, data: action}
             else
               parsed_actions << {type: :unknown, data: action}

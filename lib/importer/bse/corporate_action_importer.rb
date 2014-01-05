@@ -13,7 +13,8 @@ module Importer
           parse_and_save_data(download_corporate_actions)
           ImportStatus.completed_upto_today ImportStatus::Source::BSE_CORPORATE_ACTION
         rescue => e
-          Rails.logger.error e.inspect
+          p "Bse::CorporateActionImporter Failed - #{e.inspect}"
+          Rails.logger.fatal e.inspect
           ImportStatus.failed ImportStatus::Source::BSE_CORPORATE_ACTION
         end
 

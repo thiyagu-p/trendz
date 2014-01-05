@@ -47,8 +47,8 @@ ActiveRecord::Schema.define(version: 20131229125559) do
     t.decimal  "net_p_and_l",              precision: 12, scale: 2
     t.decimal  "eps_before_extraordinary", precision: 12, scale: 2
     t.decimal  "eps",                      precision: 12, scale: 2
-    t.datetime "created_at",                                        null: false
-    t.datetime "updated_at",                                        null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "delayed_jobs", force: true do |t|
@@ -61,8 +61,8 @@ ActiveRecord::Schema.define(version: 20131229125559) do
     t.datetime "failed_at"
     t.string   "locked_by"
     t.string   "queue"
-    t.datetime "created_at",             null: false
-    t.datetime "updated_at",             null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "delayed_jobs", ["priority", "run_at"], name: "delayed_jobs_priority", using: :btree
@@ -105,30 +105,30 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   create_table "equity_holdings", force: true do |t|
     t.integer  "equity_transaction_id", null: false
     t.integer  "quantity",              null: false
-    t.datetime "created_at",            null: false
-    t.datetime "updated_at",            null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "equity_trades", force: true do |t|
     t.integer  "equity_buy_id",  null: false
     t.integer  "equity_sell_id", null: false
     t.integer  "quantity",       null: false
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "equity_transactions", force: true do |t|
     t.string   "type"
     t.integer  "quantity"
     t.date     "date"
-    t.decimal  "price"
-    t.decimal  "brokerage"
+    t.decimal  "price",              precision: 7, scale: 2
+    t.decimal  "brokerage",          precision: 7, scale: 2
     t.integer  "trading_account_id"
     t.integer  "portfolio_id"
     t.integer  "stock_id"
-    t.datetime "created_at",                        null: false
-    t.datetime "updated_at",                        null: false
-    t.boolean  "delivery",           default: true
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "delivery",                                   default: true
   end
 
   create_table "face_value_actions", force: true do |t|
@@ -174,7 +174,9 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   create_table "market_activities", force: true do |t|
     t.date    "date",                                                null: false
     t.decimal "fii_buy_equity",             precision: 14, scale: 2
+    t.decimal "dii_buy_equity",             precision: 14, scale: 2
     t.decimal "fii_sell_equity",            precision: 14, scale: 2
+    t.decimal "dii_sell_equity",            precision: 14, scale: 2
     t.decimal "fii_index_futures_buy",      precision: 14, scale: 2
     t.decimal "fii_index_futures_sell",     precision: 14, scale: 2
     t.decimal "fii_index_options_buy",      precision: 14, scale: 2
@@ -191,16 +193,14 @@ ActiveRecord::Schema.define(version: 20131229125559) do
     t.decimal "fii_stock_futures_oi_value", precision: 14, scale: 2
     t.decimal "fii_stock_options_oi",       precision: 14, scale: 2
     t.decimal "fii_stock_options_oi_value", precision: 14, scale: 2
-    t.decimal "dii_buy_equity",             precision: 14, scale: 2
-    t.decimal "dii_sell_equity",            precision: 14, scale: 2
   end
 
   add_index "market_activities", ["date"], name: "index_market_activities_on_date", using: :btree
 
   create_table "portfolios", force: true do |t|
     t.string   "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "stocks", force: true do |t|
@@ -230,14 +230,14 @@ ActiveRecord::Schema.define(version: 20131229125559) do
 
   create_table "trading_accounts", force: true do |t|
     t.string   "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "watchlists", force: true do |t|
     t.string   "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_foreign_key "bonus_actions", "stocks", name: "bonus_actions_stock_id_fk"
