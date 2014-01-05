@@ -42,6 +42,7 @@ module Trendz
     config.filter_parameters += [:password]
     config.active_record.observers = [:equity_buy_observer, :equity_sell_observer]
     config.active_record.include_root_in_json = false
-    config.secret_key_base = '#sie2'
+    config.secret_key_base = '#8271kakmmsi1dn38kkn2aS3112'
+    config.i18n.enforce_available_locales = false
   end
 end

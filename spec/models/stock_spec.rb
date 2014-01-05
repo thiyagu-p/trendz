@@ -17,6 +17,11 @@ describe Stock do
       FaceValueAction.create!(stock: stock, ex_date: Date.today - 1, from: 10, to: 5)
       stock.face_value_on(Date.today - 2).should == 10
     end
+    it 'should ignore future face value changes' do
+      stock = Stock.create(face_value: 5)
+      FaceValueAction.create!(stock: stock, ex_date: Date.today + 1, from: 10, to: 5)
+      stock.face_value_on(Date.today - 2).should == 5
+    end
     it 'should handle stock without any face value changes' do
       stock = Stock.create(face_value: 5)
       stock.face_value_on(Date.today - 2).should == 5

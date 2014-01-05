@@ -1,9 +1,9 @@
 class ImportStatus < ActiveRecord::Base
-  #attr_accessible :data_upto, :completed, :last_run, :source
 
   module Source
     BSE_BHAV = 'bse_bhav'
     BSE_STOCKMASTER = 'bse_stock_master'
+    BSE_CORPORATE_ACTION = 'bse_corporate_action'
     NSE_SYMBOL_CHANGE = 'nse_symbol_change'
     NSE_EQUITIES_BHAV = 'nse_equities_bhav'
     NSE_DERIVATIVES_BHAV = 'nse_derivatives_bhav'
@@ -14,14 +14,14 @@ class ImportStatus < ActiveRecord::Base
   end
 
   def self.completed(source)
-    self.find_by_source(source).update_attributes!(last_run: Date.today, completed: true)
+    self.find_by(source: source).update_attributes!(last_run: Date.today, completed: true)
   end
 
   def self.completed_upto_today(source)
-    self.find_by_source(source).update_attributes!(data_upto: Date.today, last_run: Date.today, completed: true)
+    self.find_by(source: source).update_attributes!(data_upto: Date.today, last_run: Date.today, completed: true)
   end
 
   def self.failed(source)
-    self.find_by_source(source).update_attributes!(last_run: Date.today, completed: false)
+    self.find_by(source: source).update_attributes!(last_run: Date.today, completed: false)
   end
 end

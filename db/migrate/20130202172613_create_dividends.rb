@@ -7,6 +7,7 @@ class CreateDividends < ActiveRecord::Migration
       t.references :stock
       t.date :ex_date
       t.decimal :percentage, :precision => 6, :scale => 2
+      t.decimal :value, :precision => 6, :scale => 2
       t.string :nature, limit: 10
     end
 

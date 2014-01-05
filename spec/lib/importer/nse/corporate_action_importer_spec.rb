@@ -25,11 +25,6 @@ describe Importer::Nse::CorporateActionImporter do
         dividend.nature.should == 'DIVIDEND'
       end
 
-      it 'should convert value dividend to percentage of face value' do
-        dividend = DividendAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2012')
-        dividend.percentage.should == 85
-      end
-
       it 'should save percentage dividend as it is' do
         dividend = DividendAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2011')
         dividend.percentage.should == 90
@@ -130,17 +125,6 @@ describe Importer::Nse::CorporateActionImporter do
       bonus = BonusAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('1/06/2006')
       bonus.should be_nil
     end
-  end
-
-  it 'should percentage conversion take into effect face value actions' do
-    @stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, face_value: 10)
-    @http = stub()
-    Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-    @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.url(@stock1.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))
-    FaceValueAction.create!(stock: @stock1, ex_date: Date.parse('01/07/2012'), from: 1, to: 10)
-    Importer::Nse::CorporateActionImporter.new.fetch_data_for @stock1
-    dividend = DividendAction.find_by_stock_id_and_ex_date @stock1.id, Date.parse('31/05/2012')
-    dividend.percentage.to_f.should == 850
   end
 
   describe :ex_date do
