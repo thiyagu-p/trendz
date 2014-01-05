@@ -4,9 +4,9 @@ describe EquityTransactionsController do
 
   describe :create do
     before :each do
-      @trading_account = TradingAccount.create
-      @portfolio = Portfolio.create
-      @stock = Stock.create
+      @trading_account = create(:trading_account)
+      @portfolio = create(:portfolio)
+      @stock = create(:stock)
       @hash = {price: BigDecimal.new("1.1"), quantity: 2, trading_account_id: @trading_account.id, portfolio_id: @portfolio.id, stock_id: @stock.id,
                type: EquityTransaction::BUY, date: Date.today}
     end

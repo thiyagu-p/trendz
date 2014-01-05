@@ -4,9 +4,9 @@ describe BonusAction do
 
   context 'portfolio' do
     before :each do
-      @trading_account = TradingAccount.create
-      @portfolio = Portfolio.create
-      @stock = Stock.create
+      @trading_account = create(:trading_account)
+      @portfolio = create(:portfolio)
+      @stock = create(:stock)
       @params = {quantity: 100, price: 250, portfolio: @portfolio, trading_account: @trading_account, stock: @stock, delivery: true}
       @exdate = Date.parse('1/1/2012')
     end
@@ -48,7 +48,7 @@ describe BonusAction do
 
     it 'should allocate bonus specific to trading account' do
       create(:equity_buy, @params.merge(date: @exdate - 1, quantity: 100))
-      new_trading_account = TradingAccount.create
+      new_trading_account = create(:trading_account)
       create(:equity_buy, @params.merge(date: @exdate - 1, quantity: 200, trading_account: new_trading_account))
 
       BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3).apply
@@ -59,7 +59,7 @@ describe BonusAction do
 
     it 'should allocate bonus specific to portfolio' do
       create(:equity_buy, @params.merge(date: @exdate - 1, quantity: 100))
-      new_portfolio = Portfolio.create
+      new_portfolio = create(:portfolio)
       create(:equity_buy, @params.merge(date: @exdate - 1, quantity: 200, portfolio: new_portfolio))
 
       BonusAction.create!(stock: @stock, ex_date: @exdate, holding_qty: 5, bonus_qty: 3).apply
@@ -127,7 +127,7 @@ describe BonusAction do
       bonus_action.apply
 
       bonus_transactions = BonusTransaction.where(bonus_action_id: bonus_action.id).to_a
-      expect(bonus_transactions.collect(&:source_transaction_id)).to eq([buy1.id, buy2.id])
+      expect(bonus_transactions.collect(&:source_transaction_id)).to match_array([buy1.id, buy2.id])
     end
 
     it 'should update holding quantity' do

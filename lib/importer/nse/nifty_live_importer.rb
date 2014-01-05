@@ -9,7 +9,8 @@ module Importer
           return if response.class == Net::HTTPNotFound
           parse(response.body)
         rescue => e
-          Rails.logger.error e.inspect
+          puts e.message
+          puts e.backtrace
         end
       end
 

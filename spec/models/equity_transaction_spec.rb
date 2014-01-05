@@ -2,9 +2,9 @@ require 'spec_helper'
 
 describe EquityTransaction do
   before :each do
-    @trading_account = TradingAccount.create
-    @portfolio = Portfolio.create
-    @stock = Stock.create
+    @trading_account = create(:trading_account)
+    @portfolio = create(:portfolio)
+    @stock = create(:stock)
     @hash = {price: 1, quantity: 1, trading_account: @trading_account, portfolio: @portfolio, stock: @stock,
              date: Date.today}
   end

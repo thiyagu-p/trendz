@@ -7,7 +7,7 @@ describe Importer::Nse::CorporateActionImporter do
 
   context 'FT', ft: true do
     it 'import with full history', ft: true do
-      stock = Stock.create!(symbol: 'TCS', nse_series: 'EQ', face_value: 10, nse_active: true)
+      stock = create(:stock, symbol: 'TCS', nse_series: 'EQ', face_value: 10, nse_active: true)
       Importer::Nse::CorporateActionImporter.new.import
       DividendAction.count.should > 30
       BonusAction.count.should > 0
@@ -24,8 +24,8 @@ describe Importer::Nse::CorporateActionImporter do
 
     context 'first time run' do
       it 'import one by one using more than 24 months data and future data' do
-        reliance = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
-        lt = Stock.create(symbol: 'LT', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
+        reliance = create(:stock, symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
+        lt = create(:stock, symbol: 'LT', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
         @http = stub()
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
         @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.more_than_24_months_url(reliance.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))
@@ -40,7 +40,7 @@ describe Importer::Nse::CorporateActionImporter do
 
     context 'updating within 15 days' do
       it 'import using last 15 days data and future data' do
-        reliance = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
+        reliance = create(:stock, symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
         @status.update_attributes!(data_upto: Date.today - 14)
         @http = stub()
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
@@ -54,7 +54,7 @@ describe Importer::Nse::CorporateActionImporter do
 
     context 'updating within 3 months' do
       it 'import using last 3 months data' do
-        reliance = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
+        reliance = create(:stock, symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
         @status.update_attributes!(data_upto: Date.today - 89)
         @http = stub()
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
@@ -68,7 +68,7 @@ describe Importer::Nse::CorporateActionImporter do
 
     context 'parsing of data' do
       before :each do
-        @stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
+        @stock1 = create(:stock, symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY, nse_active: true)
         @http = stub()
         Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
         @http.expects(:request_get).with(Importer::Nse::CorporateActionImporter.more_than_24_months_url(@stock1.symbol), Importer::Nse::Connection.user_agent).returns(stub(body: corporate_action_json))

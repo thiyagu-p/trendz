@@ -15,7 +15,8 @@ module Importer
         end
         ImportStatus.completed_upto_today ImportStatus::Source::YAHOO_QUOTES
       rescue => e
-        Rails.logger.error e.inspect
+        puts e.message
+        puts e.backtrace
         ImportStatus.failed ImportStatus::Source::YAHOO_QUOTES
       end
     end

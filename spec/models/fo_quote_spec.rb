@@ -3,7 +3,7 @@ require 'spec_helper'
 describe "FoQuotes" do
 
   it "should not exists without stock" do
-    lambda { FoQuote.create!(:stock_id => 0) }.should raise_exception(ActiveRecord::InvalidForeignKey)
+    expect{ FoQuote.create!(:stock_id => 0) }.to raise_error
     FoQuote.find_by(stock_id: 0).should be_nil
   end
 
@@ -16,7 +16,7 @@ describe "FoQuotes" do
     it 'should apply factor on all past futures quotes' do
       ex_date = Date.parse('20130111')
       (Date.parse('20130101') .. ex_date - 1).each do |date|
-        FoQuote.create!(stock: @stock, open: 100, high: 1000, low: 10, close: 200, traded_quantity: 5000, date: date, fo_type: FoQuote::FUTURES)
+        create(:fo_quote, stock: @stock, open: 100, high: 1000, low: 10, close: 200, traded_quantity: 5000, date: date, fo_type: FoQuote::FUTURES)
       end
       factor = 0.25
       FoQuote.apply_factor(@stock, factor, ex_date)
@@ -37,7 +37,7 @@ describe "FoQuotes" do
       ex_date = Date.parse('20130111')
 
       stock_b = Stock.create! symbol: 'B'
-      quote_for_b = FoQuote.create!(stock: stock_b, open: 100, high: 1000, low: 10, close: 200, traded_quantity: 5000, date: ex_date - 1, fo_type: FoQuote::FUTURES)
+      quote_for_b = create(:fo_quote, stock: stock_b, open: 100, high: 1000, low: 10, close: 200, traded_quantity: 5000, date: ex_date - 1, fo_type: FoQuote::FUTURES)
 
       FoQuote.apply_factor(@stock, 0.25, ex_date)
 
@@ -53,8 +53,8 @@ describe "FoQuotes" do
 
     it 'should not apply factor on options quotes' do
       ex_date = Date.parse('20130111')
-      FoQuote.create!(stock: @stock, open: 100, high: 1000, low: 10, close: 200, traded_quantity: 5000, date: ex_date - 1, fo_type: FoQuote::PUT)
-      FoQuote.create!(stock: @stock, open: 100, high: 1000, low: 10, close: 200, traded_quantity: 5000, date: ex_date - 1, fo_type: FoQuote::CALL)
+      create(:fo_quote, stock: @stock, open: 100, high: 1000, low: 10, close: 200, traded_quantity: 5000, date: ex_date - 1, fo_type: FoQuote::PUT)
+      create(:fo_quote, stock: @stock, open: 100, high: 1000, low: 10, close: 200, traded_quantity: 5000, date: ex_date - 1, fo_type: FoQuote::CALL)
       FoQuote.apply_factor(@stock, 0.25, ex_date)
       FoQuote.where(stock_id: @stock.id).to_a.each do |quote|
         quote.open.should == 100.0

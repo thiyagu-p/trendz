@@ -1,6 +1,6 @@
 ImportStatus.find_or_create_by(source: ImportStatus::Source::BSE_BHAV).update_attributes!(data_upto: '31/12/2010')
 ImportStatus.find_or_create_by(source: ImportStatus::Source::BSE_STOCKMASTER)
-ImportStatus.find_or_create_by(source: ImportStatus::Source::BSE_CORPORATE_ACTION).update_attributes!(data_upto: '31/12/2006', )
+ImportStatus.find_or_create_by(source: ImportStatus::Source::BSE_CORPORATE_ACTION).update_attributes!(data_upto: '31/12/2006',)
 ImportStatus.find_or_create_by(source: ImportStatus::Source::NSE_SYMBOL_CHANGE)
 ImportStatus.find_or_create_by(source: ImportStatus::Source::NSE_EQUITIES_BHAV).update_attributes!(data_upto: EqQuote.maximum(:date))
 ImportStatus.find_or_create_by(source: ImportStatus::Source::NSE_DERIVATIVES_BHAV).update_attributes!(data_upto: FoQuote.maximum(:date))
@@ -8,3 +8,10 @@ ImportStatus.find_or_create_by(source: ImportStatus::Source::NSE_CORPORATE_ACTIO
 ImportStatus.find_or_create_by(source: ImportStatus::Source::NSE_CORPORATE_RESULT)
 ImportStatus.find_or_create_by(source: ImportStatus::Source::NSE_STOCK_MASTER)
 ImportStatus.find_or_create_by(source: ImportStatus::Source::YAHOO_QUOTES)
+
+Stock.find_or_create_by(symbol: 'BANKNIFTY').update_attribute(:yahoo_code, '^NSEBANK')
+Stock.find_or_create_by(symbol: 'CNXIT').update_attribute(:yahoo_code, '^CNXIT')
+Stock.find_or_create_by(symbol: 'NIFTY').update_attribute(:yahoo_code, '^NSEI')
+Stock.find_or_create_by(symbol: 'NFTYMCAP50').update_attribute(:yahoo_code, '^CRSMID')
+Stock.find_or_create_by(symbol: 'DJIA').update_attribute(:yahoo_code, '^DJI')
+Stock.find_or_create_by(symbol: 'S&P500').update_attribute(:yahoo_code, '^GSPC')

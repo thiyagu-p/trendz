@@ -3,11 +3,12 @@ require 'spec_helper'
 describe DividendAction do
   before :each do
     @stock = create(:stock, face_value: 5)
+    @exdate = Date.today
   end
 
   describe 'future_actions_with_current_percentage' do
     it "should find future actions" do
-      EqQuote.create!(stock: @stock, close: 100, date: Date.yesterday)
+      create(:eq_quote, stock: @stock, close: 100, date: Date.yesterday)
       dividend = DividendAction.create!(stock: @stock, percentage: 25, ex_date: Date.today)
       dividends = DividendAction.future_dividends_with_current_percentage
       dividends.size.should == 1
@@ -15,7 +16,7 @@ describe DividendAction do
     end
 
     it "should find current_percentage" do
-      EqQuote.create!(stock: @stock, close: 100, date: Date.yesterday)
+      create(:eq_quote, stock: @stock, close: 100, date: Date.yesterday)
       DividendAction.create!(stock: @stock, percentage: 25, ex_date: Date.today)
       dividends = DividendAction.future_dividends_with_current_percentage
       dividends.first.current_percentage == 1.20
@@ -78,8 +79,8 @@ describe DividendAction do
   end
   describe '.apply' do
     before :each do
-      @trading_account = TradingAccount.create
-      @portfolio = Portfolio.create
+      @trading_account = create(:trading_account)
+      @portfolio = create(:portfolio)
       @exdate = Date.parse('1/1/2012')
       @params = {quantity: 100, price: 250, brokerage: 200, portfolio: @portfolio, trading_account: @trading_account, stock: @stock, delivery: true}
       @action = DividendAction.create!(stock: @stock, percentage: 25, ex_date: @exdate)

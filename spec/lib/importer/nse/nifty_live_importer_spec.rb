@@ -5,7 +5,7 @@ describe Importer::Nse::NiftyLiveImporter do
     before :each do
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
-      @stock = Stock.create!(symbol: 'NIFTY')
+      @stock = create(:stock, symbol: 'NIFTY')
     end
 
     describe 'Import Skip' do
@@ -54,7 +54,7 @@ describe Importer::Nse::NiftyLiveImporter do
   describe 'FT' do
     it "should import", ft: true  do
       EqQuote.stubs(:find_by_date).returns(EqQuote.new)
-      stock = Stock.create(symbol: 'NIFTY')
+      stock = create(:stock, symbol: 'NIFTY')
       Importer::Nse::NiftyLiveImporter.new.import
       quotes = EqQuote.where(stock_id: stock.id).to_a
       quotes.size.should == 1
@@ -70,6 +70,6 @@ EOF
 end
 
 def set_bhav_imported(date)
-  stock = Stock.create
-  EqQuote.create(stock: stock, date: date)
+  stock = create(:stock)
+  create(:eq_quote, stock: stock, date: date)
 end

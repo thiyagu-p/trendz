@@ -13,9 +13,9 @@ describe Importer::YahooData do
   it "should import quotes for all stocks which has yahoo code set" do
     Date.stubs(:today).returns(Date.parse('2/1/2011'))
 
-    Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
-    Stock.create(symbol: 'Symbol2', yahoo_code: 'Y2')
-    Stock.create(symbol: 'Symbol3')
+    create(:stock, symbol: 'Symbol1', yahoo_code: '^Y1')
+    create(:stock, symbol: 'Symbol2', yahoo_code: 'Y2')
+    create(:stock, symbol: 'Symbol3')
 
     @http.expects(:request_get).with('/table.csv?&s=%5EY1&a=0&b=1&c=2011&d=0&e=2&f=2011&g=d&ignore=.csv').returns(stub(:class => Net::HTTPNotFound))
     @http.expects(:request_get).with('/table.csv?&s=Y2&a=0&b=1&c=2011&d=0&e=2&f=2011&g=d&ignore=.csv').returns(stub(:class => Net::HTTPNotFound))
@@ -25,7 +25,7 @@ describe Importer::YahooData do
 
   it "should import quote from next day of last available date of specific stock which has open price" do
     Date.stubs(:today).returns(Date.parse('5/10/2009'))
-    stock = Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
+    stock = create(:stock, symbol: 'Symbol1', yahoo_code: '^Y1')
     create(:eq_quote, stock: stock, date: Date.parse('1/1/2009'))
     @http.expects(:request_get).with('/table.csv?&s=%5EY1&a=0&b=2&c=2009&d=9&e=5&f=2009&g=d&ignore=.csv').returns(stub(:class => Net::HTTPNotFound))
 
@@ -34,7 +34,7 @@ describe Importer::YahooData do
 
   it "should update data for specific date if already present" do
     Date.stubs(:today).returns(Date.parse('2011-08-31'))
-    stock = Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
+    stock = create(:stock, symbol: 'Symbol1', yahoo_code: '^Y1')
     date = Date.parse('2011-08-30')
     create(:eq_quote, stock: stock, date: date)
     create(:eq_quote, stock: stock, date: date + 1, traded_quantity: nil)
@@ -44,14 +44,14 @@ describe Importer::YahooData do
     @importer.import
     quotes = EqQuote.where(stock_id: stock.id, date: date).to_a
     quotes.size.should == 1
-    quotes.first.open.should == 1209.76
-    quotes.first.high.should == 1220.10
-    quotes.first.low.should == 1195.77
-    quotes.first.close.should == 1212.92
+    expect(quotes.first.open).to be_within(0.01).of(1209.76)
+    expect(quotes.first.high).to be_within(0.01).of(1220.10)
+    expect(quotes.first.low).to be_within(0.01).of(1195.77)
+    expect(quotes.first.close).to be_within(0.01).of(1212.92)
   end
 
   it "should import skipping header and calculate moving average" do
-    stock = Stock.create(symbol: 'Symbol1', yahoo_code: '^Y1')
+    stock = create(:stock, symbol: 'Symbol1', yahoo_code: '^Y1')
     @http.expects(:request_get).returns(stub(:class => Net::HTTPOK, :body => data))
 
     @importer.import

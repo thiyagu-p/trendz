@@ -1,9 +1,9 @@
 class AddCorporateActionOnPortfolioTracker < ActiveRecord::Migration
   def change
     create_table :bonus_transactions do |t|
-      t.integer :source_transaction_id
-      t.integer :bonus_id
-      t.integer :bonus_action_id
+      t.integer :source_transaction_id, null: false
+      t.integer :bonus_id, null: false
+      t.integer :bonus_action_id, null: false
     end
 
     add_foreign_key(:bonus_transactions, :equity_transactions, column: :source_transaction_id, dependent: :delete)

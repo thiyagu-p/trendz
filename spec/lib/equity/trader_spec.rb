@@ -3,9 +3,9 @@ require 'spec_helper'
 describe Equity::Trader do
 
   before :each do
-    @trading_account = TradingAccount.create
-    @portfolio = Portfolio.create
-    @stock = Stock.create
+    @trading_account = create(:trading_account)
+    @portfolio = create(:portfolio)
+    @stock = create(:stock)
     @params = {quantity: 100, transaction: {portfolio: @portfolio, trading_account: @trading_account, stock: @stock, delivery: true}}
   end
 
@@ -208,13 +208,13 @@ describe Equity::Trader do
 
   it "should match buy and sell only within same trading account" do
     buy = FactoryHelper.create_equity_holding(@params).equity_transaction
-    sell = create(:equity_sell, @params[:transaction].merge(quantity: buy.quantity, trading_account: TradingAccount.create))
+    sell = create(:equity_sell, @params[:transaction].merge(quantity: buy.quantity, trading_account: create(:trading_account)))
     expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(0)
   end
 
   it "should match buy and sell only within same portfolio account" do
     buy = FactoryHelper.create_equity_holding(@params).equity_transaction
-    sell = create(:equity_sell, @params[:transaction].merge(quantity: buy.quantity, portfolio: Portfolio.create))
+    sell = create(:equity_sell, @params[:transaction].merge(quantity: buy.quantity, portfolio: create(:portfolio)))
     expect { Equity::Trader.handle_new_transaction(sell) }.to change(EquityTrade, :count).by(0)
   end
 

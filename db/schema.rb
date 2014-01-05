@@ -17,32 +17,32 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   enable_extension "plpgsql"
 
   create_table "bonus_actions", force: true do |t|
-    t.integer "stock_id"
-    t.date    "ex_date"
-    t.integer "holding_qty"
-    t.integer "bonus_qty"
+    t.integer "stock_id",                    null: false
+    t.date    "ex_date",                     null: false
+    t.integer "holding_qty",                 null: false
+    t.integer "bonus_qty",                   null: false
     t.boolean "applied",     default: false, null: false
   end
 
   create_table "bonus_transactions", force: true do |t|
-    t.integer "source_transaction_id"
-    t.integer "bonus_id"
-    t.integer "bonus_action_id"
+    t.integer "source_transaction_id", null: false
+    t.integer "bonus_id",              null: false
+    t.integer "bonus_action_id",       null: false
   end
 
   add_index "bonus_transactions", ["bonus_action_id", "source_transaction_id"], name: "idx_unique_bonus_txn", unique: true, using: :btree
 
   create_table "corporate_action_errors", force: true do |t|
-    t.integer "stock_id"
-    t.date    "ex_date"
+    t.integer "stock_id",                     null: false
+    t.date    "ex_date",                      null: false
     t.boolean "is_ignored",   default: false
     t.string  "full_data"
     t.string  "partial_data"
   end
 
   create_table "corporate_results", force: true do |t|
-    t.integer  "stock_id"
-    t.date     "quarter_end"
+    t.integer  "stock_id",                                          null: false
+    t.date     "quarter_end",                                       null: false
     t.decimal  "net_sales",                precision: 12, scale: 2
     t.decimal  "net_p_and_l",              precision: 12, scale: 2
     t.decimal  "eps_before_extraordinary", precision: 12, scale: 2
@@ -68,8 +68,8 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   add_index "delayed_jobs", ["priority", "run_at"], name: "delayed_jobs_priority", using: :btree
 
   create_table "dividend_actions", force: true do |t|
-    t.integer "stock_id"
-    t.date    "ex_date"
+    t.integer "stock_id",                                                      null: false
+    t.date    "ex_date",                                                       null: false
     t.decimal "percentage",            precision: 6, scale: 2
     t.decimal "value",                 precision: 6, scale: 2
     t.string  "nature",     limit: 10
@@ -79,26 +79,26 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   create_table "dividend_transactions", id: false, force: true do |t|
     t.integer "equity_transaction_id",                         null: false
     t.integer "dividend_action_id",                            null: false
-    t.decimal "value",                 precision: 7, scale: 2
+    t.decimal "value",                 precision: 7, scale: 2, null: false
   end
 
   add_index "dividend_transactions", ["dividend_action_id", "equity_transaction_id"], name: "idx_dividend_transaction", unique: true, using: :btree
 
   create_table "eq_quotes", force: true do |t|
-    t.integer "stock_id"
+    t.integer "stock_id",                                 null: false
+    t.date    "date",                                     null: false
     t.decimal "open",            precision: 8,  scale: 2
     t.decimal "high",            precision: 8,  scale: 2
     t.decimal "low",             precision: 8,  scale: 2
     t.decimal "close",           precision: 8,  scale: 2
     t.decimal "previous_close",  precision: 8,  scale: 2
+    t.decimal "original_close",  precision: 8,  scale: 2
+    t.decimal "traded_quantity", precision: 12, scale: 0
     t.decimal "mov_avg_10d",     precision: 8,  scale: 2
     t.decimal "mov_avg_50d",     precision: 8,  scale: 2
     t.decimal "mov_avg_200d",    precision: 8,  scale: 2
-    t.decimal "traded_quantity", precision: 16, scale: 2
-    t.date    "date"
   end
 
-  add_index "eq_quotes", ["date"], name: "index_eq_quotes_on_date", using: :btree
   add_index "eq_quotes", ["stock_id", "date"], name: "index_eq_quotes_on_stock_id_and_date", using: :btree
   add_index "eq_quotes", ["stock_id"], name: "index_eq_quotes_on_stock_id", using: :btree
 
@@ -118,24 +118,26 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   end
 
   create_table "equity_transactions", force: true do |t|
-    t.string   "type"
-    t.integer  "quantity"
-    t.date     "date"
-    t.decimal  "price",              precision: 7, scale: 2
-    t.decimal  "brokerage",          precision: 7, scale: 2
-    t.integer  "trading_account_id"
-    t.integer  "portfolio_id"
-    t.integer  "stock_id"
+    t.string   "type",                                                      null: false
+    t.integer  "quantity",                                                  null: false
+    t.date     "date",                                                      null: false
+    t.decimal  "price",              precision: 7, scale: 2,                null: false
+    t.decimal  "brokerage",          precision: 7, scale: 2, default: 0.0
+    t.integer  "trading_account_id",                                        null: false
+    t.integer  "portfolio_id",                                              null: false
+    t.integer  "stock_id",                                                  null: false
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "delivery",                                   default: true
   end
 
+  add_index "equity_transactions", ["stock_id"], name: "index_equity_transactions_on_stock_id", using: :btree
+
   create_table "face_value_actions", force: true do |t|
-    t.integer "stock_id"
-    t.date    "ex_date"
-    t.integer "from"
-    t.integer "to"
+    t.integer "stock_id",                 null: false
+    t.date    "ex_date",                  null: false
+    t.integer "from",                     null: false
+    t.integer "to",                       null: false
     t.boolean "applied",  default: false, null: false
   end
 
@@ -147,7 +149,11 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   add_index "face_value_transactions", ["face_value_action_id", "equity_transaction_id"], name: "idx_face_value_transaction", unique: true, using: :btree
 
   create_table "fo_quotes", force: true do |t|
-    t.integer "stock_id"
+    t.integer "stock_id",                                                   null: false
+    t.date    "date",                                                       null: false
+    t.date    "expiry_date",                                                null: false
+    t.string  "fo_type",                 limit: 2,                          null: false
+    t.string  "expiry_series",           limit: 7,                          null: false
     t.decimal "open",                              precision: 8,  scale: 2
     t.decimal "high",                              precision: 8,  scale: 2
     t.decimal "low",                               precision: 8,  scale: 2
@@ -156,16 +162,12 @@ ActiveRecord::Schema.define(version: 20131229125559) do
     t.decimal "traded_quantity",                   precision: 14, scale: 2
     t.decimal "open_interest",                     precision: 14, scale: 2
     t.decimal "change_in_open_interest",           precision: 10, scale: 2
-    t.date    "date"
-    t.date    "expiry_date"
-    t.string  "fo_type",                 limit: 2
-    t.string  "expiry_series",           limit: 7
   end
 
   add_index "fo_quotes", ["stock_id"], name: "index_fo_quotes_on_stock_id", using: :btree
 
   create_table "import_statuses", force: true do |t|
-    t.string  "source"
+    t.string  "source",    null: false
     t.date    "data_upto"
     t.date    "last_run"
     t.boolean "completed"
@@ -198,7 +200,7 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   add_index "market_activities", ["date"], name: "index_market_activities_on_date", using: :btree
 
   create_table "portfolios", force: true do |t|
-    t.string   "name"
+    t.string   "name",       null: false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -229,13 +231,13 @@ ActiveRecord::Schema.define(version: 20131229125559) do
   end
 
   create_table "trading_accounts", force: true do |t|
-    t.string   "name"
+    t.string   "name",       null: false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
   create_table "watchlists", force: true do |t|
-    t.string   "name"
+    t.string   "name",       null: false
     t.datetime "created_at"
     t.datetime "updated_at"
   end

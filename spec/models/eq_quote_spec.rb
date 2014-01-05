@@ -3,7 +3,7 @@ require 'spec_helper'
 describe "EqQuotes" do
 
   it "should not exists without stock" do
-    lambda { EqQuote.create!(:stock_id => 0) }.should raise_exception(ActiveRecord::InvalidForeignKey)
+    expect{ EqQuote.create!(:stock_id => 0) }.to raise_error
     EqQuote.find_by(stock_id: 0).should be_nil
   end
 

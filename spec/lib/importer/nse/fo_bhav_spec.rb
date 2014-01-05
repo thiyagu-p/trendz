@@ -5,7 +5,7 @@ describe Importer::Nse::FoBhav do
 
   before :each do
     @importer = Importer::Nse::FoBhav.new
-    @stock = Stock.create(symbol: 'BANKNIFTY', nse_series: Stock::NseSeries::INDEX)
+    @stock = create(:stock, symbol: 'BANKNIFTY', nse_series: Stock::NseSeries::INDEX)
   end
 
   describe :import do
@@ -64,12 +64,12 @@ describe Importer::Nse::FoBhav do
     end
 
     it "should identify current for expiry of next month but past current month expiry date" do
-      FoQuote.create!(stock: @stock, expiry_date: Date.parse('28-Jul-2011'))
+      create(:fo_quote, stock: @stock, expiry_date: Date.parse('28-Jul-2011'))
       @importer.process_row(CSV.parse_line('FUTIDX,BANKNIFTY,25-Aug-2011,0,XX,10616.1,10897.5,10611,10880.8,10880.8,61910,166889.6,963575,-193375,29-Jul-2011,'))
       FoQuote.find_by_stock_id(@stock.id).expiry_series.should == FoQuote::ExpirySeries::CURRENT
     end
     it "should identify next" do
-      FoQuote.create!(stock: @stock, expiry_date: Date.parse('30-Jun-2011'))
+      create(:fo_quote, stock: @stock, expiry_date: Date.parse('30-Jun-2011'))
       @importer.process_row(CSV.parse_line('FUTIDX,BANKNIFTY,28-Jul-2011,0,XX,10616.1,10897.5,10611,10880.8,10880.8,61910,166889.6,963575,-193375,24-JUN-2011,'))
       FoQuote.find_by_stock_id(@stock.id).expiry_series.should == FoQuote::ExpirySeries::NEXT
     end

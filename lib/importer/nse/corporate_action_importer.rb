@@ -30,7 +30,7 @@ module Importer
           ImportStatus.completed_upto_today ImportStatus::Source::NSE_CORPORATE_ACTION
         rescue => e
           puts "Nse::CorporateActionImporter Failed - #{e.message}"
-          puts "#{e.backtrace}"
+          puts e.backtrace
           ImportStatus.failed ImportStatus::Source::NSE_CORPORATE_ACTION
         end
 
@@ -55,7 +55,8 @@ module Importer
           begin
             download_data_from(CorporateActionImporter.more_than_24_months_url stock.symbol)
           rescue => e
-            p "Error importing company info for #{stock.symbol} #{e.inspect}"
+            puts "Error importing company info for #{stock.symbol} - #{e.message}"
+            puts e.backtrace
           end
         end
       end

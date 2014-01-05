@@ -7,6 +7,10 @@ FactoryGirl.define do
   factory :fo_quote do
     close 10.1
     open_interest 15.2
+    date Date.today
+    expiry_date Date.today
+    fo_type 'XX'
+    expiry_series 'current'
   end
 
   factory :eq_quote do

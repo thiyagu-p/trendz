@@ -13,9 +13,9 @@ describe FaceValueAction do
 
     context 'portfolio' do
       before :each do
-        @trading_account = TradingAccount.create
-        @portfolio = Portfolio.create
-        @stock = Stock.create
+        @trading_account = create(:trading_account)
+        @portfolio = create(:portfolio)
+        @stock = create(:stock)
         @exdate = Date.parse('1/1/2012')
         @params = {quantity: 100, price: 250, brokerage: 200, portfolio: @portfolio, trading_account: @trading_account, stock: @stock, delivery: true}
         @action = FaceValueAction.create!(stock: @stock, ex_date: @exdate, from: 10, to: 2)

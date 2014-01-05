@@ -1,7 +1,7 @@
 class CreateWatchlists < ActiveRecord::Migration
   def self.up
     create_table :watchlists do |t|
-      t.string :name
+      t.string :name, null: false
       t.timestamps
     end
 
