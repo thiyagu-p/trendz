@@ -1,9 +1,13 @@
 class BulkLoader
 
-  def load
-    clean_portfolio
+  def load_corp_actions
     symbol_changes = import_symbol_changes
     import_corporate_actions symbol_changes
+  end
+
+  def load_transaction
+    clean_portfolio
+    symbol_changes = import_symbol_changes
     save_transactions_with_corporate_actions symbol_changes
   end
 
@@ -14,10 +18,6 @@ class BulkLoader
       handle_transaction(line, symbol_changes)
     end
     EquityTransaction.order('date asc').to_a.each do |transaction|
-      if transaction.class == EquitySell
-        FaceValueAction.where("stock_id = #{transaction.stock_id} and ex_date < '#{transaction.date}' and not applied").order('ex_date').each { |action| action.apply }
-        BonusAction.where("stock_id = #{transaction.stock_id} and ex_date < '#{transaction.date}' and not applied").order('ex_date').each { |action| action.apply }
-      end
       Equity::Trader.handle_new_transaction(transaction)
     end
 
@@ -55,17 +55,20 @@ class BulkLoader
       if action == 'Divident'
         dividend = DividendAction.find_or_initialize_by(stock_id: stock.id, ex_date: date_str)
         if dividend.new_record?
-          percentage = is_percentage == 'true' ? dsb_value : dsb_value.to_f / 10.0
-          dividend.update_attributes! percentage: percentage
+          if is_percentage == 'true'
+            dividend.update_attributes! percentage: dsb_value
+          else
+            dividend.update_attributes! value: dsb_value
+          end
         end
-      end
-      if action == 'Bonus'
+      elsif action == 'Bonus'
         bonus = BonusAction.find_or_initialize_by(stock_id: stock.id, ex_date: date_str)
-        bonus.update_attributes! holding_qty: base,  bonus_qty: dsb_value if bonus.new_record?
-      end
-      if action == 'Split'
+        bonus.update_attributes! holding_qty: base, bonus_qty: dsb_value if bonus.new_record?
+      elsif action == 'Split'
         split = FaceValueAction.find_or_initialize_by(stock_id: stock.id, ex_date: date_str)
-        split.update_attributes! from: base,  to: dsb_value if split.new_record?
+        split.update_attributes! from: base, to: dsb_value if split.new_record?
+      else
+        p "Error in input file - #{line}"
       end
     end
   end
