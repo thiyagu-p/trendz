@@ -68,7 +68,7 @@ describe Importer::Nse::EquityBhav do
 
     it "should handle new stock codes" do
       Stock.count.should == 3
-      Stock.find_by(symbol: '20MICRONS').nse_series.should == Stock::NseSeries::EQUITY
+      expect(Stock.find_by(symbol: '20MICRONS').is_equity?).to be(true)
     end
 
   end

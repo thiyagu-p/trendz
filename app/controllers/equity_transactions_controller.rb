@@ -12,6 +12,7 @@ class EquityTransactionsController < ApplicationController
     action = params[:equity_transaction].delete 'type'
     @equity_transaction = action == EquityTransaction::BUY ? EquityBuy.new(equity_params) : EquitySell.new(equity_params)
     if @equity_transaction.save
+      Equity::Trader.handle_new_transaction(@equity_transaction)
       head :ok
     else
       @equity_transaction.errors.inspect

@@ -5,8 +5,10 @@ class HomeController < ApplicationController
     @bonus_actions = BonusAction.where("ex_date >= ?", Date.today).order(:ex_date)
     @face_value_actions = FaceValueAction.where("ex_date >= ?", Date.today).order(:ex_date)
     @action_errors = CorporateActionError.where("ex_date >= ? and not is_ignored", Date.today).order(:ex_date)
-    @consolidated_holdings = consolidate_holding EquityHolding.all
-    @year_beginning = EqQuote.where("date >= ?", Date.today.beginning_of_year).minimum(:date)
+    @consolidated_holdings = consolidate_holding EquityHolding.joins(equity_transaction: :portfolio).where("portfolios.name = 'Thiyagu'").all
+    beginning_of_year = Date.today.beginning_of_year
+    beginning_of_year -= 365 if Date.today.month == 1
+    @year_beginning = EqQuote.where("date >= ?", beginning_of_year).minimum(:date)
   end
 
   private

@@ -14,16 +14,16 @@ class BulkLoader
   private
 
   def save_transactions_with_corporate_actions symbol_changes
-    open('data/Log_Transaction.log').readlines.each do |line|
+    open('data/transaction_history.csv').readlines.each do |line|
       handle_transaction(line, symbol_changes)
     end
-    EquityTransaction.order('date asc').to_a.each do |transaction|
+    EquityTransaction.order('date asc, type asc').to_a.each do |transaction|
       Equity::Trader.handle_new_transaction(transaction)
     end
 
     EquityHolding.joins(equity_transaction: :stock).select('distinct stocks.*').to_a.each do |stock|
-      FaceValueAction.where("stock_id = #{stock.id} and not applied").order('ex_date').each { |action| action.apply }
-      BonusAction.where("stock_id = #{stock.id} and not applied").order('ex_date').each { |action| action.apply }
+      FaceValueAction.where("stock_id = #{stock.id} and not applied").order('ex_date').each { |action| action.apply_on_portfolio }
+      BonusAction.where("stock_id = #{stock.id} and not applied").order('ex_date').each { |action| action.apply_on_portfolio }
     end
 
   end
@@ -33,24 +33,24 @@ class BulkLoader
     date = Date.parse(date_str)
     symbol = symbol_changes[symbol] unless symbol_changes[symbol].nil?
     stock = Stock.find_or_create_by(symbol: symbol)
-    if stock.nse_series.nil?
-      stock.update_attributes face_value: 10, nse_active: false, nse_series: Stock::NseSeries::EQUITY
+    if stock.type.nil?
+      stock.update_attributes face_value: 10, nse_active: false, is_equity: true
     end
 
     portfolio = Portfolio.find_or_create_by(name: portfolio_name)
     tranding_account = TradingAccount.find_or_create_by(name: trading_account_name)
     transaction = action == 'Sell' ? EquitySell.new : EquityBuy.new
     transaction.update_attributes! stock: stock, date: date, quantity: quantity, price: price, brokerage: brokerage,
-                                   delivery: day_trading != 'DT', portfolio: portfolio, trading_account: tranding_account
+                                   delivery: (day_trading.nil? || day_trading.strip != 'DT'), portfolio: portfolio, trading_account: tranding_account
   end
 
   def import_corporate_actions symbol_changes
     open('data/Log_CompanyAction.log').readlines.each do |line|
       date_str, symbol, dsb_value, base, action, is_percentage, skipped = line.split(',')
       symbol = symbol_changes[symbol] unless symbol_changes[symbol].nil?
-      stock = Stock.find_or_create_by(symbol: symbol)
-      if stock.nse_series.nil?
-        stock.update_attributes face_value: 10, nse_active: false, nse_series: Stock::NseSeries::EQUITY
+      stock = Stock.find_or_initialize_by(symbol: symbol)
+      if stock.new_record?
+        stock.update_attributes face_value: 10, nse_active: false, is_equity: true
       end
       if action == 'Divident'
         dividend = DividendAction.find_or_initialize_by(stock_id: stock.id, ex_date: date_str)
@@ -80,9 +80,6 @@ class BulkLoader
     EquityHolding.delete_all
     EquityTrade.delete_all
     EquityTransaction.delete_all
-    BonusAction.delete_all
-    DividendAction.delete_all
-    FaceValueAction.delete_all
   end
 
   def import_symbol_changes

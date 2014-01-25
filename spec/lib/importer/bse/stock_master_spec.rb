@@ -48,11 +48,11 @@ describe Importer::Bse::StockMaster do
   end
 
   it 'should update existing stock' do
-     Stock.create!(symbol: 'ASSAMCO_NS', isin: 'INE442A01024')
+     Stock.create!(symbol: 'ASSAMCO_NS', isin: 'INE442A01024', nse_active: true, is_equity: true)
      @importer.send(:process_csv, bse_csv_content)
-     stock = Stock.find_by_symbol 'ASSAMCO_NS'
-     stock.bse_code.should == 500024
-     stock.bse_symbol.should == 'ASSAMCO'
+     stock = Stock.where(symbol: 'ASSAMCO_NS').first
+     expect(stock.bse_code).to be(500024)
+     expect(stock.bse_symbol).to eq('ASSAMCO')
   end
 
   it 'should skip stocks without isin' do

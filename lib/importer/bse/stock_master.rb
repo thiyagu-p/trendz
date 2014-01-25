@@ -12,8 +12,9 @@ module Importer
           process_csv(csv.content)
           ImportStatus.completed_upto_today(ImportStatus::Source::BSE_STOCKMASTER)
         rescue => e
-          Rails.logger.error "#{e.inspect}"
-          ImportStatus.failed(ImportStatus::Source::BSE_STOCKMASTER)
+          puts "Bse::StockMaster Failed - #{e.message}"
+          puts e.backtrace
+          ImportStatus.failed ImportStatus::Source::BSE_STOCKMASTER
         end
       end
 
@@ -22,11 +23,11 @@ module Importer
         CSV.parse(data, {headers: true}) do |row|
           bse_code, bse_symbol, company_name, status_string, bse_group, face_value, isin, industry, instrument = row.fields
           next if isin.nil? or isin.length < 12
-          stock = Stock.find_or_create_by(isin: isin)
+          stock = Stock.find_or_create_by(isin: isin, is_equity: true)
           stock.update_attributes!(bse_code: bse_code, bse_symbol: bse_symbol,
                                    bse_active: status_string == 'Active',
                                    bse_group: bse_group.strip, industry: industry)
-          if stock.symbol.nil?
+          if stock.symbol.nil? || (stock.bse_active? and not stock.nse_active?)
             stock.update_attributes! symbol: bse_symbol+"_BO", name: company_name, face_value: face_value
           end
         end

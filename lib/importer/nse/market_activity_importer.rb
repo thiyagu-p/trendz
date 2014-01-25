@@ -10,8 +10,13 @@ module Importer
       include Connection
 
       def import
-        import_equity_data
-        import_fo_data
+        begin
+          import_equity_data
+          import_fo_data
+        rescue => e
+          puts "Nse::MarketActivityImporter Failed - #{e.message}"
+          puts e.backtrace
+        end
       end
 
       def import_fo_data

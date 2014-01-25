@@ -34,14 +34,14 @@ describe Importer::Nse::StockMaster do
   end
   
   it 'should update existing stock' do
-    Stock.create!(symbol: '20MICRONS')
+    Stock.create!(symbol: '20MICRONS', is_equity: true)
     @importer.send(:parse_csv, bse_corp_action_data)
     Stock.count.should == 1
     stock = Stock.find_by(symbol: '20MICRONS')
     stock.isin.should == 'INE144J01027'
     stock.face_value.should == 5
     stock.name.should == '20 Microns Limited'
-    stock.nse_series == 'EQ'
+    expect(stock.is_equity?).to be(true)
   end
 
 end

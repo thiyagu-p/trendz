@@ -4,7 +4,7 @@ describe Importer::Nse::CorporateResultImporter do
 
   describe :import do
     it "should encode symbol" do
-      stock = Stock.create(symbol: 'M&M', nse_series: Stock::NseSeries::EQUITY)
+      stock = Stock.create(symbol: 'M&M', is_equity: true)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=M%26M", Importer::Nse::Connection.user_agent).returns(stub(:class => Net::HTTPNotFound))
@@ -12,7 +12,7 @@ describe Importer::Nse::CorporateResultImporter do
     end
 
     it "should import and save parsed data" do
-      stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY)
+      stock1 = Stock.create(symbol: 'RELIANCE', is_equity: true)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{stock1.symbol}", Importer::Nse::Connection.user_agent).returns(stub(body: result_history_html))
@@ -25,7 +25,7 @@ describe Importer::Nse::CorporateResultImporter do
     end
 
     it "should import and save parsed data for all quarters" do
-      stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY)
+      stock1 = Stock.create(symbol: 'RELIANCE', is_equity: true)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       @http.expects(:request_get).with("/corporates/corpInfo/equities/resHistory.jsp?symbol=#{stock1.symbol}", Importer::Nse::Connection.user_agent).returns(stub(body: result_history_html))
@@ -35,7 +35,7 @@ describe Importer::Nse::CorporateResultImporter do
     end
 
     it "should ignore existing equity actions" do
-      stock1 = Stock.create(symbol: 'RELIANCE', nse_series: Stock::NseSeries::EQUITY)
+      stock1 = Stock.create(symbol: 'RELIANCE', is_equity: true)
       @http = stub()
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)
       Net::HTTP.expects(:new).with(NSE_URL).returns(@http)

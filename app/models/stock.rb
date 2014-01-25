@@ -1,10 +1,5 @@
 class Stock < ActiveRecord::Base
 
-  module NseSeries
-    EQUITY = 'EQ'
-    INDEX = 'I'
-  end
-
   has_many :fo_quotes
   has_many :eq_quotes
 

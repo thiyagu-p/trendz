@@ -1,3 +1,5 @@
+require 'zip/zipfilesystem'
+
 module Importer
   module Bse
     class EquityBhav
@@ -13,7 +15,8 @@ module Importer
           (start_date .. Date.today).each { |date| import_for(date) }
           ImportStatus.completed(ImportStatus::Source::BSE_BHAV)
         rescue => e
-          Rails.logger.error "#{e.inspect}"
+          puts "Bse::EquityBhav Failed - #{e.message}"
+          puts e.backtrace
           ImportStatus.failed(ImportStatus::Source::BSE_BHAV)
         end
       end

@@ -5,7 +5,8 @@ module Importer
     def persist_actions(action_data, actions, ex_date, stock)
       actions.each do |action|
         if action[:type] == :dividend
-          dividend = DividendAction.find_or_create_by(stock_id: stock.id, ex_date: ex_date, nature: action[:nature], percentage: action[:percentage], value: action[:value])
+          dividend = DividendAction.find_or_initialize_by(stock_id: stock.id, ex_date: ex_date, percentage: action[:percentage], value: action[:value])
+          dividend.update_attributes!(nature: action[:nature])
         elsif action[:type] == :bonus
           bonus = BonusAction.find_or_initialize_by(stock_id: stock.id, ex_date: ex_date)
           bonus.update_attributes!(holding_qty: action[:holding], bonus_qty: action[:bonus])
