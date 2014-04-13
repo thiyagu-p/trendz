@@ -3,7 +3,6 @@ db/*.sqlite3
 log/*.log
 tmp/
 .idea/
-data/
 db-backup/
 .DS_Store
 ToDo.txt
