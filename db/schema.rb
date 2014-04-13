@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140125180339) do
+ActiveRecord::Schema.define(version: 20140126135952) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -70,7 +70,7 @@ ActiveRecord::Schema.define(version: 20140125180339) do
   create_table "dividend_actions", force: true do |t|
     t.integer "stock_id",                                                      null: false
     t.date    "ex_date",                                                       null: false
-    t.decimal "percentage",            precision: 6, scale: 2
+    t.decimal "percentage",            precision: 8, scale: 2
     t.decimal "value",                 precision: 6, scale: 2
     t.string  "nature",     limit: 10
     t.boolean "applied",                                       default: false, null: false

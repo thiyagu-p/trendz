@@ -32,8 +32,8 @@ class BulkLoader
     date_str, symbol, action, quantity, price, brokerage, portfolio_name, trading_account_name, day_trading = line.split(',')
     date = Date.parse(date_str)
     symbol = symbol_changes[symbol] unless symbol_changes[symbol].nil?
-    stock = Stock.find_or_create_by(symbol: symbol)
-    if stock.type.nil?
+    stock = Stock.find_or_initialize_by(symbol: symbol)
+    if stock.new_record?
       stock.update_attributes face_value: 10, nse_active: false, is_equity: true
     end
 

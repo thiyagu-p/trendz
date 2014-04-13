@@ -1,4 +1,5 @@
 require 'zip/zipfilesystem'
+require 'csv'
 
 module Importer
   module Bse
@@ -58,7 +59,7 @@ module Importer
         return if (stock = Stock.find_by_bse_code(bse_code)).nil?
         return unless EqQuote.find_by_stock_id_and_date(stock.id, date).nil?
 
-        EqQuote.create!(stock: stock, open: open, high: high, low: low, close: close, previous_close: previous_close, :traded_quantity => traded_qty, :date => date)
+        EqQuote.create!(stock: stock, open: open, high: high, low: low, close: close, original_close: close, previous_close: previous_close, :traded_quantity => traded_qty, :date => date)
         MovingAverageCalculator.update(date, stock)
       end
     end
