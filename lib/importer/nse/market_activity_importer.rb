@@ -28,21 +28,20 @@ module Importer
       end
 
       def import_equity_data
-        start_date = ((MarketActivity.maximum('date') or Date.parse('31/12/2009')) + 1.day).strftime('%d-%m-%Y')
-        end_date = Date.today.strftime('%d-%m-%Y')
-        return unless start_date <= end_date
-        url = "/products/dynaContent/equities/equities/eq_fiidii_archives.jsp?category=all&check=new&fromDate=#{start_date}&toDate=#{end_date}"
-        Rails.logger.info "Processing Equity market activity @ #{url}"
-        response = get(url)
-        csv_url = find_csv_url(response.body)
-        return unless csv_url
-        csv_content = get(csv_url).body
-        CSV.parse(csv_content) do |row|
-          next unless row[0] =~ /FII|DII/
-          market_activity = MarketActivity.find_or_create_by(date: Date.parse(row[1]))
-          market_activity.update_attribute("#{row[0].downcase}_buy_equity", row[2])
-          market_activity.update_attribute("#{row[0].downcase}_sell_equity", row[3])
-          market_activity.save!
+        start_date = ((MarketActivity.maximum('date') or Date.parse('31/12/2009')) + 1.day)
+        end_date = Date.today
+        if start_date <= end_date
+          url = "/products/dynaContent/equities/equities/eq_fiidii_archives.jsp?category=all&check=new&fromDate=#{start_date.strftime('%d-%m-%Y')}&toDate=#{end_date.strftime('%d-%m-%Y')}"
+          Rails.logger.info "Processing Equity market activity @ #{url}"
+          doc = Nokogiri::HTML(get(url).body)
+          doc.css('tr[height="20"]').each do |row|
+            cells = row.css('td')
+            next unless cells[0].text =~ /FII|DII/
+            market_activity = MarketActivity.find_or_create_by(date: Date.parse(cells[1].text))
+            market_activity.update_attribute("#{cells[0].text.downcase}_buy_equity", cells[2].text)
+            market_activity.update_attribute("#{cells[0].text.downcase}_sell_equity", cells[3].text)
+            market_activity.save!
+          end
         end
       end
 

@@ -20,7 +20,7 @@ class StockPerformance
   private
 
   def find_earliest_quote(stock_id, date)
-    EqQuote.order(:date).where("date >='#{date}'").find_by(stock_id: stock_id)
+    EqQuote.order('date desc').where("date <='#{date}'").limit(1).find_by(stock_id: stock_id)
   end
 
   def return_percentage(start_quote, end_quote)

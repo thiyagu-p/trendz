@@ -1,78 +1,93 @@
-<div id="holdings">
-  <table>
-    <tr>
-      <th>Symbol</th>
-      <th>Qty</th>
-      <th># Days</th>
-      <th>ROI</th>
-      <th>Avg Cost</th>
-      <th>Value</th>
-      <th>YTD : P/L</th>
-      <th>Yr start</th>
-      <th>Current</th>
-      <% StockPerformance::PERIOD.each do |days| %>
-          <th><%= days %> Days</th>
-      <% end %>
-    </tr>
-    <%
-       total_ytd_pl = 0
-       total_cost = 0
-       ytd = (Date.today - @year_beginning)
-       @consolidated_holdings.each do |stock, holding_summary|
-         latest_price = stock.latest_quote.nil? ? 0 : stock.latest_quote.close
-         purchase_price = holding_summary[:average_cost]
-         beginning_quote = EqQuote.find_by_stock_id_and_date(stock.id, @year_beginning)
+<div class="left">
+  <div id="holdings">
+    <table>
+      <tr>
+        <th>Symbol</th>
+        <th>Qty</th>
+        <th># Days</th>
+        <th>ROI</th>
+        <th>Avg Cost</th>
+        <th>Value</th>
+        <th>YTD : P/L</th>
+        <th>Yr start</th>
+        <th>Current</th>
+        <% StockPerformance::PERIOD.each do |days| %>
+            <th><%= days %> Days</th>
+        <% end %>
+      </tr>
+      <%
+         total_ytd_pl = 0
+         total_cost = 0
+         ytd = (Date.today - @year_beginning)
+         @consolidated_holdings.each do |stock, holding_summary|
+           latest_price = stock.latest_quote.nil? ? 0 : stock.latest_quote.close
+           purchase_price = holding_summary[:average_cost]
+           beginning_quote = EqQuote.find_by_stock_id_and_date(stock.id, @year_beginning)
 
-         start_price = holding_summary[:average_days] > ytd && beginning_quote ?
-                 beginning_quote.close : purchase_price
-    %>
-        <tr>
-          <td><%= display_stock_symbol stock.symbol %></td>
-          <td><%= holding_summary[:quantity] %></td>
-          <td><%= holding_summary[:average_days] %></td>
-          <td><%= ((latest_price - purchase_price) / purchase_price / holding_summary[:average_days] * 365 * 100).round(1) %></td>
-          <td><%= purchase_price %></td>
-          <td><%= (latest_price * holding_summary[:quantity]).round(0) %></td>
-          <td>
-            <%
-               pl = holding_summary[:quantity] * (latest_price - start_price)
-               total_ytd_pl += pl
-               total_cost += holding_summary[:quantity] * start_price
-            %>
-            <%= pl.round(0) %>
-            (<%= raw display_returns((latest_price - start_price)/start_price * 100) %>)
-          </td>
-          <td><%= start_price %></td>
-          <td><%= latest_price %></td>
-          <% stock.performance.returns.each do |days, value| %>
-              <td><%= raw display_returns(value) %></td>
-          <% end %>
-        </tr>
-    <% end %>
-    <% unless @consolidated_holdings.empty? %>
-        <tr>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class='highlight'>
-            <%= total_ytd_pl %>
-            (<%= (total_ytd_pl/total_cost * 100).round(0) %>)
-          </td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-    <% end %>
-  </table>
+           start_price = holding_summary[:average_days] > ytd && beginning_quote ?
+                   beginning_quote.close : purchase_price
+      %>
+          <tr>
+            <td><%= display_stock_symbol stock.symbol %></td>
+            <td><%= holding_summary[:quantity] %></td>
+            <td><%= holding_summary[:average_days] %></td>
+            <td><%= ((latest_price - purchase_price) / purchase_price / holding_summary[:average_days] * 365 * 100).round(1) %></td>
+            <td><%= purchase_price %></td>
+            <td><%= (latest_price * holding_summary[:quantity]).round(0) %></td>
+            <td>
+              <%
+                 pl = holding_summary[:quantity] * (latest_price - start_price)
+                 total_ytd_pl += pl
+                 total_cost += holding_summary[:quantity] * start_price
+              %>
+              <%= pl.round(0) %>
+              (<%= raw display_returns((latest_price - start_price)/start_price * 100) %>)
+            </td>
+            <td><%= start_price %></td>
+            <td><%= latest_price %></td>
+            <% stock.performance.returns.each do |days, value| %>
+                <td><%= raw display_returns(value) %></td>
+            <% end %>
+          </tr>
+      <% end %>
+      <% unless @consolidated_holdings.empty? %>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class='highlight'>
+              <%= total_ytd_pl %>
+              (<%= (total_ytd_pl/total_cost * 100).round(0) %>)
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+      <% end %>
+    </table>
+  </div>
+  <div class="performers">
+    <table>
+      <% @best_performers.each do |performer| %>
+          <tr>
+            <td><%= display_stock_symbol performer.stock.symbol %></td>
+            <td><%= performer.perf %></td>
+            <% performer.stock.performance.returns.each do |days, value| %>
+                <td><%= raw display_returns(value) %></td>
+            <% end %>
+          </tr>
+      <% end %>
+    </table>
+  </div>
 </div>
-<div class="company_actions">
+<div class="right">
   <div class="dividend">
     <table>
       <tr>

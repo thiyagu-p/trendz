@@ -88,8 +88,14 @@ table, table td, table th {
     margin: 10px;
 }
 
+.left {
+    float: left
+}
+.right {
+    float: right
+}
+
 .company_actions {
-    float: right;
     margin-right: 10px;
     text-align: center;
 }
@@ -123,10 +129,6 @@ table, table td, table th {
     margin-top: 15px;
     overflow: scroll;
     overflow-style: scrollbar;
-}
-
-#holdings {
-    float: left;
 }
 
 .axis path, .axis line {

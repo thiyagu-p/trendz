@@ -9,6 +9,8 @@ class HomeController < ApplicationController
     beginning_of_year = Date.today.beginning_of_year
     beginning_of_year -= 365 if Date.today.month == 1
     @year_beginning = EqQuote.where("date >= ?", beginning_of_year).minimum(:date)
+    last_10_days = EqQuote.select('distinct date').limit(10).order('date desc')
+    @best_performers = EqQuote.find_best_performers(last_10_days.last.date, last_10_days.first.date, 20)
   end
 
   private
