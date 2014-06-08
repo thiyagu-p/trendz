@@ -29,7 +29,7 @@ module Importer
         date = Date.parse(row[0])
         quote = EqQuote.find_or_create_by(stock_id: stock.id, date: date)
         quote.update_attributes(open: row[1], high: row[2], low: row[3],
-                                close: row[4], traded_quantity: row[5])
+                                close: row[4], traded_quantity: row[5], :original_close => row[4])
         quote.save!
         MovingAverageCalculator.update(date, stock)
       end
