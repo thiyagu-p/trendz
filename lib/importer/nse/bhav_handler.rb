@@ -10,14 +10,6 @@ module Importer
           end
         end
 
-        def startdate(date)
-          class_eval do
-            define_method :startdate do
-              date
-            end
-          end
-        end
-
         def sub_path(folder_name)
           class_eval do
             define_method :sub_path do
