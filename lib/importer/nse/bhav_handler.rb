@@ -51,7 +51,7 @@ module Importer
       end
 
       def import
-        start_date = (model.maximum('date') or Date.parse(startdate)) + 1
+        start_date = ImportStatus.find_by_source(status_source).data_upto + 1
         begin
           (start_date .. Date.today).each do |date|
             Rails.logger.info "processing #{sub_path} bhav for #{date}"
